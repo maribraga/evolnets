@@ -1,15 +1,14 @@
 Package: evolnets
-Title: What the Package Does (One Line, Title Case)
+Title: Reconstruct Ancestral Networks Inferred In RevBayes
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Mariana",
+           family = "Braga",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "mpiresbr@gmail.com",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to
-    pick a license
+Description: RevBayes offers models to infer host-repertoire evolution, but no tools to parse the outputs. This package has the necessary tools to reconstruct ancestral ecological networks based on posterior probabilities of interactions. 
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
