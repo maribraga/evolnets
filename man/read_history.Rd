@@ -7,11 +7,15 @@
 read_history(path_to_hist)
 }
 \arguments{
-\item{path_to_hist}{string}
+\item{path_to_hist}{string path to the .txt file exported from RevBayes}
 }
 \value{
 data frame
 }
 \description{
-Read history.txt file produced by RevBayes
+Read history.txt file containing the posterior samples of interaction histories
+}
+\examples{
+# read history file
+\dontrun{history_full <- read_history("/path/history.txt")}
 }
