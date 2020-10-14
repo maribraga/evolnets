@@ -20,8 +20,8 @@
 #' rate <- effective_rate(history,tree)
 #'
 #' # gains and losses
-#' gl <- count_gl(history)
-#' rgl <- rate_gl(history, tree)
+#' gl_events <- count_gl(history)
+#' gl_rates <- rate_gl(history, tree)
 #'
 #' @name events_counter
 NULL

@@ -35,5 +35,5 @@ data(history)
 
 # get samples at age
 ages <- c(80,70)
-samples <- samples_at_ages(history, ages, tree, host_tree)
+samples_at_ages <- samples_at_ages(history, ages, tree, host_tree)
 }

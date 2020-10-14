@@ -22,7 +22,7 @@
 #'
 #' # get samples at age
 #' ages <- c(80,70)
-#' samples <- samples_at_ages(history, ages, tree, host_tree)
+#' samples_at_ages <- samples_at_ages(history, ages, tree, host_tree)
 samples_at_ages <- function(history, ages, tree, host_tree, state=c(2), drop_empty=T) {
 
   samp_ages = list()
