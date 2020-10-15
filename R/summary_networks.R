@@ -1,7 +1,10 @@
-#' Get summary networks from posterior probabilities of interactions of extant lineages at given time points in the past
+#' Get summary networks from posterior probabilities of interactions of extant
+#' lineages at given time points in the past
 #'
-#' @param pp_at_ages List of matrices with posterior probabilities for each interaction of extant lineages at given ages
-#' @param pt Probability threshold to include an interaction in the network. Interactions with pp < pt will be dropped.
+#' @param pp_at_ages List of matrices with posterior probabilities for each
+#'   interaction of extant lineages at given ages
+#' @param pt Probability threshold to include an interaction in the network.
+#'   Interactions with pp < pt will be dropped.
 #' @param weighted Logical. Use posterior probabilities as interaction weights?
 #'
 #' @return incidence matrix

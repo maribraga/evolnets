@@ -10,7 +10,8 @@
 #'   \item{transition_time}{Time when event (host gain or loss) happened}
 #'   \item{parent_index, child1_index, child2_index}{Index of parent and child nodes}
 #' }
-#' @details The data frame contains MCMC samples from the analysis of host-repertoire evolution across Pieridae, done in RevBayes
+#' @details The data frame contains MCMC samples from the analysis of host-repertoire
+#'  evolution across Pieridae, done in RevBayes
 #'
 #' @source Braga et al. 2020 BioRxiv
 "history"

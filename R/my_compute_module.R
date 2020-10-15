@@ -36,8 +36,9 @@ mycomputeModules = function(web, method="Beckett", steps=1000000, tolerance=1e-1
 
 
 
-# This function is ALSO in drawModules.R!!
-# Auxiliary function checking whether the passed object is an object of class "moduleWeb" and contains correctly formatted information
+# This function is ALSO in drawModules.R!! Auxiliary function checking whether
+# the passed object is an object of class "moduleWeb" and contains correctly
+# formatted information
 isCorrectModuleWebObject = function(moduleWebObject) {
 
   if (!is(moduleWebObject, "moduleWeb")) {

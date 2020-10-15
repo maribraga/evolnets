@@ -1,15 +1,21 @@
 #' Get ancestral networks sampled across MCMC
 #'
-#' @description Retrieve samples in the history.txt file produced by the analysis of host-repertoire evolution in RevBayes as a host-parasite incidence matrix (binary bipartite network).
+#' @description Retrieve samples in the history.txt file produced by the
+#'   analysis of host-repertoire evolution in RevBayes as a host-parasite
+#'   incidence matrix (binary bipartite network).
 #'
 #' @param history Data frame with posterior samples of interaction histories.
-#' @param ages Vector of ages (time points in the past) at which samples will be retrieved.
+#' @param ages Vector of ages (time points in the past) at which samples will be
+#'   retrieved.
 #' @param tree Parasite tree
 #' @param host_tree Host tree
-#' @param state Which state? Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host).
+#' @param state Which state? Default is 2. For analyses using the 3-state model,
+#'   can take the values 1 (potential host) or 2 (actual host).
 #' @param drop_empty Logical. Remove taxa without any interactions?
 #'
-#' @return A list of arrays of samples x parasites x hosts. The number of samples is the number of iterations in `history`. At each age, all hosts and all extant parasite lineages are included.
+#' @return A list of arrays of samples x parasites x hosts. The number of
+#'   samples is the number of iterations in `history`. At each age, all hosts
+#'   and all extant parasite lineages are included.
 #' @export
 #'
 #' @examples

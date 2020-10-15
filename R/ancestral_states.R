@@ -1,15 +1,20 @@
-#' Functions to calculate the posterior probability of ancestral host repertoires
+#' Functions to calculate the posterior probability of ancestral host
+#' repertoires
 #'
-#' @description Group of functions to calculate the posterior probabilities of ancestral host repertoires at
-#' internal nodes of the parasite tree or at specific time points in the past.
+#' @description Group of functions to calculate the posterior probabilities of
+#'   ancestral host repertoires at internal nodes of the parasite tree or at
+#'   specific time points in the past.
 #'
 #' @param history Data frame with posterior samples of interaction histories.
-#' @param ages Vector of ages (time points in the past) at which ancestral host repertoires will be reconstructed.
-#' @param state Which state? Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host).
+#' @param ages Vector of ages (time points in the past) at which ancestral host
+#'   repertoires will be reconstructed.
+#' @param state Which state? Default is 2. For analyses using the 3-state model,
+#'   can take the values 1 (potential host) or 2 (actual host).
 #' @param tree Parasite tree
 #' @param host_tree Host tree
 #' @param drop_empty Logical. Remove taxa without any interactions?
-#' @param nodes Vector of internal nodes for which to calculate the posterior probability of `state`.
+#' @param nodes Vector of internal nodes for which to calculate the posterior
+#'   probability of `state`.
 #'
 #' @examples
 #' # read parasite and host tree

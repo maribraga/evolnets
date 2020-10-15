@@ -1,11 +1,16 @@
 #' Posterior distribution of modularity across ancestral networks
 #'
-#' @description Calculate z-scores for modularity (Q) for each MCMC sample at time points in the past based on null networks where all interactions have the same probability. By calculating z-scores, we can compare ancestral networks at different ages.
+#' @description Calculate z-scores for modularity (Q) for each MCMC sample at
+#'   time points in the past based on null networks where all interactions have
+#'   the same probability. By calculating z-scores, we can compare ancestral
+#'   networks at different ages.
 #'
-#' @param samples_at_ages List of ancestral networks sampled across MCMC at given ages.
+#' @param samples_at_ages List of ancestral networks sampled across MCMC at
+#'   given ages.
 #' @param ages Vector of ages (time points in the past) of ancestral networks.
 #' @param null Number of null networks to generate to calculate the z-score.
-#' @param seed Seed passed to `stats::simulate` to generate null networks. Default to NULL.
+#' @param seed Seed passed to `stats::simulate` to generate null networks.
+#'   Default to NULL.
 #'
 #' @return A tibble of Q z-scores and p-values across samples and ages.
 #' @importFrom magrittr %>%

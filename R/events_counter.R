@@ -1,7 +1,9 @@
 #' Calculate the rate of host-repertoire evolution
 #'
-#' @description Calculate the number of host gains, host losses, and the effective rate of host repertoire evolution
-#' @param history A data frame containing the character history produced by RevBayes
+#' @description Calculate the number of host gains, host losses, and the
+#'   effective rate of host repertoire evolution
+#' @param history A data frame containing the character history produced by
+#'   RevBayes
 #' @param tree A phylogenetic tree of the parasite clade
 #'
 #' @examples
@@ -44,7 +46,8 @@ count_events <- function(history){
 }
 
 
-#' @describeIn events_counter Get the effective rate of evolution, i.e. number of events per million years, along each tree branch
+#' @describeIn events_counter Get the effective rate of evolution, i.e. number
+#'   of events per million years, along each tree branch
 #' @export
 effective_rate <- function(history, tree) {
 
