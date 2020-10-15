@@ -1,14 +1,20 @@
 Package: evolnets
 Title: Reconstruct Ancestral Networks Inferred In RevBayes
 Version: 0.0.0.9000
-Authors@R: 
+Authors@R: c(
     person(given = "Mariana",
-           family = "Braga",
+           family = "P Braga",
            role = c("aut", "cre"),
            email = "mpiresbr@gmail.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: RevBayes offers models to infer host-repertoire evolution, but no tools to parse the outputs. This package has the necessary tools to reconstruct ancestral ecological networks based on posterior probabilities of interactions. 
-License: MIT + file LICENSE
+           comment = c(ORCID = "0000-0002-1253-2536")),
+    person(given = "Michael",
+           family = "Landis",
+           role = "aut"))
+Description: RevBayes offers models to infer host-repertoire evolution, but no
+    tools to parse the outputs. This package has the necessary tools to 
+    reconstruct ancestral ecological networks based on posterior 
+    probabilities of interactions. 
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -16,14 +22,16 @@ RoxygenNote: 7.1.1
 Suggests: 
     testthat
 Imports: 
-    utils,
+    ape,
+    bipartite,
+    data.table,
     dplyr,
     magrittr,
+    methods,
     stringr,
-    ape,
-    data.table,
-    bipartite,
-    vegan,
-    methods
+    utils,
+    vegan
 Depends: 
     R (>= 2.10)
+URL: https://github.com/maribraga/evolnets
+BugReports: https://github.com/maribraga/evolnets/issues
