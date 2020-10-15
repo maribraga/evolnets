@@ -4,7 +4,8 @@
 \alias{ancestral_states}
 \alias{posterior_at_nodes}
 \alias{posterior_at_ages}
-\title{Functions to calculate the posterior probability of ancestral host repertoires}
+\title{Functions to calculate the posterior probability of ancestral host
+repertoires}
 \usage{
 posterior_at_nodes(history, nodes, host_tree, state = c(2))
 
@@ -13,21 +14,25 @@ posterior_at_ages(history, ages, tree, host_tree, state = c(2), drop_empty = T)
 \arguments{
 \item{history}{Data frame with posterior samples of interaction histories.}
 
-\item{nodes}{Vector of internal nodes for which to calculate the posterior probability of \code{state}.}
+\item{nodes}{Vector of internal nodes for which to calculate the posterior
+probability of \code{state}.}
 
 \item{host_tree}{Host tree}
 
-\item{state}{Which state? Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host).}
+\item{state}{Which state? Default is 2. For analyses using the 3-state model,
+can take the values 1 (potential host) or 2 (actual host).}
 
-\item{ages}{Vector of ages (time points in the past) at which ancestral host repertoires will be reconstructed.}
+\item{ages}{Vector of ages (time points in the past) at which ancestral host
+repertoires will be reconstructed.}
 
 \item{tree}{Parasite tree}
 
 \item{drop_empty}{Logical. Remove taxa without any interactions?}
 }
 \description{
-Group of functions to calculate the posterior probabilities of ancestral host repertoires at
-internal nodes of the parasite tree or at specific time points in the past.
+Group of functions to calculate the posterior probabilities of
+ancestral host repertoires at internal nodes of the parasite tree or at
+specific time points in the past.
 }
 \section{Functions}{
 \itemize{

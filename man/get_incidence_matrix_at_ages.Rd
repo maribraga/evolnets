@@ -2,14 +2,17 @@
 % Please edit documentation in R/summary_networks.R
 \name{get_incidence_matrix_at_ages}
 \alias{get_incidence_matrix_at_ages}
-\title{Get summary networks from posterior probabilities of interactions of extant lineages at given time points in the past}
+\title{Get summary networks from posterior probabilities of interactions of extant
+lineages at given time points in the past}
 \usage{
 get_incidence_matrix_at_ages(pp_at_ages, pt, weighted = TRUE)
 }
 \arguments{
-\item{pp_at_ages}{List of matrices with posterior probabilities for each interaction of extant lineages at given ages}
+\item{pp_at_ages}{List of matrices with posterior probabilities for each
+interaction of extant lineages at given ages}
 
-\item{pt}{Probability threshold to include an interaction in the network. Interactions with pp < pt will be dropped.}
+\item{pt}{Probability threshold to include an interaction in the network.
+Interactions with pp < pt will be dropped.}
 
 \item{weighted}{Logical. Use posterior probabilities as interaction weights?}
 }
@@ -17,5 +20,6 @@ get_incidence_matrix_at_ages(pp_at_ages, pt, weighted = TRUE)
 incidence matrix
 }
 \description{
-Get summary networks from posterior probabilities of interactions of extant lineages at given time points in the past
+Get summary networks from posterior probabilities of interactions of extant
+lineages at given time points in the past
 }

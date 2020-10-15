@@ -9,21 +9,27 @@ samples_at_ages(history, ages, tree, host_tree, state = c(2), drop_empty = T)
 \arguments{
 \item{history}{Data frame with posterior samples of interaction histories.}
 
-\item{ages}{Vector of ages (time points in the past) at which samples will be retrieved.}
+\item{ages}{Vector of ages (time points in the past) at which samples will be
+retrieved.}
 
 \item{tree}{Parasite tree}
 
 \item{host_tree}{Host tree}
 
-\item{state}{Which state? Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host).}
+\item{state}{Which state? Default is 2. For analyses using the 3-state model,
+can take the values 1 (potential host) or 2 (actual host).}
 
 \item{drop_empty}{Logical. Remove taxa without any interactions?}
 }
 \value{
-A list of arrays of samples x parasites x hosts. The number of samples is the number of iterations in \code{history}. At each age, all hosts and all extant parasite lineages are included.
+A list of arrays of samples x parasites x hosts. The number of
+samples is the number of iterations in \code{history}. At each age, all hosts
+and all extant parasite lineages are included.
 }
 \description{
-Retrieve samples in the history.txt file produced by the analysis of host-repertoire evolution in RevBayes as a host-parasite incidence matrix (binary bipartite network).
+Retrieve samples in the history.txt file produced by the
+analysis of host-repertoire evolution in RevBayes as a host-parasite
+incidence matrix (binary bipartite network).
 }
 \examples{
 # read parasite and host tree

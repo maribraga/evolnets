@@ -13,7 +13,8 @@ read_history(path_to_hist)
 data frame
 }
 \description{
-Read history.txt file containing the posterior samples of interaction histories
+Read history.txt file containing the posterior samples of
+interaction histories
 }
 \examples{
 # read history file

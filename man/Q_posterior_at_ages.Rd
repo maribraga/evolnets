@@ -7,17 +7,22 @@
 Q_posterior_at_ages(samples_at_ages, ages, null = 100, seed = NULL)
 }
 \arguments{
-\item{samples_at_ages}{List of ancestral networks sampled across MCMC at given ages.}
+\item{samples_at_ages}{List of ancestral networks sampled across MCMC at
+given ages.}
 
 \item{ages}{Vector of ages (time points in the past) of ancestral networks.}
 
 \item{null}{Number of null networks to generate to calculate the z-score.}
 
-\item{seed}{Seed passed to \code{stats::simulate} to generate null networks. Default to NULL.}
+\item{seed}{Seed passed to \code{stats::simulate} to generate null networks.
+Default to NULL.}
 }
 \value{
 A tibble of Q z-scores and p-values across samples and ages.
 }
 \description{
-Calculate z-scores for modularity (Q) for each MCMC sample at time points in the past based on null networks where all interactions have the same probability. By calculating z-scores, we can compare ancestral networks at different ages.
+Calculate z-scores for modularity (Q) for each MCMC sample at
+time points in the past based on null networks where all interactions have
+the same probability. By calculating z-scores, we can compare ancestral
+networks at different ages.
 }

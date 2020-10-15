@@ -17,18 +17,21 @@ count_gl(history)
 rate_gl(history, tree)
 }
 \arguments{
-\item{history}{A data frame containing the character history produced by RevBayes}
+\item{history}{A data frame containing the character history produced by
+RevBayes}
 
 \item{tree}{A phylogenetic tree of the parasite clade}
 }
 \description{
-Calculate the number of host gains, host losses, and the effective rate of host repertoire evolution
+Calculate the number of host gains, host losses, and the
+effective rate of host repertoire evolution
 }
 \section{Functions}{
 \itemize{
 \item \code{count_events}: Get the total number of events along the parasite tree
 
-\item \code{effective_rate}: Get the effective rate of evolution, i.e. number of events per million years, along each tree branch
+\item \code{effective_rate}: Get the effective rate of evolution, i.e. number
+of events per million years, along each tree branch
 
 \item \code{count_gl}: Get the number of host gains and host losses
 

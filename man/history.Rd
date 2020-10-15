@@ -26,6 +26,7 @@ history
 Data for Pieridae butterflies and their host plants from Braga et al. 2020
 }
 \details{
-The data frame contains MCMC samples from the analysis of host-repertoire evolution across Pieridae, done in RevBayes
+The data frame contains MCMC samples from the analysis of host-repertoire
+evolution across Pieridae, done in RevBayes
 }
 \keyword{datasets}
