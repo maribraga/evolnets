@@ -1,7 +1,7 @@
 #' Functions to calculate the posterior probability of ancestral host
 #' repertoires
 #'
-#' @description Group of functions to calculate the posterior probabilities of
+#' Group of functions to calculate the posterior probabilities of
 #'   ancestral host repertoires at internal nodes of the parasite tree or at
 #'   specific time points in the past.
 #'
@@ -77,7 +77,7 @@ posterior_at_nodes = function(history, nodes, host_tree, state = c(2)) {
   row.names(g) <- paste0("Index_",nodes)
   colnames(g) <- host_tree$tip.label
 
-  return(g)
+  return(t(g))
 }
 
 

@@ -1,0 +1,162 @@
+---
+title: "Introduction to evolnets"
+author: "Mariana P. Braga"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{evolnets}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+
+`evolnets` is an R package for summarizing the posterior distribution produced by Bayesian inference of ancestral networks. Currently, the only available approach specific for inference of ecological interactions is based on the model of host-repertoire evolution implemented in [RevBayes](https://revbayes.github.io/tutorials/host_rep/host_rep.html). So we'll be focusing on the reconstruction of host-parasite networks in this vignette. If you are unfamiliar with this model, check out this [paper in Systematic Biology](https://doi.org/10.1093/sysbio/syaa019) where the model is introduced. 
+<!-- There are, however, other approaches that can produce posterior distributions of ancestral interactions, such as DEC models of geographic range evolution. evolnets also supports outputs from such analyses produced by RevBayes and BioGeoBEARS. -->
+
+Even though the approach used here can be applied to a variety of biological systems, it was developed with host-parasite interactions in mind, so I'll be using the words *host* and *parasite*. They could, in principle, be replaced by terms like *resource* and *consumer*, *lower trophic level* and *higher trophic level*, or any other two groups of nodes that form a bipartite network.
+
+## Set up
+
+If you haven't installed `evolnets` yet, do so first:
+
+```{r, eval=FALSE}
+devtools::install_github("maribraga/evolnets")
+```
+
+We will need three pieces of data:
+
+* Time-calibrated phylogenetic tree of the parasite clade
+* Phylogenetic tree of the host clade
+* `history.txt` output from RevBayes, which contains the sampled histories of host-repertoire evolution during MCMC
+
+`evolnets` includes example data which we'll use in this vignette. But when you use your own data, here is how you read them into R. Your phylogenetic tree needs to be a `phylo` object, and many tree files can be read into R using the ape package. The evolnets function `read_history` is designed specifically to read .txt files produced by RevBayes. As more inference methods become available, we will expand the scope of this function.
+
+```{r setup, message = FALSE}
+library(evolnets)
+library(ape)
+library(dplyr)
+```
+
+```{r, eval=FALSE}
+tree <- read.tree('parasite_tree.tre')
+host_tree <- read.tree('host_tree.tre')
+
+history <- read_history('history.txt')
+```
+
+As I said before, in this vignette we'll use the data that comes with evolnets. This data comes from a [preprint]() where we studied the evolution of interactions between Pieridae butterflies and their Angiosperm host plants. The results are not identical to the ones in the paper because we will use a subset of the MCMC samples in this example in order to reduce file size and speed up the analysis.
+
+```{r data}
+data(tree, host_tree, history)
+```
+
+One extra step you can take is to remove the first MCMC samples as burn-in, for example:
+
+```{r}
+min(history$iteration)
+max(history$iteration)
+
+history <- dplyr::filter(history, iteration > 10000)
+```
+
+Now we can start extracting information from the inferred history. 
+
+
+## Rate of evolution
+
+Let's calculate the average number of events (host gains and host losses) across MCMC samples. Of those, how many are gains and how many are losses?
+
+```{r}
+(n_events <- count_events(history))
+(gl_events <- count_gl(history))
+````
+
+We estimated that 151 events happened across the diversification of Pieridae, being 75 host gains and 76 host losses. Similarly, we can calculate the rate of host-repertoire evolution across the branches of the parasite tree, which is the number of events divided by the sum of branch lengths of the parasite tree. In this case, we inferred that the rate of evolution is around 6 events every 100 million years, along each branch of the Pieridae tree.
+
+```{r}
+(rate <- effective_rate(history,tree))
+(gl_rates <- rate_gl(history, tree))
+```
+
+
+## Ancestral states at internal nodes
+
+In line with a more traditional approach of ancestral state reconstruction, we can extract the posterior probability for each interaction between ancestral parasite species and all hosts. First we need to choose which internal nodes we want to include. For that, we need to look at the labels at the internal nodes of the tree file exported by RevBayes. 
+
+> Important: RevBayes and R label tree nodes in different orders, so be sure to match labels in `history$node_index` to those in the tree file exported by RevBayes.
+
+```{r, fig.width=7, fig.height=8}
+plot(tree, show.node.label = TRUE, cex = 0.5)
+```
+
+
+Here, we are gonna look at the host-repertoires of the deepest nodes in the tree: nodes 128, 129, 130, and 131 (the root).
+
+```{r}
+nodes <- c(128:131)
+pp_at_nodes <- posterior_at_nodes(history, nodes, host_tree)
+```
+
+There are 50 hosts in this data set, so `pp_at_nodes` has 50 rows Let's have a look at a subset of those:
+
+```{r}
+pp_at_nodes[c("Fabaceae", "Capparaceae", "Rosaceae"),]
+```
+
+We can see that Fabaceae was most likely an ancestral hosts for Pieridae butterflies. Capparaceae might have been a host at the origin of Pieridae, but most certainly starting at node "Index_128". On the other hand, the probability that these butterflies used Rosaceae as a host is very small.
+
+
+## Ancestral networks at specific time points
+
+The main goal of `evolnets` is to reconstruct the evolution of networks. We can do this in two ways:
+
+1. Summarize the posterior probabilities of interactions into one network per time point
+2. Represent each time point by all networks sampled during MCMC
+
+
+### Summary networks
+
+`posterior_at_ages( )` finds the parasite lineages that were extant at given time points in the past and calculates the posterior probability for interactions between these parasites and each host.
+
+```{r}
+ages <- c(60,50,40)
+pp_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+```
+
+Then, we can make different incidence matrices based on two things: the minimum 
+
+```{r}
+weighted_net_50 <- get_incidence_matrix_at_ages(pp_at_ages, pt = 0.5, weighted = TRUE)
+binary_net_90 <- get_incidence_matrix_at_ages(pp_at_ages, pt = 0.9, weighted = FALSE)
+```
+
+
+<!-- # states at ages -->
+<!--  -->
+<!-- pp_at_ages <- posterior_at_ages(history, ages, tree, host_tree) -->
+
+
+<!-- # get list of incidence matrices -->
+<!-- limw <- get_incidence_matrix_at_ages(pp_at_ages, 0.5, weighted = T) -->
+<!-- limb <- get_incidence_matrix_at_ages(pp_at_ages, 0.5, weighted = F) -->
+
+
+### Sampled networks
+
+
+<!-- # get samples at age -->
+<!-- ages <- c(80,70) -->
+<!-- samples_ages <- samples_at_ages(history, ages, tree, host_tree) -->
+
+
+<!-- # NODF of samples -->
+<!-- Nz <- NODF_posterior_at_ages(samples_ages, ages, null = 100, seed = NULL) -->
+
+<!-- # Q of samples -->
+<!-- Qz <- Q_posterior_at_ages(samples_ages, ages, null = 10, seed = NULL) -->
+
+

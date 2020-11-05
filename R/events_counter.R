@@ -1,6 +1,6 @@
 #' Calculate the rate of host-repertoire evolution
 #'
-#' @description Calculate the number of host gains, host losses, and the
+#' Calculate the number of host gains, host losses, and the
 #'   effective rate of host repertoire evolution
 #' @param history A data frame containing the character history produced by
 #'   RevBayes

@@ -1,6 +1,6 @@
 #' Posterior distribution of modularity across ancestral networks
 #'
-#' @description Calculate z-scores for modularity (Q) for each MCMC sample at
+#' Calculate z-scores for modularity (Q) for each MCMC sample at
 #'   time points in the past based on null networks where all interactions have
 #'   the same probability. By calculating z-scores, we can compare ancestral
 #'   networks at different ages.

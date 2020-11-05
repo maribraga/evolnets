@@ -1,6 +1,6 @@
 #' Read history.txt file produced by RevBayes
 #'
-#' @description Read history.txt file containing the posterior samples of
+#' Read history.txt file containing the posterior samples of
 #'   interaction histories
 #' @param path_to_hist string path to the .txt file exported from RevBayes
 #'

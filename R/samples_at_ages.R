@@ -1,6 +1,6 @@
 #' Get ancestral networks sampled across MCMC
 #'
-#' @description Retrieve samples in the history.txt file produced by the
+#' Retrieve samples in the history.txt file produced by the
 #'   analysis of host-repertoire evolution in RevBayes as a host-parasite
 #'   incidence matrix (binary bipartite network).
 #'

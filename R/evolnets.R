@@ -1,20 +1,25 @@
-#' evolnets: a package for parsing outputs from inference of host-repertoire evolution
+#' evolnets: a package for summarizing inference of network evolution
 #'
 #' The evolnets package provides three categories of important functions:
 #' rates, ancestral states and samples.
 #'
-#' @section Rates functions:
-#' The rates functions are used to calculate effective rates of host-repertoire
-#'     evolution.
+#' @section Rates:
+#' These functions are used to calculate effective rates of host-repertoire
+#'     evolution: effective_rate( ), count_events( ), rate_gl( ), count_gl( ).
 #'
 #' @section Ancestral states:
-#' The ancestral states functions are used to calculate the posterior probabilities
-#'     of host-parasite interactions at internal nodes of the parasite tree or at
-#'     specific time points in the past.
+#' These functions are used to calculate the posterior probabilities of
+#'     host-parasite interactions at internal nodes of the parasite tree or at
+#'     specific time points in the past: posterior_at_nodes( ), posterior_at_ages( ).
 #'
 #' @section Samples:
-#' The samples functions perform calculation for each sampled host-parasite
-#'     network during MCMC.
+#' These functions perform calculations for each sampled host-parasite
+#'     network during MCMC: samples_at_ages( ), Q_posterior_at_ages( ),
+#'     NODF_posterior_at_ages( ).
+#'
+#' @section More information:
+#' An example of how to use the package can be found in the vignette [**Introduction to evolnets**](evolnets.html).
+#'
 #'
 #' @docType package
 #' @name evolnets
