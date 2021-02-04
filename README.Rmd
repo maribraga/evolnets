@@ -29,6 +29,7 @@ You can install evolnets like so:
 # install.packages("devtools")
 devtools::install_github("maribraga/evolnets")
 ```
+/*
 ## Example
 
 This is a basic example which shows you how to solve a common problem:
@@ -38,4 +39,4 @@ library(evolnets)
 ## basic example code
 ```
 
-
+*/
