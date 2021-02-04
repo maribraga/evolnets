@@ -4,7 +4,6 @@
 # evolnets
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 RevBayes offers models to infer host-repertoire evolution, but no tools
@@ -19,13 +18,4 @@ You can install evolnets like so:
 ``` r
 # install.packages("devtools")
 devtools::install_github("maribraga/evolnets")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(evolnets)
-## basic example code
 ```
