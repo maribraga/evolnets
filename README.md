@@ -21,3 +21,18 @@ You can install evolnets like so:
 
 devtools::install_github("maribraga/evolnets", build_vignettes = TRUE)
 ```
+
+## Introduction to evolnets
+
+You can learn about the package with an example in the vignette
+*Introduction to evolnets*.
+
+``` r
+library(evolnets)
+
+# find all available vignettes  
+browseVignettes("evolnets")
+
+# or go straight to the intro vignette
+vignette("intro_to_evolnets")
+```

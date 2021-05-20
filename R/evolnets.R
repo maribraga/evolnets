@@ -18,7 +18,7 @@
 #'     NODF_posterior_at_ages( ).
 #'
 #' @section More information:
-#' An example of how to use the package can be found in the vignette [**Introduction to evolnets**](evolnets.html).
+#' Run vignette("intro_to_evolnets") for an example of how to use the package.
 #'
 #'
 #' @docType package
