@@ -98,13 +98,13 @@ Here, we are gonna look at the host-repertoires of the deepest nodes in the tree
 
 ```{r}
 nodes <- c(128:131)
-pp_at_nodes <- posterior_at_nodes(history, nodes, host_tree)
+pp_at_nodes <- posterior_at_nodes(history, nodes, host_tree)[[2]]
 ```
 
 There are 50 hosts in this data set, so `pp_at_nodes` has 50 rows Let's have a look at a subset of those:
 
 ```{r}
-pp_at_nodes[c("Fabaceae", "Capparaceae", "Rosaceae"),]
+pp_at_nodes[,c("Fabaceae", "Capparaceae", "Rosaceae")]
 ```
 
 We can see that Fabaceae was most likely an ancestral hosts for Pieridae butterflies. Capparaceae might have been a host at the origin of Pieridae, but most certainly starting at node "Index_128". On the other hand, the probability that these butterflies used Rosaceae as a host is very small.
@@ -143,10 +143,12 @@ samples_at_ages <- at_ages[[1]]
 
 Then, we can calculate network properties for each sampled network.
 
-```{r, eval=FALSE}
+```{r}
 # calculate posterior distribution of nestedness
 Nz <- index_at_ages(samples_at_ages, ages, index = "NODF", null = 10, seed = NULL)
+```
 
+```{r, eval=FALSE}
 # calculate posterior distribution of modularity
 Qz <- index_at_ages(samples_at_ages, ages, index = "Q", null = 10, seed = NULL)
 ```

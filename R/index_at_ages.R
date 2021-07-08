@@ -9,21 +9,29 @@
 #'   given ages.
 #' @param ages Vector of ages (time points in the past) of ancestral networks.
 #' @param index Index to be calculated for each ancestral network. "NODF" to
-#' calculate nestedness and "Q" to calculate modularity.
+#' calculate nestedness or "Q" to calculate modularity.
 #' @param null Number of null networks to generate to calculate the z-score.
-#' @param seed Seed passed to `stats::simulate` to generate null networks.
+#' @param seed Seed passed to `stats::simulate` to generate null networks and set before calculating Q.
 #'   Default to NULL.
 #'
 #' @return A tibble of z-scores and p-values across samples and ages.
 #' @importFrom magrittr %>%
+#' @importFrom methods is slot
 #' @export
 #'
 #' @examples
-#' # calculate posterior distribution of nestedness
-#' #Nz <- index_at_ages(samples_at_ages, ages, index = "NODF", null = 100, seed = NULL)
+#' data(tree)
+#' data(host_tree)
+#' data(history)
 #'
-#' # calculate posterior distribution of modularity
-#' #Qz <- index_at_ages(samples_at_ages, ages, index = "Q", null = 100, seed = NULL)
+#' ages <- c(60,50,40)
+#' samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)[[1]]
+#'
+#' # calculate posterior distribution of nestedness
+#' Nz <- index_at_ages(samples_at_ages, ages, index = "NODF", null = 100, seed = NULL)
+#'
+#' #  calculate posterior distribution of modularity (SLOW!)
+#' # Qz <- index_at_ages(samples_at_ages, ages, index = "Q", null = 100, seed = NULL)
 index_at_ages <- function(samples_at_ages, ages, index, null = 100, seed = NULL){
 
   if(index == "NODF"){
@@ -62,7 +70,7 @@ index_at_ages <- function(samples_at_ages, ages, index, null = 100, seed = NULL)
 
     Qzsamples
 
-  } else stop("index must match one of the available indeces")
+  } else stop("index must match one of the available indices")
 
 }
 
@@ -141,6 +149,7 @@ Q_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
       Nulls_age[[i]] <- sim
 
       for(j in 1:nnull){
+        set.seed(seed)
         mod <- mycomputeModules(sim[,,j])
         Qrandom <- mod@likelihood
 

@@ -36,6 +36,7 @@ posterior_at_nodes = function(history, nodes, host_tree, state = c(2)) {
   # get dimensions
   n_host_tip = length( stringr::str_split( dat$start_state[1], "" )[[1]] )
   n_parasite_lineage = length(unique(dat$node_index))
+
   g = matrix(data = 0, nrow = n_parasite_lineage, ncol = n_host_tip)
 
   array_names = list( 1:n_iter, paste0("Index_",nodes), host_tree$tip.label )
@@ -71,8 +72,8 @@ posterior_at_nodes = function(history, nodes, host_tree, state = c(2)) {
   row.names(g) <- paste0("Index_",nodes)
   colnames(g) <- host_tree$tip.label
 
-  list <- list(array, g)   #### transpose array and g above
+  list <- list(array, g)
 
-  return(t(g))
+  return(list)
 }
 

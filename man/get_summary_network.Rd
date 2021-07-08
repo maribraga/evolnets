@@ -23,3 +23,13 @@ summary network (incidence matrix)
 Get summary networks from posterior probabilities of interactions of extant
 lineages at given time points in the past
 }
+\examples{
+#' data(tree)
+data(host_tree)
+data(history)
+
+ages <- c(60,50,40)
+pp_at_ages <- posterior_at_ages(history, ages, tree, host_tree)[[2]]
+weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
+binary_net_90 <- get_summary_network(pp_at_ages, pt = 0.9, weighted = FALSE)
+}
