@@ -7,11 +7,11 @@
 #'   Interactions with pp < pt will be dropped.
 #' @param weighted Logical. Use posterior probabilities as interaction weights?
 #'
-#' @return incidence matrix
+#' @return summary network (incidence matrix)
 #' @export
 #'
 #' @examples
-get_incidence_matrix_at_ages <- function(pp_at_ages, pt, weighted = TRUE){
+get_summary_network <- function(pp_at_ages, pt, weighted = TRUE){
 
   net_list <- list()
 

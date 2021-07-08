@@ -115,48 +115,41 @@ We can see that Fabaceae was most likely an ancestral hosts for Pieridae butterf
 The main goal of `evolnets` is to reconstruct the evolution of networks. We can do this in two ways:
 
 1. Summarize the posterior probabilities of interactions into one network per time point
-2. Represent each time point by all networks sampled during MCMC
+2. Represent each time point by networks sampled during MCMC
 
 
 ### Summary networks
 
-`posterior_at_ages( )` finds the parasite lineages that were extant at given time points in the past and calculates the posterior probability for interactions between these parasites and each host.
+`posterior_at_ages( )` finds the parasite lineages that were extant at given time points in the past and calculates the posterior probability for interactions between these parasites and each host based on samples from the MCMC. The first element of `at_ages` contains the sampled networks and the second, the posterior probabilities.
 
 ```{r}
 ages <- c(60,50,40)
-pp_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+pp_at_ages <- at_ages[[2]]
 ```
 
-Then, we can make different incidence matrices based on two things: the minimum 
+Then, we can make different incidence matrices based on two things: the minimum posterior probability for an interaction to be included in the network and whether we want a binary or a weighted network.
 
 ```{r}
-weighted_net_50 <- get_incidence_matrix_at_ages(pp_at_ages, pt = 0.5, weighted = TRUE)
-binary_net_90 <- get_incidence_matrix_at_ages(pp_at_ages, pt = 0.9, weighted = FALSE)
+weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
+binary_net_90 <- get_summary_network(pp_at_ages, pt = 0.9, weighted = FALSE)
 ```
-
-
-<!-- # states at ages -->
-<!--  -->
-<!-- pp_at_ages <- posterior_at_ages(history, ages, tree, host_tree) -->
-
-
-<!-- # get list of incidence matrices -->
-<!-- limw <- get_incidence_matrix_at_ages(pp_at_ages, 0.5, weighted = T) -->
-<!-- limb <- get_incidence_matrix_at_ages(pp_at_ages, 0.5, weighted = F) -->
-
 
 ### Sampled networks
 
+```{r}
+samples_at_ages <- at_ages[[1]]
+```
 
-<!-- # get samples at age -->
-<!-- ages <- c(80,70) -->
-<!-- samples_ages <- samples_at_ages(history, ages, tree, host_tree) -->
+Then, we can calculate network properties for each sampled network.
 
+```{r, eval=FALSE}
+# calculate posterior distribution of nestedness
+Nz <- index_at_ages(samples_at_ages, ages, index = "NODF", null = 10, seed = NULL)
 
-<!-- # NODF of samples -->
-<!-- Nz <- NODF_posterior_at_ages(samples_ages, ages, null = 100, seed = NULL) -->
+# calculate posterior distribution of modularity
+Qz <- index_at_ages(samples_at_ages, ages, index = "Q", null = 10, seed = NULL)
+```
 
-<!-- # Q of samples -->
-<!-- Qz <- Q_posterior_at_ages(samples_ages, ages, null = 10, seed = NULL) -->
 
 

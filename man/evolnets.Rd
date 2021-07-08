@@ -30,6 +30,6 @@ NODF_posterior_at_ages( ).
 
 \section{More information}{
 
-An example of how to use the package can be found in the vignette \href{evolnets.html}{\strong{Introduction to evolnets}}.
+Run vignette("intro_to_evolnets") for an example of how to use the package.
 }
 
