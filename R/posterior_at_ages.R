@@ -103,7 +103,7 @@ make_samples_post_at_age = function(dat, age, tree, host_tree, state, drop_empty
   }
 
   # convert to probability
-  m_posterior = round(m_posterior * (1/n_iter), digits = 2)
+  m_posterior = m_posterior * (1/n_iter)
 
   samp_post = list(m_sample, m_posterior)
 

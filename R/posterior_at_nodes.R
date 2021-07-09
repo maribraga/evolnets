@@ -68,7 +68,7 @@ posterior_at_nodes = function(history, nodes, host_tree, state = c(2)) {
   }
 
   # convert to probability
-  g = round(g * (1/n_iter), digits = 2)
+  g = g * (1/n_iter)
   row.names(g) <- paste0("Index_",nodes)
   colnames(g) <- host_tree$tip.label
 
