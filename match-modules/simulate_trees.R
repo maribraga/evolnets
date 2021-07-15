@@ -14,6 +14,3 @@ host$tip.label <- paste0("H",1:5)
 plot(host)
 write.tree(host, "host_5tips.tre")
 
-tnodes <- ape::read.tree("./inference/tree_with_node_labels.tre")
-
-
