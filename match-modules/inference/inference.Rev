@@ -3,7 +3,7 @@
 fp = "/Users/mari/repos/evolnets/match-modules/inference/"
 data_fp = fp + "data/"
 out_fp = fp + "output/"
-out_fn = out_fp + "out"
+out_fn = out_fp + "out2"
 
 phy_insect_fn = data_fp + "tree_6tips.tre"
 phy_plant_fn = data_fp + "host_5tips.tre"
@@ -13,9 +13,11 @@ phy_plant <- readTrees(phy_plant_fn)[1]
 phy_insect <- readTrees(phy_insect_fn)[1]
 dat_insect <- readDiscreteCharacterData(dat_insect_fn)
 
+write(phy_insect, file=out_fp + "tree_Rev.tre")
+
 mni = 1
 mvi = 1
-n_gen = 1e3
+n_gen = 1e2
 n_burn = 0
 sample_freq = 10 
 tune_freq = n_burn/10
@@ -99,7 +101,6 @@ mn[mni++] = mnCharacterHistorySummary( filename=out_fn + ".history.txt",
                                        ctmc=m_host,
                                        tree=phy_insect,
                                        printgen=sample_freq )
-mn[mni++] = mnFile( phy_insect, filename=out_fn + ".tre", printgen=sample_freq)
 
 mdl = model(m_host)
 

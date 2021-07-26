@@ -1,1 +1,6 @@
 source("inference.Rev")
+?write
+phy_insect
+writeNexus(file=out_fp + "tree_Rev.tre", phy_insect
+)
+q()

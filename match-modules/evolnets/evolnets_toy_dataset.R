@@ -3,16 +3,36 @@ library(bipartite)
 library(tidyverse)
 library(ape)
 library(ggtree)
+library(treeio)
 
 
 setwd("~/repos/evolnets/match-modules")
 
 # read trees and character history ----
-tree <- read.tree("./evolnets/tree_with_node_labels.tre")
 host_tree <- read.tree("./evolnets/host_5tips.tre")
+treeRev <- read.beast.newick("./evolnets/tree_Rev_nw.tre")
 
-ggt <- ggtree(tree) + geom_tiplab() + geom_nodelab() + theme_tree2() + scale_x_continuous(labels = abs)
+tree <- treeRev@phylo
+tree$node.number <- (Ntip(tree) + 1):(Ntip(tree) + Nnode(tree))
+
+index_node <- treeRev@data %>%
+  mutate(node = as.numeric(node)) %>%
+  arrange(node)
+
+indices <- index_node %>% filter(node > Ntip(tree)) %>% pull(index)
+names(indices) <- NULL
+
+tree$node.label <- paste0("Index_",indices)
+
+plot(tree, show.node.label = T)
+
+ggt <- ggtree(tree, ladderize = F) +
+  geom_tiplab() +
+  geom_nodelab() +
+  theme_tree2() +
+  scale_x_continuous(labels = abs)
 revts(ggt)
+
 
 history <- read_history("./inference/output/out.history.txt")
 
@@ -38,13 +58,13 @@ for(i in 1:length(summary_nets_50)){
   assign(paste0("wmod50_",ages[i]),wmod)
   wmod_list <- listModuleInformation(wmod)[[2]]
   nwmod <- length(wmod_list)
-  
+
   for(m in 1:nwmod){
     members <- unlist(wmod_list[[m]])
-    mtbl <- tibble(name = members, 
+    mtbl <- tibble(name = members,
                    age = rep(ages[i], length(members)),
                    original_module = rep(m, length(members)))
-                   
+
     all_wmod50 <- bind_rows(all_wmod50, mtbl)
   }
 }
