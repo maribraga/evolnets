@@ -3,7 +3,7 @@
 \docType{data}
 \name{history}
 \alias{history}
-\title{Data for Pieridae butterflies and their host plants from Braga et al. 2020}
+\title{Data for Pieridae butterflies and their host plants from Braga et al. 2021}
 \format{
 \code{history}: a data frame with 58,891 rows and 14 columns:
 \describe{
@@ -17,13 +17,13 @@
 }
 }
 \source{
-Braga et al. 2020 BioRxiv
+\url{https://onlinelibrary.wiley.com/doi/10.1111/ele.13842}
 }
 \usage{
 history
 }
 \description{
-Data for Pieridae butterflies and their host plants from Braga et al. 2020
+Data for Pieridae butterflies and their host plants from Braga et al. 2021
 }
 \details{
 The data frame contains MCMC samples from the analysis of host-repertoire

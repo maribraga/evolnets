@@ -1,4 +1,4 @@
-#' Data for Pieridae butterflies and their host plants from Braga et al. 2020
+#' Data for Pieridae butterflies and their host plants from Braga et al. 2021
 #'
 #' @format `history`: a data frame with 58,891 rows and 14 columns:
 #' \describe{
@@ -13,17 +13,21 @@
 #' @details The data frame contains MCMC samples from the analysis of host-repertoire
 #'  evolution across Pieridae, done in RevBayes
 #'
-#' @source Braga et al. 2020 BioRxiv
+#' @source \url{https://onlinelibrary.wiley.com/doi/10.1111/ele.13842}
 "history"
 
 #' Host plants tree
 #' @format `host_tree`: a phylogenetic tree of angiosperm families with 50 tips.
-#' @source Braga et al. 2020 BioRxiv
+#' @source \url{https://onlinelibrary.wiley.com/doi/10.1111/ele.13842}
 "host_tree"
 
 #' Pieridae tree
 #' @format `tree`: a phylogenetic tree of Pieridae genera with 66 tips.
-#' @source Braga et al. 2020 BioRxiv
+#' @source \url{https://onlinelibrary.wiley.com/doi/10.1111/ele.13842}
 "tree"
 
+#' Extant network
+#' @format `matrix`: an incidence matrix with interactions between 66 Pieridae genera (rows) and 33 angiosperm families (cols)
+#' @source \url{https://onlinelibrary.wiley.com/doi/10.1111/ele.13842}
+"extant_net"
 

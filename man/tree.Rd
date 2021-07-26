@@ -8,7 +8,7 @@
 \code{tree}: a phylogenetic tree of Pieridae genera with 66 tips.
 }
 \source{
-Braga et al. 2020 BioRxiv
+\url{https://onlinelibrary.wiley.com/doi/10.1111/ele.13842}
 }
 \usage{
 tree
