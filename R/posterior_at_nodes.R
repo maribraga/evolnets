@@ -13,6 +13,7 @@
 #'
 #' @return A matrix with marginal posterior probabilities of interactions at given internal nodes.
 #' @export
+#' @importFrom rlang .data
 #'
 #' @examples
 #' # read parasite and host tree
@@ -27,12 +28,12 @@
 #' nodes <- c(129:131)
 #' pp_at_nodes <- posterior_at_nodes(history, nodes, host_tree)
 posterior_at_nodes <- function(history, nodes, host_tree, state = c(2)) {
-  dat <- dplyr::filter(history, node_index %in% nodes)
+  dat <- dplyr::filter(history, .data$node_index %in% nodes)
   iterations <- sort(unique(dat$iteration))
   n_iter <- length(iterations)
 
   # get dimensions
-  n_host_tip <- length(stringr::str_split( dat$start_state[1], "" )[[1]])
+  n_host_tip <- length(stringr::str_split(dat$start_state[1], "" )[[1]])
   n_parasite_lineage <- length(unique(dat$node_index))
 
   g <- matrix(data = 0, nrow = n_parasite_lineage, ncol = n_host_tip)
@@ -65,7 +66,7 @@ posterior_at_nodes <- function(history, nodes, host_tree, state = c(2)) {
   }
 
   # convert to probability
-  g = g * (1 / n_iter)
+  g <- g * (1 / n_iter)
   row.names(g) <- paste0("Index_", nodes)
   colnames(g) <- host_tree$tip.label
 
