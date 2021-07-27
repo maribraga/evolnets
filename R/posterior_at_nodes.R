@@ -5,11 +5,11 @@
 #'   ancestral host repertoires at internal nodes of the parasite tree.
 #'
 #' @param history Data frame with posterior samples of interaction histories.
-#' @param state Which state? Default is 2. For analyses using the 3-state model,
-#'   can take the values 1 (potential host) or 2 (actual host).
-#' @param host_tree Host tree
 #' @param nodes Vector of internal nodes for which to calculate the posterior
 #'   probability of `state`.
+#' @param host_tree Host tree
+#' @param state Which state? Default is 2. For analyses using the 3-state model,
+#'   can take the values 1 (potential host) or 2 (actual host).
 #'
 #' @return A matrix with marginal posterior probabilities of interactions at given internal nodes.
 #' @export
