@@ -20,17 +20,22 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Suggests: 
-    testthat (>= 3.0.0),
+    ggtree,
     knitr,
+    patchwork,
+    testthat (>= 3.0.0),
     rmarkdown
 Imports: 
     ape,
     bipartite,
     data.table,
     dplyr,
+    ggplot2,
     magrittr,
     methods,
+    rlang,
     stringr,
+    tidyr,
     utils,
     vegan
 Depends: 
