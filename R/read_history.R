@@ -22,7 +22,7 @@ read_history <- function(path_to_hist, burnin = 0.1){
                   parent_index = parent_index + 1,
                   child1_index = child1_index + 1,
                   child2_index = child2_index + 1) %>%
-    dplyr::filter(history, iteration > max(iteration)*burnin)
+    dplyr::filter(iteration > max(iteration)*burnin)
 }
 
-node_index <- parent_index <- child1_index <- child2_index <- NULL
+node_index <- parent_index <- child1_index <- child2_index <- iteration <- NULL
