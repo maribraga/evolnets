@@ -8,29 +8,46 @@ support_for_modules(
   mod_samples,
   ages,
   modules_across_ages,
-  threshold = 0.9,
+  threshold = 0.7,
   edge_list = TRUE,
-  include_all = FALSE
+  include_all = FALSE,
+  palette = NULL
 )
 }
 \arguments{
-\item{mod_samples}{Data frame produced by modules_from_samples() containing module membership of each node for each sampled network at each time slice.}
+\item{mod_samples}{Data frame produced by \code{modules_from_samples()} containing module membership of each node for each sampled network at each time slice.}
 
-\item{ages}{Vector of ages (time points in the past) at which samples will be
-retrieved.}
+\item{ages}{Vector of ages (time points in the past) at which samples will be retrieved.}
 
 \item{modules_across_ages}{Data frame containing the module information for the summary network.}
 
-\item{threshold}{Minimum frequency which two nodes are placed in the same module to consider it supported.}
+\item{threshold}{Minimum frequency with which two nodes are placed in the same module to consider it supported.}
 
-\item{edge_list}{Logical. Whether to return a list of edge lists or a list of matrices.}
+\item{edge_list}{Logical. Whether to return a list of edge lists or a list of matrices of pairwise frequency.}
 
 \item{include_all}{Logical. Include all nodes or only those present at the time slice?}
+
+\item{palette}{Optional. Color palette for module colors in the plot.}
 }
 \value{
-list of data frames
+A list containing:
+\enumerate{
+\item \code{plot}: A plot of pairwise frequency with which the two nodes are placed in the same module at each time slice in \code{ages};
+\item \code{pairwise_membership}: A list of edge lists or matrices with the pairwise frequencies at each time slice;
+\item \code{mean_support}: A list of mean and geometric mean pairwise frequency for each module at each time slice.
+}
 }
 \description{
-Functions to validate modules from summary networks by calculating the frequency with
+Validate modules from summary networks by calculating the frequency with
 which pairs of nodes are placed in the same module in networks sampled across MCMC
+}
+\examples{
+\dontrun{
+  # find modules for each sampled network
+  mod_samples <- modules_from_samples(samples_at_ages, ages)
+
+  # calculate support
+  support <- support_for_modules(mod_samples, ages, modules_across_ages)
+  support$plot
+}
 }

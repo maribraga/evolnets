@@ -4,13 +4,15 @@
 \alias{read_history}
 \title{Read history.txt file produced by RevBayes}
 \usage{
-read_history(path_to_hist)
+read_history(path_to_hist, burnin = 0.1)
 }
 \arguments{
-\item{path_to_hist}{string path to the .txt file exported from RevBayes}
+\item{path_to_hist}{String path to the .txt file exported from RevBayes}
+
+\item{burnin}{Fraction of iterations to be removed as burnin. Default to 10\%.}
 }
 \value{
-data frame
+A data frame
 }
 \description{
 Read history.txt file containing the posterior samples of
@@ -18,5 +20,5 @@ interaction histories
 }
 \examples{
 # read history file
-\dontrun{history_full <- read_history("/path/history.txt")}
+\dontrun{history <- read_history("/path/history.txt", burnin = 0.2)}
 }

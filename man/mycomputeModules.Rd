@@ -29,3 +29,9 @@ Modularity Q
 \description{
 Modified version of bipartite's computer_module function
 }
+\examples{
+\dontrun{
+  extant_net <- data(extant_net)
+  mod <- mycomputeModules(extant_net)
+}
+}

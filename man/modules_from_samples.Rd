@@ -4,22 +4,21 @@
 \alias{modules_from_samples}
 \title{Find modules in networks sampled across MCMC at specific time slices}
 \usage{
-modules_from_samples(samples_at_ages, ages, seed = NULL)
+modules_from_samples(samples_at_ages, ages)
 }
 \arguments{
 \item{samples_at_ages}{List of sampled networks at time slices produces by calling posterior_at_ages().}
 
-\item{ages}{Vector of ages (time points in the past) at which samples will be
-retrieved.}
-
-\item{seed}{Seed set before calling the modularity function.}
+\item{ages}{Vector of ages (time slices in the past) at which samples were retrieved.}
 }
 \value{
-Data frame with module membership information
+Data frame with module membership information for each sampled network at each time slice.
 }
 \description{
 Find modules in networks sampled across MCMC at specific time slices
 }
 \examples{
-
+\dontrun{
+  mod_samples <- modules_from_samples(samples_at_ages, ages)
+}
 }

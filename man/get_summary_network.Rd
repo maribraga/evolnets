@@ -5,26 +5,28 @@
 \title{Get summary networks from posterior probabilities of interactions of extant
 lineages at given time points in the past}
 \usage{
-get_summary_network(pp_at_ages, pt, weighted = TRUE)
+get_summary_network(pp_at_ages, ages, pt, weighted = TRUE)
 }
 \arguments{
 \item{pp_at_ages}{List of matrices with posterior probabilities for each
 interaction of extant lineages at given ages}
 
+\item{ages}{Vector of ages (time points in the past) at which samples were retrieved.}
+
 \item{pt}{Probability threshold to include an interaction in the network.
-Interactions with pp < pt will be dropped.}
+Interactions with posterior probability < pt will be dropped.}
 
 \item{weighted}{Logical. Use posterior probabilities as interaction weights?}
 }
 \value{
-summary network (incidence matrix)
+A list of incidence matrices (summary network) for each time slice in \code{ages}.
 }
 \description{
 Get summary networks from posterior probabilities of interactions of extant
 lineages at given time points in the past
 }
 \examples{
-#' data(tree)
+data(tree)
 data(host_tree)
 data(history)
 
