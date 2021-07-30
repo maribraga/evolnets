@@ -13,6 +13,10 @@ setClass("moduleWeb", representation(originalWeb="matrix", moduleWeb="matrix", o
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'   extant_net <- data(extant_net)
+#'   mod <- mycomputeModules(extant_net)
+#' }
 mycomputeModules = function(web, method="Beckett", steps=1000000, tolerance=1e-10, forceLPA=FALSE) {
 
   # check if, for binary data, any species is present everywhere ("empty" takes care of the "nowhere"):

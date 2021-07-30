@@ -1,18 +1,22 @@
 #' Find modules in networks sampled across MCMC at specific time slices
 #'
 #' @param samples_at_ages List of sampled networks at time slices produces by calling posterior_at_ages().
-#' @param ages Vector of ages (time points in the past) at which samples will be
-#'   retrieved.
-#' @param seed Seed set before calling the modularity function.
+#' @param ages Vector of ages (time slices in the past) at which samples were retrieved.
 #'
-#' @return Data frame with module membership information
+#' @return Data frame with module membership information for each sampled network at each time slice.
 #' @importFrom dplyr mutate group_by distinct summarize left_join case_when select bind_rows tibble
 #' @importFrom bipartite empty
 #' @export
 #'
 #' @examples
-#'
-modules_from_samples <- function(samples_at_ages, ages, seed = NULL) {
+#' \dontrun{
+#'   mod_samples <- modules_from_samples(samples_at_ages, ages)
+#' }
+modules_from_samples <- function(samples_at_ages, ages) {
+
+  if (length(samples_at_ages) != length(ages)) {
+    stop('`samples_at_ages` must contain the same time slices as `ages`.')
+  }
 
   Qsamples <- tibble()
   mod_samples <- tibble()
@@ -25,7 +29,6 @@ modules_from_samples <- function(samples_at_ages, ages, seed = NULL) {
 
       if(ncol(empty(net)) > 1){
 
-        set.seed(seed)
         mod <- mycomputeModules(net)
 
         q <- mod@likelihood

@@ -1,32 +1,49 @@
 
 #' Calculate support for modules from summary networks based on modules of sampled networks
 #'
-#' Functions to validate modules from summary networks by calculating the frequency with
+#' Validate modules from summary networks by calculating the frequency with
 #' which pairs of nodes are placed in the same module in networks sampled across MCMC
 #'
-#' @param ages Vector of ages (time points in the past) at which samples will be
-#'   retrieved.
-#' @param mod_samples Data frame produced by modules_from_samples() containing module membership of each node for each sampled network at each time slice.
-#' @param threshold Minimum frequency which two nodes are placed in the same module to consider it supported.
-#' @param edge_list Logical. Whether to return a list of edge lists or a list of matrices.
+#' @param mod_samples Data frame produced by `modules_from_samples()` containing module membership of each node for each sampled network at each time slice.
+#' @param ages Vector of ages (time points in the past) at which samples will be retrieved.
+#' @param threshold Minimum frequency with which two nodes are placed in the same module to consider it supported.
+#' @param edge_list Logical. Whether to return a list of edge lists or a list of matrices of pairwise frequency.
 #' @param include_all Logical. Include all nodes or only those present at the time slice?
 #' @param modules_across_ages Data frame containing the module information for the summary network.
+#' @param palette Optional. Color palette for module colors in the plot.
 #'
-#' @return list of data frames
+#' @return A list containing:
+#' 1) `plot`: A plot of pairwise frequency with which the two nodes are placed in the same module at each time slice in `ages`;
+#' 2) `pairwise_membership`: A list of edge lists or matrices with the pairwise frequencies at each time slice;
+#' 3) `mean_support`: A list of mean and geometric mean pairwise frequency for each module at each time slice.
 #' @importFrom dplyr mutate case_when arrange pull arrange as_tibble bind_rows distinct filter left_join select summarize tibble
 #' @importFrom tidyr complete
+#' @importFrom rlang .data
+#' @importFrom patchwork wrap_plots
 #' @export
 #'
 #' @examples
-support_for_modules <- function(mod_samples, ages, modules_across_ages, threshold = 0.9, edge_list = TRUE, include_all = FALSE) {
+#' \dontrun{
+#'   # find modules for each sampled network
+#'   mod_samples <- modules_from_samples(samples_at_ages, ages)
+#'
+#'   # calculate support
+#'   support <- support_for_modules(mod_samples, ages, modules_across_ages)
+#'   support$plot
+#' }
+support_for_modules <- function(mod_samples, ages, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE, palette = NULL) {
+
+  if (length(unique(mod_samples$age)) != length(ages)) {
+    stop('`mod_samples` must contain the same time slices as `ages`.')
+  }
+  if (length(unique(modules_across_ages$age)) < length(ages)) {
+    stop('`modules_across_ages` must contain all time slices in `ages`.')
+  }
 
   # calculate pairwise module membership
   pair_mod_tbl <- pairwise_membership(mod_samples, ages, edge_list)
 
-  # find modules with strong support
-
-
-  # make heatmap
+  # make heatmaps
   pair_heatmaps <- list()
 
   for(i in 1:length(ages)){
@@ -49,7 +66,73 @@ support_for_modules <- function(mod_samples, ages, modules_across_ages, threshol
     pair_heatmaps[[i]] <- for_heatmap
   }
 
-  pair_heatmaps
+  names(pair_heatmaps) <- ages
+
+  # calculate mean support
+  means <- list()
+
+  for(i in 1:length(ages)){
+    means_age <- data.frame(module = NULL, mean = NULL, geo_mean = NULL)
+    mods <- sort(unique(pair_heatmaps[[i]]$module.x))
+
+    for(m in mods){
+      within_mod <- filter(pair_heatmaps[[i]], .data$Module == m)
+      mean <- mean(within_mod$freq)
+      gmean <- exp(mean(log(within_mod$freq)))
+
+      means_age <- bind_rows(means_age, data.frame(module = m, mean = mean, geo_mean = gmean))
+    }
+
+    means[[i]] <- means_age
+  }
+
+  names(means) <- ages
+
+  plot <- plot_pairwise_membership(pair_heatmaps, ages)
+
+  support_list <- list(plot, pair_heatmaps, means)
+  names(support_list) <- c("plot", "pairwise_membership", "mean_support")
+
+  support_list
+
+}
+
+
+plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL){
+
+  nages <- length(pair_heatmaps)
+
+  for(a in 1:nages){
+    heatmap <- pair_heatmaps[[a]]
+
+    p <- ggplot2::ggplot(heatmap, aes(x = row, y = reorder(col,desc(col)),
+                             fill = supported_mod,
+                             alpha = freq)) +
+      ggplot2::geom_tile() +
+      ggplot2::theme_bw() +
+      ggplot2::scale_x_discrete(drop = FALSE) +
+      ggplot2::scale_y_discrete(drop = FALSE) +
+      ggplot2::scale_alpha(aes(range = c(min(freq), max(freq)))) +
+      ggplot2::theme(
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(angle = 270),
+        legend.title = element_blank()) +
+      ggplot2::ggtitle(paste0(ages[a]," Ma"))
+
+    if(!is.null(palette)){
+      p <- p + ggplot2::scale_fill_manual(values = palette, na.value = "grey20", drop = F)
+    }
+
+    if(a == 1){
+      plot <- p
+    } else{
+      plot <- wrap_plots(plot, p)
+    }
+
+  }
+
+  plot
 
 }
 
