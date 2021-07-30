@@ -50,7 +50,9 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
   # Take the modules, and put the host modules in a data.frame
   mod_list <- listModuleInformation(modules)[[2]]
   host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
-  host_mods <- dplyr::bind_rows(host_mods, .id = 'module')
+  host_mods <- dplyr::bind_rows(host_mods, .id = 'host_module')
+  para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
+  para_mods <- dplyr::bind_rows(para_mods, .id = 'parasite_module')
 
   # Take the extant network (as an adjacency matrix), and create a plottable data.frame
   net_df <- as.data.frame(net)
@@ -60,6 +62,12 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
 
   # Join the extant network with the module info
   module_mat <- dplyr::left_join(net_df, host_mods, by = 'host')
+  module_mat <- dplyr::left_join(module_mat, para_mods, by = 'parasite')
+  module_mat$module <- ifelse(
+    module_mat$host_module == module_mat$parasite_module,
+    module_mat$host_module,
+    NA
+  )
   # Then join with the order of tips from the trees to ensure correct alignment
   if (!is.null(parasite_order)) {
     module_mat$parasite <- factor(module_mat$parasite, levels = parasite_order)
