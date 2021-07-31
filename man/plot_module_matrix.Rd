@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_module_matrix}
 \alias{plot_module_matrix}
-\title{Plot a network with modules modules as an adjacency matrix}
+\title{Plot a network with modules as an adjacency matrix}
 \usage{
 plot_module_matrix(
   net,
@@ -16,8 +16,11 @@ plot_module_matrix(
 should be columns. If all values are 0 or 1 an unweighted network is represented, otherwise
 a weighted network is assumed.}
 
-\item{modules}{A \code{moduleWeb} object defining the models in the network. If left \code{NULL} the
-modules are automatically calculated.}
+\item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the models in the network. If left \code{NULL} the
+modules are automatically calculated. If a \code{data.frame} is passed, it must contain three columns:
+$name with taxon names,
+$module with the module the taxon was assigned to, and
+$type which defines if the taxon is a "host" or a "symbiont".}
 
 \item{parasite_order}{A character vector giving the order the parasite should be listed in.
 Should contain each parasite only once, and include the row names of \code{net}.}
@@ -29,7 +32,7 @@ contain each host only once, and include the column names of \code{net}.}
 A \code{ggplot} object.
 }
 \description{
-Plot a network with modules modules as an adjacency matrix
+Plot a network with modules as an adjacency matrix
 }
 \examples{
 \dontrun{

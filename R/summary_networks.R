@@ -18,8 +18,8 @@
 #'
 #' ages <- c(60,50,40)
 #' pp_at_ages <- posterior_at_ages(history, ages, tree, host_tree)[[2]]
-#' weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
-#' binary_net_90 <- get_summary_network(pp_at_ages, pt = 0.9, weighted = FALSE)
+#' weighted_net_50 <- get_summary_network(pp_at_ages, ages, pt = 0.5, weighted = TRUE)
+#' binary_net_90 <- get_summary_network(pp_at_ages, ages, pt = 0.9, weighted = FALSE)
 get_summary_network <- function(pp_at_ages, ages, pt, weighted = TRUE){
 
   if (!is.list(pp_at_ages)) stop('`pp_at_ages` should be a list.')

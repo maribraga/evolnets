@@ -16,10 +16,11 @@
 #' 1) `plot`: A plot of pairwise frequency with which the two nodes are placed in the same module at each time slice in `ages`;
 #' 2) `pairwise_membership`: A list of edge lists or matrices with the pairwise frequencies at each time slice;
 #' 3) `mean_support`: A list of mean and geometric mean pairwise frequency for each module at each time slice.
-#' @importFrom dplyr mutate case_when arrange pull arrange as_tibble bind_rows distinct filter left_join select summarize tibble
+#' @importFrom dplyr mutate case_when arrange pull arrange as_tibble bind_rows distinct filter left_join select summarize tibble desc
 #' @importFrom tidyr complete
 #' @importFrom rlang .data
 #' @importFrom patchwork wrap_plots
+#' @importFrom stats reorder
 #' @export
 #'
 #' @examples
@@ -105,19 +106,19 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL){
   for(a in 1:nages){
     heatmap <- pair_heatmaps[[a]]
 
-    p <- ggplot2::ggplot(heatmap, aes(x = row, y = reorder(col,desc(col)),
-                             fill = supported_mod,
+    p <- ggplot2::ggplot(heatmap, ggplot2::aes(x = row, y = reorder(col,desc(col)),
+                             fill = .data$supported_mod,
                              alpha = freq)) +
       ggplot2::geom_tile() +
       ggplot2::theme_bw() +
       ggplot2::scale_x_discrete(drop = FALSE) +
       ggplot2::scale_y_discrete(drop = FALSE) +
-      ggplot2::scale_alpha(aes(range = c(min(freq), max(freq)))) +
+      ggplot2::scale_alpha(ggplot2::aes(range = c(min(freq), max(freq)))) +
       ggplot2::theme(
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.x = element_text(angle = 270),
-        legend.title = element_blank()) +
+        axis.title.x = ggplot2::element_blank(),
+        axis.title.y = ggplot2::element_blank(),
+        axis.text.x = ggplot2::element_text(angle = 270),
+        legend.title = ggplot2::element_blank()) +
       ggplot2::ggtitle(paste0(ages[a]," Ma"))
 
     if(!is.null(palette)){
@@ -161,7 +162,7 @@ pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
       mods <- unique(table$original_module)
 
       for(m in mods){
-        module <- filter(table, original_module == m)
+        module <- filter(table, .data$original_module == m)
 
         for(r in 1:nrow(heat)){
           for(c in 1:ncol(heat)){

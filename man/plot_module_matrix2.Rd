@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.R
 \name{plot_module_matrix2}
 \alias{plot_module_matrix2}
-\title{Plot a network with modules modules as an adjacency matrix, with aligned phylogenies.}
+\title{Plot a network with modules as an adjacency matrix, with aligned phylogenies.}
 \usage{
 plot_module_matrix2(
   net,
@@ -18,7 +18,7 @@ plot_module_matrix2(
 }
 \arguments{
 \item{net}{An adjacency matrix for a bipartite network. This should be the extant network.
-Parasites should be the rows, hosts should be columns. If all values are 0 or 1 an unweighted
+Parasites should be the rows, hosts should be columns. If all values are 0 or 1 an binary
 network is represented, otherwise a weighted network is assumed.}
 
 \item{samples_at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
@@ -29,7 +29,11 @@ network is represented, otherwise a weighted network is assumed.}
 
 See the examples on how to change the color scale.}
 
-\item{modules}{A \code{moduleWeb} object defining the models in the network.}
+\item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the models in the network.
+If a \code{data.frame} is passed, it must contain three columns:
+$name with taxon names,
+$module with the module the taxon was assigned to, and
+$type which defines if the taxon is a "host" or a "symbiont".}
 
 \item{threshold}{The posterior probability above which the ancestral states should be shown.
 Defaults to 90\% (\code{0.9}). Numeric vector of length 1.}
@@ -51,7 +55,7 @@ can add color scales to the resulting \code{ggplot}, e.g. \code{ggplot2::scale_c
 An assembly of plots, of class \code{patchwork}.
 }
 \description{
-Plot a network with modules modules as an adjacency matrix, with aligned phylogenies.
+Plot a network with modules as an adjacency matrix, with aligned phylogenies.
 }
 \examples{
 \dontrun{

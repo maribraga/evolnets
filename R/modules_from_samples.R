@@ -4,7 +4,7 @@
 #' @param ages Vector of ages (time slices in the past) at which samples were retrieved.
 #'
 #' @return Data frame with module membership information for each sampled network at each time slice.
-#' @importFrom dplyr mutate group_by distinct summarize left_join case_when select bind_rows tibble
+#' @importFrom dplyr mutate group_by distinct summarize left_join case_when select bind_rows tibble n
 #' @importFrom bipartite empty
 #' @export
 #'
@@ -61,12 +61,12 @@ remove_duplicate_modules <- function(mod_samples) {
 
   duplicates_removed <- mod_samples %>% group_by(age, sample) %>% distinct(name) %>% summarize(u=n()) %>%
     left_join(mod_samples %>% group_by(age, sample) %>% summarize(n=n())) %>%
-    mutate(problem = case_when(u != n ~ "YES", u == n ~ "NO")) %>%
+    mutate(problem = case_when(u != .data$n ~ "YES", u == .data$n ~ "NO")) %>%
     left_join(mod_samples) %>%
     mutate(original_module = case_when(problem == "YES" ~ 1,
-                                       problem == "NO" ~ as.numeric(original_module))) %>%
+                                       problem == "NO" ~ as.numeric(.data$original_module))) %>%
     distinct() %>%
-    select(name, age, sample, original_module)
+    select(.data$name, .data$age, .data$sample, .data$original_module)
 
   duplicates_removed
 

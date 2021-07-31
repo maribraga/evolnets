@@ -22,13 +22,13 @@ RoxygenNote: 7.1.1
 Suggests: 
     ggtree,
     knitr,
-    patchwork,
     testthat (>= 3.0.0),
     rmarkdown
 Imports: 
     ape,
     bipartite,
     data.table,
+    patchwork,
     dplyr,
     ggplot2,
     magrittr,
@@ -37,7 +37,8 @@ Imports:
     stringr,
     tidyr,
     utils,
-    vegan
+    vegan,
+    purrr
 Depends: 
     R (>= 2.10)
 URL: https://github.com/maribraga/evolnets

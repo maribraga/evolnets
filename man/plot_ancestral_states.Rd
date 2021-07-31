@@ -20,7 +20,11 @@ plot_ancestral_states(
 
 \item{samples_at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
 
-\item{modules}{A \code{moduleWeb} object defining the models in the network.}
+\item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the models in the network.
+If a \code{data.frame} is passed, it must contain three columns:
+$name with taxon names,
+$module with the module the taxon was assigned to, and
+$type which defines if the taxon is a "host" or a "symbiont".}
 
 \item{threshold}{The posterior probability above which the ancestral states should be shown.
 Defaults to 90\% (\code{0.9}). Numeric vector of length 1.}

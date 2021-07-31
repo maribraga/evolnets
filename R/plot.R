@@ -1,10 +1,13 @@
-#' Plot a network with modules modules as an adjacency matrix
+#' Plot a network with modules as an adjacency matrix
 #'
 #' @param net An adjacency matrix for a bipartite network. Parasites should be the rows, hosts
 #'   should be columns. If all values are 0 or 1 an unweighted network is represented, otherwise
 #'   a weighted network is assumed.
-#' @param modules A `moduleWeb` object defining the models in the network. If left `NULL` the
-#'   modules are automatically calculated.
+#' @param modules A `moduleWeb` or a `data.frame` object defining the models in the network. If left `NULL` the
+#'   modules are automatically calculated. If a `data.frame` is passed, it must contain three columns:
+#'   $name with taxon names,
+#'   $module with the module the taxon was assigned to, and
+#'   $type which defines if the taxon is a "host" or a "symbiont".
 #' @param parasite_order A character vector giving the order the parasite should be listed in.
 #'   Should contain each parasite only once, and include the row names of `net`.
 #' @param host_order A character vector giving the order the hosts should be listed in. Should
@@ -27,8 +30,10 @@
 plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_order = NULL) {
   # Check inputs.
   if (!is.matrix(net)) stop('`net` should be a matrix.')
-  if (!is.null(modules) && !inherits(modules, 'moduleWeb')) {
-    stop('`modules` should be of class `moduleWeb`.')
+  if (!is.null(modules) && (
+    !inherits(modules, 'moduleWeb') && !inherits(modules, 'data.frame')
+  )) {
+    stop('`modules` should be of class `moduleWeb` or `data.frame`.')
   }
   if (!is.null(parasite_order) && (
     length(setdiff(rownames(net), parasite_order)) != 0 || !is.vector(parasite_order) ||
@@ -47,12 +52,24 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
   if (is.null(modules)) {
     modules <- mycomputeModules(net)
   }
-  # Take the modules, and put the host modules in a data.frame
-  mod_list <- listModuleInformation(modules)[[2]]
-  host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
-  host_mods <- dplyr::bind_rows(host_mods, .id = 'host_module')
-  para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
-  para_mods <- dplyr::bind_rows(para_mods, .id = 'parasite_module')
+
+  if (inherits(modules, 'moduleWeb')) {
+    # Take the modules, and put the host modules in a data.frame
+    mod_list <- listModuleInformation(modules)[[2]]
+    host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
+    host_mods <- dplyr::bind_rows(host_mods, .id = 'host_module')
+    para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
+    para_mods <- dplyr::bind_rows(para_mods, .id = 'parasite_module')
+  } else {
+    host_mods <- modules %>%
+      dplyr::filter(type == "host") %>%
+      dplyr::select(.data$name, .data$module) %>%
+      dplyr::rename(host = .data$name, host_module = .data$module)
+    para_mods <- modules %>%
+      dplyr::filter(type == "symbiont") %>%
+      dplyr::select(.data$name, .data$module) %>%
+      dplyr::rename(parasite = .data$name, parasite_module = .data$module)
+  }
 
   # Take the extant network (as an adjacency matrix), and create a plottable data.frame
   net_df <- as.data.frame(net)
@@ -105,7 +122,11 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
 #'
 #' @param tree The phylogeny, a `phylo` object.
 #' @param samples_at_nodes A list of length 2, output from `posterior_at_nodes()`.
-#' @param modules A `moduleWeb` object defining the models in the network.
+#' @param modules A `moduleWeb` or a `data.frame` object defining the models in the network.
+#' If a `data.frame` is passed, it must contain three columns:
+#'   $name with taxon names,
+#'   $module with the module the taxon was assigned to, and
+#'   $type which defines if the taxon is a "host" or a "symbiont".
 #' @param threshold The posterior probability above which the ancestral states should be shown.
 #'   Defaults to 90% (`0.9`). Numeric vector of length 1.
 #' @param point_size How large the ancestral state points should be, default at 3. Play with this
@@ -146,10 +167,19 @@ plot_ancestral_states <- function(
     stop('All nodes in `samples_at_nodes` should occur in the tree as internal nodes, check `tree$node.label`')
   }
 
-  # Take the modules, and put the host modules in a data.frame
-  mod_list <- listModuleInformation(modules)[[2]]
-  host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
-  host_mods <- dplyr::bind_rows(host_mods, .id = 'module')
+  if (inherits(modules, 'moduleWeb')) {
+    # Take the modules, and put the host modules in a data.frame
+    mod_list <- listModuleInformation(modules)[[2]]
+    host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
+    host_mods <- dplyr::bind_rows(host_mods, .id = 'module')
+    mods <- seq_along(mod_list)
+  } else {
+    host_mods <- modules %>%
+      dplyr::filter(type == "host") %>%
+      dplyr::select(.data$name, .data$module) %>%
+      dplyr::rename(host = .data$name)
+    mods <- seq_along(unique(host_mods$module))
+  }
 
   # Get the ancestral states, reformat to plot on the parasite tree
   node_df <- as.data.frame(samples_at_nodes[[2]])
@@ -176,7 +206,6 @@ plot_ancestral_states <- function(
   # Do we need a legend?
   if (legend) guide <- 'legend' else guide <- 'none'
   # Set up our color scale
-  mods <- seq_along(mod_list)
   if (is.null(colors)) {
     color_scale <- ggplot2::scale_color_discrete(
       limits = factor(mods, levels = mods), guide = guide
@@ -216,10 +245,10 @@ plot_ancestral_states <- function(
   return(p)
 }
 
-#' Plot a network with modules modules as an adjacency matrix, with aligned phylogenies.
+#' Plot a network with modules as an adjacency matrix, with aligned phylogenies.
 #'
 #' @param net An adjacency matrix for a bipartite network. This should be the extant network.
-#'   Parasites should be the rows, hosts should be columns. If all values are 0 or 1 an unweighted
+#'   Parasites should be the rows, hosts should be columns. If all values are 0 or 1 an binary
 #'   network is represented, otherwise a weighted network is assumed.
 #' @param tree The phylogeny belonging the parasites or herbivores. Object of class `phylo`.
 #' @param host_tree The phylogeny belonging to the hosts. Object of class `phylo`.
@@ -263,7 +292,12 @@ plot_module_matrix2 <- function(
   parasite_coords <- parasite_coords[order(parasite_coords$y), ]
 
   # Make the host tree plot
-  mods <- seq_along(listModuleInformation(modules)[[2]])
+  if (inherits(modules, 'moduleWeb')) {
+    mods <- seq_along(listModuleInformation(modules)[[2]])
+  } else {
+    mods <- seq_along(unique(modules$module))
+  }
+
   host_plot <- ggplot2::ggplot(host_tree) +
     ggtree::geom_tree() +
     ggplot2::coord_flip() +
