@@ -158,6 +158,8 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #'   Defaults to 90% (`0.9`). Numeric vector of length 1.
 #' @param point_size How large the ancestral state points should be, default at 3. Play with this
 #'   and `dodge_width` to get a pleasing result. Numeric vector of length 1.
+#' @param points_shape What point shape should be used for the ancestral states? When left `NULL`,
+#'   a reasonable default will be chosen. Otherwise, a numeric vector of length 1.
 #' @param dodge_width How far the points should be pushed apart, when there is multiple states at
 #'   a single node, default at 0.025. Play with this and `point_size` to get a pleasing result.
 #'   Numeric vector of length 1.
@@ -182,7 +184,8 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #' }
 plot_ancestral_states <- function(
   tree, samples_at_nodes, modules, module_order = NULL, layout = "rectangular",
-  threshold = 0.9, point_size = 3, dodge_width = 0.025, legend = TRUE, colors = NULL
+  threshold = 0.9, point_size = 3, point_shape = NULL, dodge_width = 0.025, legend = TRUE,
+  colors = NULL
 ) {
   if (!requireNamespace('ggtree')) {
     stop('Please install the ggtree package to use this function. Use `BiocManager::install("ggtree")`')
@@ -255,12 +258,11 @@ plot_ancestral_states <- function(
     p <- ggtree::ggtree(tree, layout = layout) +
       ggplot2::scale_x_continuous(name = NULL, labels = abs, expand = ggplot2::expansion(c(0.05, 0))) +
       ggplot2::scale_y_continuous(expand = c(0, 0.5)) +
-      color_scale +
-      ggtree::theme_tree2()
+      color_scale
   )
   # Flip the time axis the right way around
   if (layout %in% c('rectangular', 'slanted')) {
-    p <- ggtree::revts(p)
+    p <- ggtree::revts(p + ggtree::theme_tree2())
   }
 
   # Extract the node coordinates, so we can easily plot our own node information
@@ -268,15 +270,22 @@ plot_ancestral_states <- function(
   coords <- coords[order(coords$y), ]
 
   x_range <- diff(range(coords$x))
+  y_range <- diff(range(coords$y))
   node_df2 <- dplyr::left_join(node_df, coords, by = c('node' = 'label')) %>%
     dplyr::arrange(.data$node, .data$module) %>%
-    dplyr::group_by(.data$node) %>%
-    dplyr::mutate(
-      x = offset_x(.data$x, width = x_range * dodge_width)
-    )
+    dplyr::group_by(.data$node)
+
+  if (layout %in% c('rectangular', 'slanted')) {
+    node_df2 <- dplyr::mutate(node_df2, x = offset_x(.data$x, width = x_range * dodge_width))
+    if (is.null(point_shape)) point_shape <- 15
+  } else {
+    node_df2 <- dplyr::mutate(node_df2, y = offset_x(.data$y, width = y_range * dodge_width))
+    if (is.null(point_shape)) point_shape <- 16
+  }
+
   p <- p + ggplot2::geom_point(
     ggplot2::aes_(~x, ~y, color = ~module),
-    node_df2, shape = 15, size = point_size
+    node_df2, shape = point_shape, size = point_size
   )
 
   return(p)
