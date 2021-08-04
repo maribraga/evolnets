@@ -8,7 +8,8 @@ plot_module_matrix(
   net,
   modules = NULL,
   parasite_order = NULL,
-  host_order = NULL
+  host_order = NULL,
+  module_order = NULL
 )
 }
 \arguments{
@@ -27,6 +28,9 @@ Should contain each parasite only once, and include the row names of \code{net}.
 
 \item{host_order}{A character vector giving the order the hosts should be listed in. Should
 contain each host only once, and include the column names of \code{net}.}
+
+\item{module_order}{A character vector giving the order that modules should be plotted. Should contain
+each module only once.}
 }
 \value{
 A \code{ggplot} object.

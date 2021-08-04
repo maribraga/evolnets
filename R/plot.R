@@ -12,6 +12,8 @@
 #'   Should contain each parasite only once, and include the row names of `net`.
 #' @param host_order A character vector giving the order the hosts should be listed in. Should
 #'   contain each host only once, and include the column names of `net`.
+#' @param module_order A character vector giving the order that modules should be plotted. Should contain
+#'   each module only once.
 #'
 #' @return A `ggplot` object.
 #' @export
@@ -27,7 +29,7 @@
 #'   extant_net_weighted[extant_net == 1] <- runif(sum(extant_net))
 #'   plot_module_matrix(extant_net_weighted)
 #' }
-plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_order = NULL) {
+plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_order = NULL, module_order = NULL) {
   # Check inputs.
   if (!is.matrix(net)) stop('`net` should be a matrix.')
   if (!is.null(modules) && (
@@ -54,7 +56,7 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
   }
 
   if (inherits(modules, 'moduleWeb')) {
-    # Take the modules, and put the host modules in a data.frame
+    # Take the modules, and put the host and symbiont modules in data.frames
     mod_list <- listModuleInformation(modules)[[2]]
     host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
     host_mods <- dplyr::bind_rows(host_mods, .id = 'host_module')
@@ -85,13 +87,31 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
     module_mat$host_module,
     NA
   )
+  # Set order of modules
+  if (!is.null(module_order)) {
+    module_mat$module <- factor(module_mat$module, levels = module_order)
+  }
+
   # Then join with the order of tips from the trees to ensure correct alignment
-  if (!is.null(parasite_order)) {
-    module_mat$parasite <- factor(module_mat$parasite, levels = parasite_order)
+  if (is.null(parasite_order)) {
+    parasite_order <- module_mat %>%
+      dplyr::group_by(.data$parasite, .data$parasite_module) %>%
+      dplyr::summarise(degree = dplyr::n()) %>%
+      dplyr::mutate(parasite_module = factor(.data$parasite_module, levels = module_order)) %>%
+      dplyr::arrange(.data$parasite_module, .data$degree) %>%
+      dplyr::pull(.data$parasite)
   }
-  if (!is.null(host_order)) {
-    module_mat$host <- factor(module_mat$host, levels = host_order)
+  if (is.null(host_order)) {
+    host_order <- module_mat %>%
+      dplyr::group_by(.data$host, .data$host_module) %>%
+      dplyr::summarise(degree = dplyr::n()) %>%
+      dplyr::mutate(host_module = factor(.data$host_module, levels = module_order)) %>%
+      dplyr::arrange(.data$host_module, dplyr::desc(.data$degree)) %>%
+      dplyr::pull(.data$host)
   }
+  module_mat$parasite <- factor(module_mat$parasite, levels = parasite_order)
+  module_mat$host <- factor(module_mat$host, levels = host_order)
+
   if (all(module_mat$weight %in% c(0L, 1L))) {
     p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
   } else {
