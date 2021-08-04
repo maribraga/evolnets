@@ -29,7 +29,7 @@
 #'   extant_net_weighted[extant_net == 1] <- runif(sum(extant_net))
 #'   plot_module_matrix(extant_net_weighted)
 #' }
-plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_order = NULL, module_order = NULL) {
+plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasite_order = NULL, host_order = NULL) {
   # Check inputs.
   if (!is.matrix(net)) stop('`net` should be a matrix.')
   if (!is.null(modules) && (
@@ -147,6 +147,8 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
 #'   $name with taxon names,
 #'   $module with the module the taxon was assigned to, and
 #'   $type which defines if the taxon is a "host" or a "symbiont".
+#' @param module_order A character vector giving the order that modules should be plotted. Should contain
+#'   each module only once.
 #' @param threshold The posterior probability above which the ancestral states should be shown.
 #'   Defaults to 90% (`0.9`). Numeric vector of length 1.
 #' @param point_size How large the ancestral state points should be, default at 3. Play with this
@@ -174,7 +176,7 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
 #'   plot_ancestral_states(tree, san, mods, colors = rainbow(20))
 #' }
 plot_ancestral_states <- function(
-  tree, samples_at_nodes, modules,
+  tree, samples_at_nodes, modules, module_order = NULL,
   threshold = 0.9, point_size = 3, dodge_width = 0.025, legend = TRUE, colors = NULL
 ) {
   if (!requireNamespace('ggtree')) {
@@ -198,7 +200,11 @@ plot_ancestral_states <- function(
       dplyr::filter(type == "host") %>%
       dplyr::select(.data$name, .data$module) %>%
       dplyr::rename(host = .data$name)
-    mods <- seq_along(unique(host_mods$module))
+    if (!is.null(module_order)){
+      mods <- module_order
+    } else {
+      mods <- sort(unique(host_mods$module))
+    }
   }
 
   # Get the ancestral states, reformat to plot on the parasite tree
@@ -290,7 +296,8 @@ plot_ancestral_states <- function(
 #' }
 plot_module_matrix2 <- function(
   net, samples_at_nodes, tree, host_tree,
-  modules = NULL, threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL
+  modules = NULL, module_order = NULL,
+  threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL
 ) {
   # Check inputs
   if (!is.matrix(net)) stop('`net` should be a matrix.')
@@ -304,7 +311,7 @@ plot_module_matrix2 <- function(
 
   # Make the parasite tree plot
   parasite_plot <- plot_ancestral_states(
-    tree, samples_at_nodes, modules,
+    tree, samples_at_nodes, modules, module_order,
     threshold = threshold, point_size = point_size, dodge_width = dodge_width, legend = FALSE,
     colors = colors
   )
@@ -314,8 +321,11 @@ plot_module_matrix2 <- function(
   # Make the host tree plot
   if (inherits(modules, 'moduleWeb')) {
     mods <- seq_along(listModuleInformation(modules)[[2]])
+  }
+  if (!is.null(module_order)) {
+    mods <- module_order
   } else {
-    mods <- seq_along(unique(modules$module))
+    mods <- sort(unique(modules$module))
   }
 
   host_plot <- ggplot2::ggplot(host_tree) +
@@ -328,7 +338,7 @@ plot_module_matrix2 <- function(
   host_coords <- host_coords[order(host_coords$y), ]
 
   # Make the matrix
-  module_plot <- plot_module_matrix(net, modules, parasite_coords$label, host_coords$label)
+  module_plot <- plot_module_matrix(net, modules, module_order, parasite_coords$label, host_coords$label)
   if (is.null(colors)) {
     module_plot <- module_plot + ggplot2::scale_fill_discrete(limits = factor(mods, levels = mods))
   } else {

@@ -10,6 +10,7 @@ plot_module_matrix2(
   tree,
   host_tree,
   modules = NULL,
+  module_order = NULL,
   threshold = 0.9,
   point_size = 3,
   dodge_width = 0.025,
@@ -34,6 +35,9 @@ If a \code{data.frame} is passed, it must contain three columns:
 $name with taxon names,
 $module with the module the taxon was assigned to, and
 $type which defines if the taxon is a "host" or a "symbiont".}
+
+\item{module_order}{A character vector giving the order that modules should be plotted. Should contain
+each module only once.}
 
 \item{threshold}{The posterior probability above which the ancestral states should be shown.
 Defaults to 90\% (\code{0.9}). Numeric vector of length 1.}
