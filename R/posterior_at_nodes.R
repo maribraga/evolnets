@@ -1,13 +1,13 @@
-#' Functions to calculate the posterior probability of ancestral host
-#' repertoires at internal nodes
+#' Calculate the posterior probability of ancestral host repertoires
 #'
 #' Group of functions to calculate the posterior probabilities of
-#'   ancestral host repertoires at internal nodes of the parasite tree.
+#'   ancestral host repertoires at internal nodes of the symbiont tree.
 #'
-#' @param history Data frame with posterior samples of interaction histories.
+#' @param history Data frame with posterior samples of interaction histories returned from `read_history()`.
+#' @param tree Symbiont tree
+#' @param host_tree Host tree
 #' @param nodes Vector of internal nodes for which to calculate the posterior
 #'   probability of `state`.
-#' @param host_tree Host tree
 #' @param state Which state? Default is 2. For analyses using the 3-state model,
 #'   can take the values 1 (potential host) or 2 (actual host).
 #'
@@ -26,8 +26,11 @@
 #' # calculate the posterior probability of host repertoires
 #' # at chosen internal nodes of the parasite tree
 #' nodes <- c(129:131)
-#' pp_at_nodes <- posterior_at_nodes(history, nodes, host_tree)
-posterior_at_nodes <- function(history, nodes, host_tree, state = c(2)) {
+#' pp_at_nodes <- posterior_at_nodes(history, tree, host_tree, nodes)
+posterior_at_nodes <- function(history, tree, host_tree, nodes = NULL, state = c(2)) {
+
+  if (is.null(nodes)) nodes <- (ape::Ntip(tree)+1):(ape::Ntip(tree)+ape::Nnode(tree))
+
   dat <- dplyr::filter(history, .data$node_index %in% nodes)
   iterations <- sort(unique(dat$iteration))
   n_iter <- length(iterations)
@@ -71,6 +74,7 @@ posterior_at_nodes <- function(history, nodes, host_tree, state = c(2)) {
   colnames(g) <- host_tree$tip.label
 
   list <- list(array, g)
+  names(list) <- c("Samples", "Posterior Probabilities")
 
   return(list)
 }

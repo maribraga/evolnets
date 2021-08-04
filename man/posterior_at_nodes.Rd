@@ -2,18 +2,19 @@
 % Please edit documentation in R/posterior_at_nodes.R
 \name{posterior_at_nodes}
 \alias{posterior_at_nodes}
-\title{Functions to calculate the posterior probability of ancestral host
-repertoires at internal nodes}
+\title{Calculate the posterior probability of ancestral host repertoires}
 \usage{
-posterior_at_nodes(history, nodes, host_tree, state = c(2))
+posterior_at_nodes(history, tree, host_tree, nodes = NULL, state = c(2))
 }
 \arguments{
-\item{history}{Data frame with posterior samples of interaction histories.}
+\item{history}{Data frame with posterior samples of interaction histories returned from \code{read_history()}.}
+
+\item{tree}{Symbiont tree}
+
+\item{host_tree}{Host tree}
 
 \item{nodes}{Vector of internal nodes for which to calculate the posterior
 probability of \code{state}.}
-
-\item{host_tree}{Host tree}
 
 \item{state}{Which state? Default is 2. For analyses using the 3-state model,
 can take the values 1 (potential host) or 2 (actual host).}
@@ -23,7 +24,7 @@ A matrix with marginal posterior probabilities of interactions at given internal
 }
 \description{
 Group of functions to calculate the posterior probabilities of
-ancestral host repertoires at internal nodes of the parasite tree.
+ancestral host repertoires at internal nodes of the symbiont tree.
 }
 \examples{
 # read parasite and host tree
@@ -36,5 +37,5 @@ data(history)
 # calculate the posterior probability of host repertoires
 # at chosen internal nodes of the parasite tree
 nodes <- c(129:131)
-pp_at_nodes <- posterior_at_nodes(history, nodes, host_tree)
+pp_at_nodes <- posterior_at_nodes(history, tree, host_tree, nodes)
 }
