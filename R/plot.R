@@ -152,6 +152,8 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #'   $type which defines if the taxon is a "host" or a "symbiont".
 #' @param module_order A character vector giving the order that modules should be plotted. Should contain
 #'   each module only once.
+#' @layout One of 'rectangular', 'slanted', 'fan', 'circular', 'radial', 'equal_angle', 'daylight'
+#'   or 'ape'.
 #' @param threshold The posterior probability above which the ancestral states should be shown.
 #'   Defaults to 90% (`0.9`). Numeric vector of length 1.
 #' @param point_size How large the ancestral state points should be, default at 3. Play with this
@@ -179,7 +181,7 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #'   plot_ancestral_states(tree, san, mods, colors = rainbow(20))
 #' }
 plot_ancestral_states <- function(
-  tree, samples_at_nodes, modules, module_order = NULL,
+  tree, samples_at_nodes, modules, module_order = NULL, layout = "rectangular",
   threshold = 0.9, point_size = 3, dodge_width = 0.025, legend = TRUE, colors = NULL
 ) {
   if (!requireNamespace('ggtree')) {
@@ -249,14 +251,17 @@ plot_ancestral_states <- function(
   }
 
   # Make the parasite tree
-  p <- ggplot2::ggplot(tree) +
-    ggtree::geom_tree() +
-    ggplot2::scale_x_continuous(name = NULL, labels = abs, expand = ggplot2::expansion(c(0.05, 0))) +
-    ggplot2::scale_y_continuous(expand = c(0, 0.5)) +
-    color_scale +
-    ggtree::theme_tree2()
+  suppressMessages(
+    p <- ggtree::ggtree(tree, layout = layout) +
+      ggplot2::scale_x_continuous(name = NULL, labels = abs, expand = ggplot2::expansion(c(0.05, 0))) +
+      ggplot2::scale_y_continuous(expand = c(0, 0.5)) +
+      color_scale +
+      ggtree::theme_tree2()
+  )
   # Flip the time axis the right way around
-  p <- ggtree::revts(p)
+  if (layout %in% c('rectangular', 'slanted')) {
+    p <- ggtree::revts(p)
+  }
 
   # Extract the node coordinates, so we can easily plot our own node information
   coords <- p$data[, c('x', 'y', 'label', 'isTip')]
@@ -270,9 +275,9 @@ plot_ancestral_states <- function(
       x = offset_x(.data$x, width = x_range * dodge_width)
     )
   p <- p + ggplot2::geom_point(
-      ggplot2::aes_(~x, ~y, color = ~module),
-      node_df2, shape = 15, size = point_size
-    )
+    ggplot2::aes_(~x, ~y, color = ~module),
+    node_df2, shape = 15, size = point_size
+  )
 
   return(p)
 }
