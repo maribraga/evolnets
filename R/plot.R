@@ -152,13 +152,13 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #'   $type which defines if the taxon is a "host" or a "symbiont".
 #' @param module_order A character vector giving the order that modules should be plotted. Should contain
 #'   each module only once.
-#' @layout One of 'rectangular', 'slanted', 'fan', 'circular', 'radial', 'equal_angle', 'daylight'
+#' @param layout One of 'rectangular', 'slanted', 'fan', 'circular', 'radial', 'equal_angle', 'daylight'
 #'   or 'ape'.
 #' @param threshold The posterior probability above which the ancestral states should be shown.
 #'   Defaults to 90% (`0.9`). Numeric vector of length 1.
 #' @param point_size How large the ancestral state points should be, default at 3. Play with this
 #'   and `dodge_width` to get a pleasing result. Numeric vector of length 1.
-#' @param points_shape What point shape should be used for the ancestral states? When left `NULL`,
+#' @param point_shape What point shape should be used for the ancestral states? When left `NULL`,
 #'   a reasonable default will be chosen. Otherwise, a numeric vector of length 1.
 #' @param dodge_width How far the points should be pushed apart, when there is multiple states at
 #'   a single node, default at 0.025. Play with this and `point_size` to get a pleasing result.
@@ -204,7 +204,7 @@ plot_ancestral_states <- function(
     host_mods <- dplyr::bind_rows(host_mods, .id = 'module')
     mods <- seq_along(mod_list)
   } else {
-    if (!inherits(modules, 'data.frame') | !(c('name', 'module', 'type') %in% names(modules))) {
+    if (!inherits(modules, 'data.frame') || !(c('name', 'module', 'type') %in% names(modules))) {
       stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
     }
     host_mods <- modules %>%

@@ -9,8 +9,10 @@ plot_ancestral_states(
   samples_at_nodes,
   modules,
   module_order = NULL,
+  layout = "rectangular",
   threshold = 0.9,
   point_size = 3,
+  point_shape = NULL,
   dodge_width = 0.025,
   legend = TRUE,
   colors = NULL
@@ -30,11 +32,17 @@ $type which defines if the taxon is a "host" or a "symbiont".}
 \item{module_order}{A character vector giving the order that modules should be plotted. Should contain
 each module only once.}
 
+\item{layout}{One of 'rectangular', 'slanted', 'fan', 'circular', 'radial', 'equal_angle', 'daylight'
+or 'ape'.}
+
 \item{threshold}{The posterior probability above which the ancestral states should be shown.
 Defaults to 90\% (\code{0.9}). Numeric vector of length 1.}
 
 \item{point_size}{How large the ancestral state points should be, default at 3. Play with this
 and \code{dodge_width} to get a pleasing result. Numeric vector of length 1.}
+
+\item{point_shape}{What point shape should be used for the ancestral states? When left \code{NULL},
+a reasonable default will be chosen. Otherwise, a numeric vector of length 1.}
 
 \item{dodge_width}{How far the points should be pushed apart, when there is multiple states at
 a single node, default at 0.025. Play with this and \code{point_size} to get a pleasing result.
