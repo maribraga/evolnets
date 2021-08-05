@@ -63,6 +63,9 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
     para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
     para_mods <- dplyr::bind_rows(para_mods, .id = 'parasite_module')
   } else {
+    if (!inherits(modules, 'data.frame') | !(c('name', 'module', 'type') %in% names(modules))) {
+      stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
+    }
     host_mods <- modules %>%
       dplyr::filter(type == "host") %>%
       dplyr::select(.data$name, .data$module) %>%
@@ -196,11 +199,14 @@ plot_ancestral_states <- function(
     host_mods <- dplyr::bind_rows(host_mods, .id = 'module')
     mods <- seq_along(mod_list)
   } else {
+    if (!inherits(modules, 'data.frame') | !(c('name', 'module', 'type') %in% names(modules))) {
+      stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
+    }
     host_mods <- modules %>%
       dplyr::filter(type == "host") %>%
       dplyr::select(.data$name, .data$module) %>%
       dplyr::rename(host = .data$name)
-    if (!is.null(module_order)){
+    if (!is.null(module_order)) {
       mods <- module_order
     } else {
       mods <- sort(unique(host_mods$module))
@@ -321,11 +327,11 @@ plot_module_matrix2 <- function(
   # Make the host tree plot
   if (inherits(modules, 'moduleWeb')) {
     mods <- seq_along(listModuleInformation(modules)[[2]])
+  } else {
+    mods <- sort(unique(modules$module))
   }
   if (!is.null(module_order)) {
     mods <- module_order
-  } else {
-    mods <- sort(unique(modules$module))
   }
 
   host_plot <- ggplot2::ggplot(host_tree) +
