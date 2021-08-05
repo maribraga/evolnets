@@ -166,9 +166,11 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #' @param legend Whether to display a legend for the colors. Logical vector of length 1.
 #' @param colors Override the default colors. Should be a character vector with as many color values
 #'  as there are modules.
+#' @param ladderize Logical. Whether to ladderize the tree. Default to FALSE.
 #'
 #' The ancestral states are automatically colored by module. To change what colors are used, you
 #' can add color scales to the resulting `ggplot`, e.g. `ggplot2::scale_color_manual()`.
+#'
 #'
 #' @return A `ggplot` object.
 #' @export
@@ -185,7 +187,7 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 plot_ancestral_states <- function(
   tree, samples_at_nodes, modules, module_order = NULL, layout = "rectangular",
   threshold = 0.9, point_size = 3, point_shape = NULL, dodge_width = 0.025, legend = TRUE,
-  colors = NULL
+  colors = NULL, ladderize = FALSE
 ) {
   if (!requireNamespace('ggtree')) {
     stop('Please install the ggtree package to use this function. Use `BiocManager::install("ggtree")`')
@@ -255,7 +257,7 @@ plot_ancestral_states <- function(
 
   # Make the parasite tree
   suppressMessages(
-    p <- ggtree::ggtree(tree, layout = layout) +
+    p <- ggtree::ggtree(tree, layout = layout, ladderize = ladderize) +
       ggplot2::scale_x_continuous(name = NULL, labels = abs, expand = ggplot2::expansion(c(0.05, 0))) +
       ggplot2::scale_y_continuous(expand = c(0, 0.5)) +
       color_scale
@@ -317,7 +319,7 @@ plot_ancestral_states <- function(
 plot_module_matrix2 <- function(
   net, samples_at_nodes, tree, host_tree,
   modules = NULL, module_order = NULL,
-  threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL
+  threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
 ) {
   # Check inputs
   if (!is.matrix(net)) stop('`net` should be a matrix.')
@@ -333,7 +335,7 @@ plot_module_matrix2 <- function(
   parasite_plot <- plot_ancestral_states(
     tree, samples_at_nodes, modules, module_order,
     threshold = threshold, point_size = point_size, dodge_width = dodge_width, legend = FALSE,
-    colors = colors
+    colors = colors, ladderize = ladderize
   )
   parasite_coords <- parasite_plot$data[parasite_plot$data$isTip, c('x', 'y', 'label', 'isTip')]
   parasite_coords <- parasite_coords[order(parasite_coords$y), ]

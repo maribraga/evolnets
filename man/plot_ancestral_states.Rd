@@ -15,7 +15,8 @@ plot_ancestral_states(
   point_shape = NULL,
   dodge_width = 0.025,
   legend = TRUE,
-  colors = NULL
+  colors = NULL,
+  ladderize = FALSE
 )
 }
 \arguments{
@@ -51,7 +52,9 @@ Numeric vector of length 1.}
 \item{legend}{Whether to display a legend for the colors. Logical vector of length 1.}
 
 \item{colors}{Override the default colors. Should be a character vector with as many color values
-as there are modules.
+as there are modules.}
+
+\item{ladderize}{Logical. Whether to ladderize the tree. Default to FALSE.
 
 The ancestral states are automatically colored by module. To change what colors are used, you
 can add color scales to the resulting \code{ggplot}, e.g. \code{ggplot2::scale_color_manual()}.}

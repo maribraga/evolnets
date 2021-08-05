@@ -14,7 +14,8 @@ plot_module_matrix2(
   threshold = 0.9,
   point_size = 3,
   dodge_width = 0.025,
-  colors = NULL
+  colors = NULL,
+  ladderize = FALSE
 )
 }
 \arguments{
@@ -50,7 +51,9 @@ a single node, default at 0.025. Play with this and \code{point_size} to get a p
 Numeric vector of length 1.}
 
 \item{colors}{Override the default colors. Should be a character vector with as many color values
-as there are modules.
+as there are modules.}
+
+\item{ladderize}{Logical. Whether to ladderize the tree. Default to FALSE.
 
 The ancestral states are automatically colored by module. To change what colors are used, you
 can add color scales to the resulting \code{ggplot}, e.g. \code{ggplot2::scale_color_manual()}.}
