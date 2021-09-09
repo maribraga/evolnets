@@ -36,8 +36,8 @@ ggt <- ggtree(tree, ladderize = F) +
   geom_nodelab() +
   theme_tree2() +
   scale_x_continuous(labels = abs)
-ggt = revts(ggt)
-
+ggt <- revts(ggt)
+ggt
 
 history <- read_history("./inference/output/out.history.txt")
 
@@ -84,7 +84,7 @@ for(i in 1:length(summary_nets_50)){
 #             with a daughter module, give the daughter module name to the
 #             ancestor with the highest total probability of interactions;
 #             give the other ancestors(s) new module names
-# 
+#
 #             if daughter modules merge ancestrally, then retain the name
 #             for the largest extant module
 
@@ -94,9 +94,9 @@ for (i in 1:length(ages)) {
     tree_list[[i]] = ggt + geom_vline(xintercept = -ages[i], lty=2, col="red")
 }
 
-pdf( "toy_modules.pdf", height=5, width=12 )
+pdf( "./evolnets/toy_modules.pdf", height=5, width=12 )
 plot.new()
-grid.newpage()
+#grid.newpage()
 pushViewport(viewport(layout = grid.layout(2, 4)))
 
 for (i in 1:length(ages)) {
@@ -104,7 +104,7 @@ for (i in 1:length(ages)) {
     pushViewport(viewport(layout.pos.col = i, layout.pos.row=1))
     print(tree_list[i], newpage = FALSE)
     popViewport()
-    
+
     #Draw bsae plot
     pushViewport(viewport(layout.pos.col = i, layout.pos.row=2))
     par(fig = gridFIG(), new = TRUE)
