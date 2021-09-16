@@ -16,6 +16,7 @@ setwd("~/projects/evolnets/match-modules")
 # read trees and character history ----
 host_tree <- read.tree("./evolnets/host_5tips.tre")
 treeRev <- read.beast.newick("./evolnets/tree_Rev_nw.tre")
+net <- read.csv("./evolnets/incidence_matrix.csv")
 
 tree <- treeRev@phylo
 tree$node.number <- (Ntip(tree) + 1):(Ntip(tree) + Nnode(tree))
@@ -49,11 +50,24 @@ at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 samples <- at_ages[[1]]
 pps <- at_ages[[2]]
 
-summary_nets_50 <- get_summary_network(pps, ages, 0.5)
-summary_nets_50_bin <- get_summary_network(pps, ages, 0.5, weighted = F)
+summary_networks <- get_summary_network(pps, ages, 0.5)
+#summary_nets_50_bin <- get_summary_network(pps, ages, 0.5, weighted = F)
 
 
 # find modules ----
+
+list_all_mod <- modules_from_summary_networks(summary_networks, ages)
+plotModuleWeb(list_all_mod[[2]][[3]], labsize=0.6)
+
+unmatched_modules <- list_all_mod[[1]]
+
+all_mod <- modules_across_ages(summary_networks, tree)
+
+
+
+
+
+## ---
 all_wmod50 <- tibble()
 
 for(i in 1:length(summary_nets_50)){
@@ -73,21 +87,7 @@ for(i in 1:length(summary_nets_50)){
   }
 }
 
-
-### Function: for a given node/branch (x) at a given time (t_{i}),
-#             find all daughter nodes (y) at the next time step (t_{i+1}),
-#             and identify all modules for those nodes at that time;
-#             then have parent nodes "reverse-inherit" the modules of
-#             the child nodes
-#
-#             if two ancestral nodes/branches both retain a partial relationship
-#             with a daughter module, give the daughter module name to the
-#             ancestor with the highest total probability of interactions;
-#             give the other ancestors(s) new module names
-#
-#             if daughter modules merge ancestrally, then retain the name
-#             for the largest extant module
-
+# plot trees and modules
 mod_list = list(  wmod50_5, wmod50_2.5, wmod50_1, wmod50_0)
 tree_list = list()
 for (i in 1:length(ages)) {
@@ -114,5 +114,21 @@ for (i in 1:length(ages)) {
 dev.off()
 
 
+### Function: for a given node/branch (x) at a given time (t_{i}),
+#             find all daughter nodes (y) at the next time step (t_{i+1}),
+#             and identify all modules for those nodes at that time;
+#             then have parent nodes "reverse-inherit" the modules of
+#             the child nodes
+#
+#             if an ancestral node/branch has relationships
+#             with two daughter modules, give the daughter module name to the
+#             ancestor with the highest total probability of interactions;
+#             give the other ancestors(s) new module names
+#
+#             if daughter modules merge ancestrally, then retain the name
+#             for the largest extant module
+
+
+test <- match_modules(all_wmod50, ages, tree)
 
 

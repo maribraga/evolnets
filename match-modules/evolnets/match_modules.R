@@ -1,7 +1,13 @@
-# Function to match modules
-
-library(dispRity)
-
+#' Match modules across time slices
+#'
+#' @param module_info
+#' @param ages
+#' @param tree
+#'
+#' @return
+#' @export
+#'
+#' @examples
 match_modules <- function(module_info, ages, tree){
 
   # Make sure that ages are ordered present -> past and start at present
@@ -65,6 +71,12 @@ match_modules <- function(module_info, ages, tree){
                  name %in% children) %>%
           pull(original_module)
 
+        # get the size of the modules (the number of within-module interactions)
+        # same thing for each child
+
+        # get the geometric mean of within-module interactions
+        # same thing for each child
+
         # add that info to the data frame
         mod_df[which(mod_df$name == tips[tip] & mod_df$age == ages[t]),
                'child1_mod'] <- mod_children[1]
@@ -84,5 +96,4 @@ match_modules <- function(module_info, ages, tree){
 }
 
 
-test <- match_modules(all_wmod50, ages, tree)
 
