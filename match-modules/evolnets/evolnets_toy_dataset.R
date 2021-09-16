@@ -56,10 +56,10 @@ summary_networks <- get_summary_network(pps, ages, 0.5)
 
 # find modules ----
 
-list_all_mod <- modules_from_summary_networks(summary_networks, ages)
-plotModuleWeb(list_all_mod[[2]][[3]], labsize=0.6)
-
-unmatched_modules <- list_all_mod[[1]]
+# list_all_mod <- modules_from_summary_networks(summary_networks, ages)
+# plotModuleWeb(list_all_mod[[2]][[3]], labsize=0.6)
+#
+# unmatched_modules <- list_all_mod[[1]]
 
 all_mod <- modules_across_ages(summary_networks, tree)
 

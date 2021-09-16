@@ -4,12 +4,16 @@
 \alias{modules_across_ages}
 \title{Evolution of modules: find and match modules across time slices}
 \usage{
-modules_across_ages(summary_networks, tree)
+modules_across_ages(summary_networks, tree, module_strength = "geometric")
 }
 \arguments{
 \item{summary_networks}{List of reconstructed summary networks for each age.}
 
 \item{tree}{The phylogeny, a \code{phylo} object.}
+
+\item{module_strength}{Method to calculate how strongly a node is connected to it's module.
+Used to decide which module is inherited by a parent node when the children nodes belong to different modules.
+One of three options: "size", "sum", or "geometric". The default is "geometric".}
 }
 \value{
 A data frame with module membership for each node of summary networks
