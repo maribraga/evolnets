@@ -10,13 +10,13 @@ library(gridExtra)
 library(gridBase)
 library(grid)
 
-#setwd("~/repos/evolnets/match-modules")
-setwd("~/projects/evolnets/match-modules")
+setwd("~/repos/evolnets/match-modules")
+#setwd("~/projects/evolnets/match-modules")
 
 # read trees and character history ----
-host_tree <- read.tree("./evolnets/host_5tips.tre")
-treeRev <- read.beast.newick("./evolnets/tree_Rev_nw.tre")
-net <- read.csv("./evolnets/incidence_matrix.csv")
+host_tree <- read.tree("./evolnets/host_10tips.tre")
+treeRev <- read.beast.newick("./evolnets/tree20_Rev.tre")
+#net <- read.csv("./evolnets/incidence_matrix.csv")
 
 tree <- treeRev@phylo
 tree$node.number <- (Ntip(tree) + 1):(Ntip(tree) + Nnode(tree))
@@ -33,8 +33,8 @@ tree$node.label <- paste0("Index_",indices)
 plot(tree, show.node.label = T)
 
 ggt <- ggtree(tree, ladderize = F) +
-  geom_tiplab() +
-  geom_nodelab() +
+  geom_tiplab(size = 3) +
+  geom_nodelab(size = 3) +
   theme_tree2() +
   scale_x_continuous(labels = abs)
 ggt <- revts(ggt)
@@ -44,7 +44,7 @@ history <- read_history("./inference/output/out.history.txt")
 
 
 # get posterior at ages ----
-ages <- c(5,2.5,1,0)
+ages <- c(50,40,30,20,10,0)
 at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 
 samples <- at_ages[[1]]
@@ -56,14 +56,23 @@ summary_networks <- get_summary_network(pps, ages, 0.5)
 
 # find modules ----
 
-# list_all_mod <- modules_from_summary_networks(summary_networks, ages)
-# plotModuleWeb(list_all_mod[[2]][[3]], labsize=0.6)
-#
-# unmatched_modules <- list_all_mod[[1]]
+# to plot unmatched modules
+list_all_mod <- modules_from_summary_networks(summary_networks, ages)
 
+par(mfrow = c(2,3))
+for(p in 1:length(ages)){
+  plotModuleWeb(list_all_mod[[2]][[p]], labsize=0.6)
+}
+
+unmatched_modules <- list_all_mod[[1]]
+
+# match modules
 all_mod <- modules_across_ages(summary_networks, tree)
 
+restore.point("point1", to.global = F)
 
+# snippet restore
+# restore.point("${1:name}", to.global = F)
 
 
 
@@ -130,5 +139,11 @@ dev.off()
 
 
 test <- match_modules(all_wmod50, ages, tree)
+
+
+# get all nodes between 2 time slices
+
+ages <- sort(ages)
+node.depth.edgelength(tree)
 
 
