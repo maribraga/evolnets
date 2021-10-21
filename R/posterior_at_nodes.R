@@ -48,12 +48,12 @@ posterior_at_nodes <- function(history, tree, host_tree, nodes = NULL, state = c
     it <- iterations[i]
     dat_it <- dat[dat$iteration == it, ]
     ret <- list()
-    for (i in 1:length(nodes)) {
-      dat2 <- dat_it[dat_it$node_index == nodes[i], ]
+    for (j in 1:length(nodes)) {
+      dat2 <- dat_it[dat_it$node_index == nodes[j], ]
       if (nrow(dat2) == 1) {
-        ret[[i]] <- dat2
+        ret[[j]] <- dat2
       } else {
-        ret[[i]] <- dat2[which.min(dat2$transition_time), ]
+        ret[[j]] <- dat2[which.min(dat2$transition_time), ]
       }
     }
 
