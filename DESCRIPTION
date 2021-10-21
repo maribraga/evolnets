@@ -39,7 +39,8 @@ Imports:
     utils,
     vegan,
     purrr,
-    tibble
+    tibble,
+    tidyselect
 Depends: 
     R (>= 2.10)
 URL: https://github.com/maribraga/evolnets

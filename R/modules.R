@@ -4,7 +4,8 @@
 #' @param tree The phylogeny, a `phylo` object.
 #' @param module_strength Method to calculate how strongly a node is connected to it's module.
 #' Used to decide which module is inherited by a parent node when the children nodes belong to different modules.
-#' One of three options: "size", "sum", or "geometric". The default is "geometric".
+#' One of three options: "size" for number of within-module interactions, "sum" for sum of interaction weights,
+#' "mean" for average interaction weight, or "geometric" for geometric mean of weights. The default is "mean".
 #'
 #' @return A data frame with module membership for each node of summary networks
 #' at each age.
@@ -13,11 +14,10 @@
 #'
 #' @examples
 #'
-modules_across_ages <- function(summary_networks, tree, module_strength = "geometric"){
+modules_across_ages <- function(summary_networks, tree, module_strength = "mean"){
 
-  ages <- as.numeric(names(summary_networks))
-  unmatched_modules <- modules_from_summary_networks(summary_networks, ages)[[1]]
-  matched_modules <- match_modules(summary_networks, unmatched_modules, ages, tree)
+  unmatched_modules <- modules_from_summary_networks(summary_networks)[[1]]
+  matched_modules <- match_modules(summary_networks, unmatched_modules, tree, module_strength)
 
   return(matched_modules)
 }
@@ -34,8 +34,9 @@ modules_across_ages <- function(summary_networks, tree, module_strength = "geome
 #' @export
 #'
 #' @examples
-modules_from_summary_networks <- function(summary_networks, ages){
+modules_from_summary_networks <- function(summary_networks){
 
+  ages <- as.numeric(names(summary_networks))
   all_mod <- tibble::tibble()
   summary_modules <- list()
 
@@ -62,13 +63,13 @@ modules_from_summary_networks <- function(summary_networks, ages){
 
 
 # Match the modules across time slices
-match_modules <- function(summary_networks, unmatched_modules, ages, tree, module_strength = "geometric"){
+match_modules <- function(summary_networks, unmatched_modules, tree, module_strength){
 
+  ages <- as.numeric(names(summary_networks))
   # Make sure that ages are ordered present -> past and start at present
   ages <- sort(ages)
   if(ages[1] > 0) ages <- c(0,ages)
 
-  # Start from age = 0 and
   # prepare for adding children module information
   mod_df_sym <- unmatched_modules %>%
     dplyr::filter(.data$age == 0, !grepl('H', .data$name)) %>%
@@ -76,201 +77,327 @@ match_modules <- function(summary_networks, unmatched_modules, ages, tree, modul
                   child2_mod = '0',
                   module_name = LETTERS[.data$original_module])
 
-  mod_df_sym_conflicts <- tibble::tibble()
-
   mod_df_host <- unmatched_modules %>%
     dplyr::filter(grepl('H', .data$name))
 
   # Get a tibble with tree information for finding child nodes
-  tree_t <- tibble::as_tibble(tree)
+  tree_t <- tibble::as_tibble(tree) %>%
+    dplyr::mutate(depth = round(100 - node.depth.edgelength(tree), digits = 5))
 
-  # Get subtree at each age
-  tree$root.time <- max(tree.age(tree)$ages)
-  list_subtrees <- list()
-  for(i in 1:length(ages)){
+  # Find all nodes between this time slice and the previous one
+  # Reverse inherit modules
+  for(t in 1:(length(ages)-1)){
 
-    subtree <- dispRity::slice.tree(tree, age = ages[[i]], "acctran")
-    list_subtrees[[i]] <- subtree
-  }
+    age_min <- ages[t]
+    age_max <- ages[t+1]
 
-  # Find if tip is present in the next age and, if not, get children nodes
-  # and get the name of the module at the next age
-  # then resolve conflicts
-  for(t in 2:length(ages)){
+    # all modules present at min age (starting with the present)
+    modules_age <- mod_df_sym %>%
+      dplyr::filter(.data$age == age_min) %>%
+      dplyr::pull(.data$module_name) %>%
+      unique()
 
+    # ? need to update matches() ? ####
+    all_submodules <- modules_age[tidyselect::matches("\\d", vars = modules_age)]
+    submod_letters <- unique(sub("\\d","",all_submodules))
+
+    modules_age <- sort(c(modules_age, submod_letters))
+
+    # Data frame with all nodes at the network at max age
     mod_df_sym_age <- unmatched_modules %>%
-      dplyr::filter(.data$age == ages[t],
+      dplyr::filter(.data$age == age_max,
                     !grepl('H', .data$name)) %>%
       dplyr::mutate(child1_mod = '0',
                     child2_mod = '0',
-                    module_name = '0')
+                    module_name = '0',
+                    strength = 0)
+    mods_strength <- matrix(data = 0, nrow = nrow(mod_df_sym_age), ncol = length(modules_age))
+    colnames(mods_strength) <- paste0("strength_",modules_age)
+    mod_df_sym_age <- cbind(mod_df_sym_age, mods_strength)
 
-    subtree <- list_subtrees[[t]]
-    tips <- subtree$tip.label
+    # Data frame with all internal nodes in the interval between min and max age
+    nodes_interval <- tree_t %>%
+      dplyr::filter(.data$depth > age_min & .data$depth <= age_max) %>%
+      dplyr::arrange(.data$depth) %>%
+      dplyr::left_join(dplyr::select(filter(mod_df_sym, .data$age == ages[t]),
+                                     c("name","original_module","module_name")),
+                       by = c("label" = "name")) %>%
+      dplyr::mutate(strength = 0)
+    mods_strength_interval <- matrix(data = 0,nrow = nrow(nodes_interval), ncol = length(modules_age))
+    colnames(mods_strength_interval) <- paste0("strength_",modules_age)
+    nodes_interval <- cbind(nodes_interval, mods_strength_interval)
 
-    # look at next time step
-    tips_next <- list_subtrees[[t-1]]$tip.label
+    all_nodes <- nodes_interval %>%
+      dplyr::pull(.data$node)
 
-    for(tip in 1:length(tips)){
+    node_depth <- tibble::tibble(node = all_nodes,
+                                 node_name = tree$node.label[all_nodes-treeio::Ntip(tree)],
+                                 depth = node.depth.edgelength(tree)[all_nodes]) %>%
+      dplyr::arrange(desc(.data$depth))
 
-      # if branch doesn't split until next time step
-      if(tips[tip] %in% tips_next){
+    for(n in 1:nrow(node_depth)){
+      node_treeio <- node_depth$node[n]
 
-        # get module at the next time step
-        mod_next <- mod_df_sym %>%
-          dplyr::filter(age == ages[t-1],
-                 name == tips[tip]) %>%
+      children <- tree_t %>%
+        dplyr::filter(parent == node_treeio) %>%
+        dplyr::pull(label)
+
+      # check if children are in between time intervals or in the next network
+      # if they are in the network, find module and calculate strength
+      if(children[1] %in% dplyr::filter(mod_df_sym, .data$age == age_min)$name){
+        mod_child1 <- mod_df_sym %>%
+          dplyr::filter(.data$age == age_min,
+                        .data$name == children[1]) %>%
           dplyr::pull(module_name)
 
-        # add that info to the data frame
-        mod_df_sym_age[which(mod_df_sym_age$name == tips[tip] & mod_df_sym_age$age == ages[t]),
-               'child1_mod'] = mod_next
+        mod_idx_child1 <- mod_df_sym %>%
+          dplyr::filter(.data$age == age_min,
+                        .data$module_name  == mod_child1) %>%
+          dplyr::pull(.data$original_module) %>%
+          unique()
 
-      } else{
-        node_treeio <- tree_t %>%
-          dplyr::filter(label == tips[tip]) %>%
-          dplyr::pull(node)
+        # Calculate how strongly each child is connected to it's module
+        hosts_mod_child1 <- mod_df_host %>%
+          dplyr::filter(.data$age == age_min,
+                        .data$original_module == mod_idx_child1) %>%
+          dplyr::pull(name)
 
-        children <- tree_t %>%
-          dplyr::filter(parent == node_treeio) %>%
-          dplyr::pull(label)
+        net_age_min <- summary_networks[[as.character(age_min)]]
 
-        # find modules of both children
-        mod_children <- mod_df_sym %>%
-          dplyr::filter(age == ages[t-1],
-                 name %in% children) %>%
+        within_mod_child1 <- as.matrix(net_age_min[children[1],hosts_mod_child1])
+
+        if(module_strength == "size"){
+          # get the the number of within-module interactions
+          strength_child1 <- rowSums(within_mod_child1 != 0)
+        }
+        if(module_strength == "sum"){
+          # get the sum of all within-module interactions
+          strength_child1 <- sum(within_mod_child1)
+        }
+        if(module_strength == "mean"){
+          # get the sum of all within-module interactions
+          strength_child1 <- sum(within_mod_child1)/ncol(within_mod_child1)
+        }
+        if(module_strength == "geometric"){
+          # get the geometric mean of within-module interactions
+          strength_child1 <- exp(mean(log(as.numeric(within_mod_child1))))
+        }
+
+        child1_strengths <- tibble::as_tibble(mods_strength) %>%
+          dplyr::slice_head()
+        child1_strengths[,paste0("strength_",mod_child1)] <- strength_child1
+
+      } else if(children[1] %in% nodes_interval$label){
+        child1_strengths <- nodes_interval %>%
+          dplyr::filter(.data$label == children[1]) %>%
+          dplyr::select(dplyr::contains("strength_"))
+      }
+
+      if(children[2] %in% dplyr::filter(mod_df_sym, .data$age == age_min)$name){
+        mod_child2 <- mod_df_sym %>%
+          dplyr::filter(.data$age == age_min,
+                        .data$name == children[2]) %>%
           dplyr::pull(module_name)
 
-        mod_idx_children <- mod_df_sym %>%
-          dplyr::filter(age == ages[t-1],
-                 name %in% children) %>%
-          dplyr::pull(original_module)
+        mod_idx_child2 <- mod_df_sym %>%
+          dplyr::filter(.data$age == age_min,
+                        .data$module_name  == mod_child2) %>%
+          dplyr::pull(.data$original_module) %>%
+          unique()
 
-        # add that info to the data frame
-        mod_df_sym_age[which(mod_df_sym_age$name == tips[tip] & mod_df_sym_age$age == ages[t]),
-               'child1_mod'] <- mod_children[1]
-        mod_df_sym_age[which(mod_df_sym_age$name == tips[tip] & mod_df_sym_age$age == ages[t]),
-               'child2_mod'] <- mod_children[2]
+        #restorepoint::restore.point("point1", to.global = F)
 
-        letter_mod_child1 <- substring(mod_children[1],1,1)
-        letter_mod_child2 <- substring(mod_children[2],1,1)
+        # Calculate how strongly each child is connected to it's module
+  # ? should we add a step for calculating the strength to other modules and ####
+  # then a relative strength? So that it is comparable to the later step
+        hosts_mod_child2 <- mod_df_host %>%
+          dplyr::filter(.data$age == age_min,
+                        .data$original_module == mod_idx_child2) %>%
+          dplyr::pull(name)
 
-        # if children are not in modules with the same letter, calculate within module connectivity
-        if(letter_mod_child1 != letter_mod_child2){
+        net_age_min <- summary_networks[[as.character(age_min)]]
 
-          hosts_mod_child1 <- mod_df_host %>%
-            dplyr::filter(.data$age == ages[t-1],
-                          .data$original_module == mod_idx_children[1]) %>%
-            dplyr::pull(name)
+        within_mod_child2 <- as.matrix(net_age_min[children[2],hosts_mod_child2])
 
-          hosts_mod_child2 <- mod_df_host %>%
-            dplyr::filter(.data$age == ages[t-1],
-                          .data$original_module == mod_idx_children[2]) %>%
-            dplyr::pull(name)
+        if(module_strength == "size"){
+          # get the the number of within-module interactions
+          strength_child2 <- rowSums(within_mod_child2 != 0)
+        }
+        if(module_strength == "sum"){
+          # get the sum of all within-module interactions
+          strength_child2 <- sum(within_mod_child2)
+        }
+        if(module_strength == "mean"){
+          # get the sum of all within-module interactions
+          strength_child2 <- sum(within_mod_child2)/ncol(within_mod_child2)
+        }
+        if(module_strength == "geometric"){
+          # get the geometric mean of within-module interactions
+          strength_child2 <- exp(mean(log(as.numeric(within_mod_child2))))
+        }
 
-          net_next <- summary_networks[[ages[t-1]]]
+        child2_strengths <- tibble::as_tibble(mods_strength) %>%
+          dplyr::slice_head()
+        child2_strengths[,paste0("strength_",mod_child2)] <- strength_child2
 
-          within_mod_child1 <- net_next[children[1],hosts_mod_child1]
-          within_mod_child2 <- net_next[children[2],hosts_mod_child2]
+      } else if(children[2] %in% nodes_interval$label){
+        child2_strengths <- nodes_interval %>%
+          dplyr::filter(.data$label == children[2]) %>%
+          dplyr::select(dplyr::contains("strength_"))
+      }
 
-          if(module_strength == "size"){
-            # get the the number of within-module interactions
-            strength_child1 <- nrow(within_mod_child1)*ncol(within_mod_child1)
-            strength_child2 <- nrow(within_mod_child2)*ncol(within_mod_child2)
-          }
-          if(module_strength == "sum"){
-            # get the sum of all within-module interactions
-            strength_child1 <- sum(within_mod_child1)
-            strength_child2 <- sum(within_mod_child2)
-          }
-          if(module_strength == "geometric"){
-            # get the geometric mean of within-module interactions
-            strength_child1 <- exp(mean(log(as.numeric(within_mod_child1))))
-            strength_child2 <- exp(mean(log(as.numeric(within_mod_child2))))
-          }
+      # get relative rates
+      sum_child1 <- sum(child1_strengths)
+      child1_strengths <- child1_strengths %>% dplyr::mutate(dplyr::across(dplyr::everything(), ~.x/sum_child1))
+      sum_child2 <- sum(child2_strengths)
+      child2_strengths <- child2_strengths %>% dplyr::mutate(dplyr::across(dplyr::everything(), ~.x/sum_child2))
 
-          if(strength_child1 > strength_child2){
-            strongest <- 1
-          } else{
-            strongest <- 2
-          }
+      # average strengths
+      children_strengths <- rbind(child1_strengths, child2_strengths)
 
-          mod_df_sym_age_tip <- mod_df_sym_age %>%
-            dplyr::filter(.data$age == ages[t], .data$name == tips[tip]) %>%
-            dplyr::mutate(stronger = mod_children[strongest])
+      # Merge submodules of the same module (letter) when each child is in one submodule
+      letter_mod_children <- c(substring(mod_child1,1,1), substring(mod_child2,1,1))
 
-          # add info to tibble with the conflicts to solve later
-          mod_df_sym_conflicts <- dplyr::bind_rows(mod_df_sym_conflicts, mod_df_sym_age_tip)
+      if(mod_child1 != mod_child2 & letter_mod_children[1] == letter_mod_children[2]){
+
+        submodules <- children_strengths %>%
+          dplyr::select(tidyselect::matches("\\d")) %>%
+          colnames()
+        mod_letter <- sub("\\d","",submodules)[1]
+
+        children_strengths <- children_strengths %>%
+          dplyr::mutate({{mod_letter}} := .data[[submodules[1]]] + .data[[submodules[2]]]) %>%
+          dplyr::select(-tidyselect::matches("\\d"))
+      }
+
+      mean_strengths <- apply(children_strengths, 2, mean)
+
+      # add all strengths to data frames
+      for(c in 1:length(mean_strengths)){
+        nodes_interval[which(nodes_interval$node == node_depth$node[n]),
+                       names(mean_strengths)[c]] <- mean_strengths[names(mean_strengths)[c]]
+        # Write strengths for nodes in the network at max age
+        mod_df_sym_age[which(mod_df_sym_age$name == node_depth$node_name[n]),
+                       names(mean_strengths)[c]] <- mean_strengths[names(mean_strengths)[c]]
+      }
+      # add strongest module to dafe frames
+      strongest_mod_idx <- max.col(t(as.matrix(mean_strengths)), "random")
+      # nodes_interval[which(nodes_interval$node == node_depth$node[n]),
+      #                'strength'] <- mean_strengths[strongest_mod_idx]
+      # nodes_interval[which(nodes_interval$node == node_depth$node[n]),
+      #                'module_name'] <- sub("strength_","",names(mean_strengths)[strongest_mod_idx])
+      # Write strengths for nodes in the network at max age
+      mod_df_sym_age[which(mod_df_sym_age$name == node_depth$node_name[n]),
+                     'strength'] <- mean_strengths[strongest_mod_idx]
+      mod_df_sym_age[which(mod_df_sym_age$name == node_depth$node_name[n]),
+                     'module_name'] <- sub("strength_","",names(mean_strengths)[strongest_mod_idx])
+
+    }
+
+    # Branches that don't split in this time interval #
+    no_split <- mod_df_sym_age %>%
+      dplyr::filter(.data$module_name == '0') %>%
+      dplyr::pull(.data$name)
+
+    # give the same name to modules of branches that don't split in this time interval
+    # ADD strength to all modules ####
+    for(i in 1:length(no_split)){
+      mod_df_sym_age[which(mod_df_sym_age$name == no_split[i]), 'module_name'] <- mod_df_sym %>%
+        dplyr::filter(.data$age == ages[t],
+                      .data$name == no_split[i]) %>%
+        dplyr::pull(.data$module_name)
+
+      mod_idx_no_split <- unmatched_modules %>%
+                        dplyr::filter(.data$age == ages[t],
+                                      .data$name == no_split[i]) %>%
+                        dplyr::pull(.data$original_module)
+      hosts_no_split <- mod_df_host %>%
+        dplyr::filter(.data$age == ages[t],
+                      .data$original_module == mod_idx_no_split) %>%
+        dplyr::pull(name)
+
+      net_age_min <- summary_networks[[as.character(ages[t])]]
+
+      within_mod_no_split <- as.matrix(net_age_min[no_split[i],hosts_no_split])
+
+      if(module_strength == "size"){
+        # get the the number of within-module interactions
+        strength_no_split <- rowSums(within_mod_no_split != 0)
+      }
+      if(module_strength == "sum"){
+        # get the sum of all within-module interactions
+        strength_no_split <- sum(within_mod_no_split)
+      }
+      if(module_strength == "mean"){
+        # get the sum of all within-module interactions
+        strength_no_split <- sum(within_mod_no_split)/ncol(within_mod_no_split)
+      }
+      if(module_strength == "geometric"){
+        # get the geometric mean of within-module interactions
+        strength_no_split <- exp(mean(log(as.numeric(within_mod_no_split))))
+      }
+
+      mod_df_sym_age[which(mod_df_sym_age$name == no_split[i]), 'strength'] <- strength_no_split
+
+    }
+
+    # get sum of strength to decide which module name to choose for each original module
+    idx_name_strength <- mod_df_sym_age %>%
+      dplyr::select(.data$original_module,
+                    .data$module_name,
+                    .data$strength) %>%
+      dplyr::group_by(.data$original_module, .data$module_name) %>%
+      dplyr::summarise(sum_strength = sum(.data$strength)) %>%
+      dplyr::group_by(.data$original_module) %>%
+      dplyr::slice_max(.data$sum_strength) %>%
+      dplyr::slice_sample()
+
+    # Resolve conflicts in symbiont modules
+    mods <- sort(unique(mod_df_sym_age$module_name))
+    valid_mods <- sort(unique(idx_name_strength$module_name))
+    invalid_mods <- dplyr::setdiff(mods, valid_mods)
+
+    # first, give the same module name (the strongest) to all nodes in the same original module
+    for(r in 1:nrow(mod_df_sym_age)){
+      if(mod_df_sym_age$module_name[r] %in% invalid_mods){
+        valid_mod <- idx_name_strength[
+          which(idx_name_strength$original_module == mod_df_sym_age$original_module[r]),
+          "module_name"]
+        mod_df_sym_age$module_name[r] <- dplyr::pull(valid_mod)
+      }
+    }
+
+    # Are there submodules among the valid modules?
+    sub_mod_left <- valid_mods[valid_mods %in% all_submodules]
+    if(length(sub_mod_left) != 0){
+      for(l in submod_letters){
+        n_sub <- contains(l, vars = sub_mod_left) %>% length()
+        # If there is only one submodule of a module left, give it the module name (just letter)
+        if(n_sub == 1){
+          mod_df_sym_age[contains(l, vars = mod_df_sym_age$module_name),"module_name"] <- l
         }
       }
     }
 
-    idx_name <- mod_df_sym_age %>%
-      select(.data$original_module, .data$child1_mod, .data$child2_mod) %>%
-      tidyr::pivot_longer(2:3, names_to = "child", values_to = "child_mod") %>%
-      select(-.data$child) %>%
-      filter(.data$child_mod != '0') %>%
-      distinct()
-
-    # Resolve conflicts in symbiont modules
-    mods <- sort(unique(idx_name$child_mod))
-
+    # second, create submodules (at max age) for modules (at min age) that were split
     for(m in 1:length(mods)){
 
-      # look at each module at a time, as defined by child1
-      df_mod <- mod_df_sym_age %>%
-        dplyr::filter(.data$child1_mod == mods[m])
-
-      # how many original modules are linked to child1_module?
-      n_originals <- idx_name %>%
-        dplyr::filter(.data$child_mod == mods[m]) %>%
+      # how many original modules (submodules) are linked to each module name?
+      n_originals <- idx_name_strength %>%
+        dplyr::filter(.data$module_name == mods[m]) %>%
         dplyr::pull(.data$original_module) %>%
         length()
 
-      # if 1 original - 1 child module (not sure yet if it's only 1 child)
-      if(n_originals == 1){
-        mod_df_sym_age[which(mod_df_sym_age$child1_mod == mods[m]),
-               'module_name'] <- mods[m]
-      } else{
-        # if multiple original - 1 child module
-        mod_df_sym_age[which(mod_df_sym_age$child1_mod == mods[m]),
-               'module_name'] <- paste0(mods[m],1:n_originals)
-      }
-    }
+      # if more than 1, give numbers to module names
+      if(n_originals > 1){
+        originals <- idx_name_strength %>%
+          dplyr::filter(.data$module_name == mods[m]) %>%
+          dplyr::pull(.data$original_module)
 
-    # Check if sister species are assigned to different modules
-    orgs <- unique(idx_name$original_module)
-    for(o in 1:length(orgs)){
-      child_mod_name <- idx_name %>%
-        dplyr::filter(.data$original_module == orgs[o]) %>%
-        dplyr::pull(.data$child_mod) %>%
-        unique()
-
-      # if 1 original - several children modules
-      if(length(child_mod_name) > 1){
-        children_letters <- c()
-        for(l in 1:length(child_mod_name)){
-          letter <- substring(child_mod_name[l],1,1)
-          children_letters <- c(children_letters, letter)
-        }
-        # do children modules come from the same module? (have same letter)
-        n_letters <- length(unique(children_letters))
-        # yes, just take the first one
-        if(n_letters == 1){
-          mod_df_sym_age[which(mod_df_sym_age$original_module == orgs[o]),
-               'module_name'] <- children_letters[1]
-
-        # no, get the child module with the strongest within module interactions
-        } else{
-          strongest_module <- mod_df_sym_conflicts %>%
-            filter(.data$age == ages[t], .data$original_module == orgs[o]) %>%
-            dplyr::group_by(.data$stronger) %>%
-            dplyr::summarise(n = n()) %>%
-            dplyr::slice_max(.data$n, with_ties = FALSE) %>%  # with_ties = FALSE to force retrieving only one row
-            dplyr::pull(stronger)
-
-          mod_df_sym_age[which(mod_df_sym_age$original_module == orgs[o]),
-               'module_name'] <- strongest_module
+        for(o in 1:length(originals)){
+          mod_df_sym_age[which(mod_df_sym_age$module_name == mods[m] &
+                       mod_df_sym_age$original_module == originals[o]),
+               'module_name'] <- paste0(mods[m], which(originals == originals[o]))
         }
       }
     }
@@ -278,6 +405,7 @@ match_modules <- function(summary_networks, unmatched_modules, ages, tree, modul
     mod_df_sym <- dplyr::bind_rows(mod_df_sym, mod_df_sym_age)
 
   }
+
   # set modules for hosts
   mod_idx_name <- mod_df_sym %>%
     dplyr::select(.data$age, .data$original_module, .data$module_name) %>%
@@ -287,7 +415,9 @@ match_modules <- function(summary_networks, unmatched_modules, ages, tree, modul
 
   mod_df <- bind_rows(mod_df_sym, mod_df_host)
 
-  #names(list_subtrees) <- ages
+  # replace with user given names
+
+
 
   return(mod_df)
 

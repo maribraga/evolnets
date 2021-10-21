@@ -9,16 +9,24 @@ library(ggplot2)
 library(gridExtra)
 library(gridBase)
 library(grid)
+library(restorepoint)
 
 setwd("~/repos/evolnets/match-modules")
 #setwd("~/projects/evolnets/match-modules")
 
 # read trees and character history ----
+
+# 6 symbionts and 5 hosts
+#host_tree <- read.tree("./evolnets/host_5tips.tre")
+#tree <- read.tree("./evolnets/.tre")  # find the right tree
+
+
+# 20 symbionts and 10 hosts
 host_tree <- read.tree("./evolnets/host_10tips.tre")
 treeRev <- read.beast.newick("./evolnets/tree20_Rev.tre")
-#net <- read.csv("./evolnets/incidence_matrix.csv")
-
+net <- as.matrix(read.csv("./evolnets/incidence_matrix_20_10.csv", header = T, row.names = 1))
 tree <- treeRev@phylo
+
 tree$node.number <- (Ntip(tree) + 1):(Ntip(tree) + Nnode(tree))
 
 index_node <- treeRev@data %>%
@@ -38,12 +46,12 @@ ggt <- ggtree(tree, ladderize = F) +
   theme_tree2() +
   scale_x_continuous(labels = abs)
 ggt <- revts(ggt)
+ggt + geom_vline(xintercept = c(-50,-40,-30,-20,-10), lty=2, col="red")
 ggt
 
+# get posterior at ages ----
 history <- read_history("./inference/output/out.history.txt")
 
-
-# get posterior at ages ----
 ages <- c(50,40,30,20,10,0)
 at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 
@@ -56,23 +64,42 @@ summary_networks <- get_summary_network(pps, ages, 0.5)
 
 # find modules ----
 
+# at once
+all_mod <- modules_across_ages(summary_networks, tree)
+
+# plot asr
+at_nodes <- posterior_at_nodes(history, nodes = (Ntip(tree)+1):(Nnode(tree)+Ntip(tree)), host_tree)
+modules <- all_mod %>%
+  filter(age == 0) %>%
+  mutate(module = as.character(match(module_name, LETTERS)),
+         type = case_when(grepl("T", name) ~ "symbiont",
+                          grepl("H", name) ~ "host")) %>%
+  select(name,module,type)
+
+p <- plot_ancestral_states(tree,at_nodes,modules,threshold = 0.5)
+p + geom_vline(xintercept = c(-50,-40,-30,-20,-10), lty=2, col="red")
+
+plot_module_matrix2(net,at_nodes, tree,host_tree,modules,threshold = 0.7)
+
 # to plot unmatched modules
-list_all_mod <- modules_from_summary_networks(summary_networks, ages)
-
-par(mfrow = c(2,3))
-for(p in 1:length(ages)){
-  plotModuleWeb(list_all_mod[[2]][[p]], labsize=0.6)
-}
-
-unmatched_modules <- list_all_mod[[1]]
+# list_all_mod <- modules_from_summary_networks(summary_networks)
+#
+# par(mfrow = c(2,3))
+# for(p in 1:length(ages)){
+#   plotModuleWeb(list_all_mod[[2]][[p]], labsize=0.6)
+# }
+#
+# unmatched_modules <- list_all_mod[[1]]
+#saveRDS(unmatched_modules, "./evolnets/unmatched_modules_20_10.rds")
+unmatched_modules <- readRDS("./evolnets/unmatched_modules_20_10.rds")
 
 # match modules
-all_mod <- modules_across_ages(summary_networks, tree)
+all_mod <- match_modules(summary_networks, unmatched_modules, tree, module_strength = "mean")
 
 restore.point("point1", to.global = F)
 
-# snippet restore
-# restore.point("${1:name}", to.global = F)
+
+
 
 
 
