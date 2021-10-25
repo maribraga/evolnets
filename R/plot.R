@@ -29,7 +29,7 @@
 #'   extant_net_weighted[extant_net == 1] <- runif(sum(extant_net))
 #'   plot_module_matrix(extant_net_weighted)
 #' }
-plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_order = NULL, module_order = NULL) {
+plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasite_order = NULL, host_order = NULL) {
   # Check inputs.
   if (!is.matrix(net)) stop('`net` should be a matrix.')
   if (!is.null(modules) && (
@@ -63,6 +63,9 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
     para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
     para_mods <- dplyr::bind_rows(para_mods, .id = 'parasite_module')
   } else {
+    if (!inherits(modules, 'data.frame') | !(c('name', 'module', 'type') %in% names(modules))) {
+      stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
+    }
     host_mods <- modules %>%
       dplyr::filter(type == "host") %>%
       dplyr::select(.data$name, .data$module) %>%
@@ -147,19 +150,27 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
 #'   $name with taxon names,
 #'   $module with the module the taxon was assigned to, and
 #'   $type which defines if the taxon is a "host" or a "symbiont".
+#' @param module_order A character vector giving the order that modules should be plotted. Should contain
+#'   each module only once.
+#' @param layout One of 'rectangular', 'slanted', 'fan', 'circular', 'radial', 'equal_angle', 'daylight'
+#'   or 'ape'.
 #' @param threshold The posterior probability above which the ancestral states should be shown.
 #'   Defaults to 90% (`0.9`). Numeric vector of length 1.
 #' @param point_size How large the ancestral state points should be, default at 3. Play with this
 #'   and `dodge_width` to get a pleasing result. Numeric vector of length 1.
+#' @param point_shape What point shape should be used for the ancestral states? When left `NULL`,
+#'   a reasonable default will be chosen. Otherwise, a numeric vector of length 1.
 #' @param dodge_width How far the points should be pushed apart, when there is multiple states at
 #'   a single node, default at 0.025. Play with this and `point_size` to get a pleasing result.
 #'   Numeric vector of length 1.
 #' @param legend Whether to display a legend for the colors. Logical vector of length 1.
 #' @param colors Override the default colors. Should be a character vector with as many color values
 #'  as there are modules.
+#' @param ladderize Logical. Whether to ladderize the tree. Default to FALSE.
 #'
 #' The ancestral states are automatically colored by module. To change what colors are used, you
 #' can add color scales to the resulting `ggplot`, e.g. `ggplot2::scale_color_manual()`.
+#'
 #'
 #' @return A `ggplot` object.
 #' @export
@@ -174,8 +185,9 @@ plot_module_matrix <- function(net, modules = NULL, parasite_order = NULL, host_
 #'   plot_ancestral_states(tree, san, mods, colors = rainbow(20))
 #' }
 plot_ancestral_states <- function(
-  tree, samples_at_nodes, modules,
-  threshold = 0.9, point_size = 3, dodge_width = 0.025, legend = TRUE, colors = NULL
+  tree, samples_at_nodes, modules, module_order = NULL, layout = "rectangular",
+  threshold = 0.9, point_size = 3, point_shape = NULL, dodge_width = 0.025, legend = TRUE,
+  colors = NULL, ladderize = FALSE
 ) {
   if (!requireNamespace('ggtree')) {
     stop('Please install the ggtree package to use this function. Use `BiocManager::install("ggtree")`')
@@ -194,11 +206,18 @@ plot_ancestral_states <- function(
     host_mods <- dplyr::bind_rows(host_mods, .id = 'module')
     mods <- seq_along(mod_list)
   } else {
+    if (!inherits(modules, 'data.frame') || !(c('name', 'module', 'type') %in% names(modules))) {
+      stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
+    }
     host_mods <- modules %>%
       dplyr::filter(type == "host") %>%
       dplyr::select(.data$name, .data$module) %>%
       dplyr::rename(host = .data$name)
-    mods <- seq_along(unique(host_mods$module))
+    if (!is.null(module_order)) {
+      mods <- module_order
+    } else {
+      mods <- sort(unique(host_mods$module))
+    }
   }
 
   # Get the ancestral states, reformat to plot on the parasite tree
@@ -237,30 +256,39 @@ plot_ancestral_states <- function(
   }
 
   # Make the parasite tree
-  p <- ggplot2::ggplot(tree) +
-    ggtree::geom_tree() +
-    ggplot2::scale_x_continuous(name = NULL, labels = abs, expand = ggplot2::expansion(c(0.05, 0))) +
-    ggplot2::scale_y_continuous(expand = c(0, 0.5)) +
-    color_scale +
-    ggtree::theme_tree2()
+  suppressMessages(
+    p <- ggtree::ggtree(tree, layout = layout, ladderize = ladderize) +
+      ggplot2::scale_x_continuous(name = NULL, labels = abs, expand = ggplot2::expansion(c(0.05, 0))) +
+      ggplot2::scale_y_continuous(expand = c(0, 0.5)) +
+      color_scale
+  )
   # Flip the time axis the right way around
-  p <- ggtree::revts(p)
+  if (layout %in% c('rectangular', 'slanted')) {
+    p <- ggtree::revts(p + ggtree::theme_tree2())
+  }
 
   # Extract the node coordinates, so we can easily plot our own node information
   coords <- p$data[, c('x', 'y', 'label', 'isTip')]
   coords <- coords[order(coords$y), ]
 
   x_range <- diff(range(coords$x))
+  y_range <- diff(range(coords$y))
   node_df2 <- dplyr::left_join(node_df, coords, by = c('node' = 'label')) %>%
     dplyr::arrange(.data$node, .data$module) %>%
-    dplyr::group_by(.data$node) %>%
-    dplyr::mutate(
-      x = offset_x(.data$x, width = x_range * dodge_width)
-    )
+    dplyr::group_by(.data$node)
+
+  if (layout %in% c('rectangular', 'slanted')) {
+    node_df2 <- dplyr::mutate(node_df2, x = offset_x(.data$x, width = x_range * dodge_width))
+    if (is.null(point_shape)) point_shape <- 15
+  } else {
+    node_df2 <- dplyr::mutate(node_df2, y = offset_x(.data$y, width = y_range * dodge_width))
+    if (is.null(point_shape)) point_shape <- 16
+  }
+
   p <- p + ggplot2::geom_point(
-      ggplot2::aes_(~x, ~y, color = ~module),
-      node_df2, shape = 15, size = point_size
-    )
+    ggplot2::aes_(~x, ~y, color = ~module),
+    node_df2, shape = point_shape, size = point_size
+  )
 
   return(p)
 }
@@ -290,7 +318,8 @@ plot_ancestral_states <- function(
 #' }
 plot_module_matrix2 <- function(
   net, samples_at_nodes, tree, host_tree,
-  modules = NULL, threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL
+  modules = NULL, module_order = NULL,
+  threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
 ) {
   # Check inputs
   if (!is.matrix(net)) stop('`net` should be a matrix.')
@@ -304,9 +333,9 @@ plot_module_matrix2 <- function(
 
   # Make the parasite tree plot
   parasite_plot <- plot_ancestral_states(
-    tree, samples_at_nodes, modules,
+    tree, samples_at_nodes, modules, module_order,
     threshold = threshold, point_size = point_size, dodge_width = dodge_width, legend = FALSE,
-    colors = colors
+    colors = colors, ladderize = ladderize
   )
   parasite_coords <- parasite_plot$data[parasite_plot$data$isTip, c('x', 'y', 'label', 'isTip')]
   parasite_coords <- parasite_coords[order(parasite_coords$y), ]
@@ -315,7 +344,10 @@ plot_module_matrix2 <- function(
   if (inherits(modules, 'moduleWeb')) {
     mods <- seq_along(listModuleInformation(modules)[[2]])
   } else {
-    mods <- seq_along(unique(modules$module))
+    mods <- sort(unique(modules$module))
+  }
+  if (!is.null(module_order)) {
+    mods <- module_order
   }
 
   host_plot <- ggplot2::ggplot(host_tree) +
@@ -328,7 +360,7 @@ plot_module_matrix2 <- function(
   host_coords <- host_coords[order(host_coords$y), ]
 
   # Make the matrix
-  module_plot <- plot_module_matrix(net, modules, parasite_coords$label, host_coords$label)
+  module_plot <- plot_module_matrix(net, modules, module_order, parasite_coords$label, host_coords$label)
   if (is.null(colors)) {
     module_plot <- module_plot + ggplot2::scale_fill_discrete(limits = factor(mods, levels = mods))
   } else {
