@@ -66,6 +66,15 @@ summary_networks <- get_summary_network(pps, ages, 0.5)
 
 # at once
 all_mod <- modules_across_ages(summary_networks, tree)
+matched_mod <- all_mod[[2]]
+#write.csv(matched_mod,"./evolnets/match_mod_output.csv", row.names = F)
+unmatched_modwebs <- all_mod[[1]][[2]]
+unmatched_modules <- all_mod[[1]][[1]]
+
+par(mfrow=c(2,3))
+for (i in 1:length(ages)) {
+    plotModuleWeb(unmatched_mod[[i]], labsize=0.6)
+}
 
 # plot asr
 at_nodes <- posterior_at_nodes(history, nodes = (Ntip(tree)+1):(Nnode(tree)+Ntip(tree)), host_tree)
@@ -94,7 +103,7 @@ plot_module_matrix2(net,at_nodes, tree,host_tree,modules,threshold = 0.7)
 unmatched_modules <- readRDS("./evolnets/unmatched_modules_20_10.rds")
 
 # match modules
-all_mod <- match_modules(summary_networks, unmatched_modules, tree, module_strength = "mean")
+all_mod <- match_modules(summary_networks, unmatched_modules, tree) #, module_strength = "mean")
 
 restore.point("point1", to.global = F)
 
