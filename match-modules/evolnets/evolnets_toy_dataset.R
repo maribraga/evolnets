@@ -105,6 +105,7 @@ unmatched_modules <- readRDS("./evolnets/unmatched_modules_20_10.rds")
 # match modules
 all_mod <- match_modules(summary_networks, unmatched_modules, tree) #, module_strength = "mean")
 
+library(restorepoint)
 restore.point("point1", to.global = F)
 
 

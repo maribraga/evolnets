@@ -298,7 +298,7 @@ plot_ancestral_states <- function(
 #' @param net An adjacency matrix for a bipartite network. This should be the extant network.
 #'   Parasites should be the rows, hosts should be columns. If all values are 0 or 1 an binary
 #'   network is represented, otherwise a weighted network is assumed.
-#' @param tree The phylogeny belonging the parasites or herbivores. Object of class `phylo`.
+#' @param tree The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class `phylo`.
 #' @param host_tree The phylogeny belonging to the hosts. Object of class `phylo`.
 #'
 #' See the examples on how to change the color scale.
@@ -375,4 +375,127 @@ plot_module_matrix2 <- function(
     host_plot + ggplot2::labs(tag = 'C'),
     ncol = 2, widths = c(1, 1), heights = c(3, 1), guides = 'collect'
   )
+}
+
+
+
+#' Plot ancestral networks with module information
+#'
+#' @param summary_networks
+#' @param matched_modules
+#' @param tree The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class `phylo`.
+#' @param module_levels Order in which the modules should be organized. Affects which color each module will be assigned.
+#' If NULL, takes the order of appearance in `matched_modules$module`.
+#' @param palette Color palette used to plot module information.
+#'
+#' @return A list of plots of class `patchwork`. Each element contains the tree and network at a given time slice.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+
+#' }
+plot_ancestral_networks <- function(summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL){
+
+  ages <- as.numeric(names(summary_networks))
+  # make list of tidy graphs
+  list_tgraphs <- list()
+  for(n in 1:length(summary_networks)){
+
+    wnet <- as.matrix(summary_networks[[n]])
+
+    graph <- tidygraph::as_tbl_graph(t(wnet), directed = F) %>%
+      dplyr::left_join(dplyr::filter(matched_modules, age == ages[n]), by = "name") %>%
+      dplyr::select(type, name, module)
+
+    list_tgraphs[[n]] <- graph
+  }
+
+  # and root.time
+  tree$root.time <- max(dispRity::tree.age(tree)$ages)
+
+  # Slice the tree at ages and create data frame with module info
+  list_subtrees <- list()
+  list_tip_data <- list()
+
+  # model "acctran" always uses the value from the ancestral node
+  for(i in 1:(length(ages)-1)){
+    subtree <- dispRity::slice.tree(tree, age = ages[[i]], "acctran")
+    list_subtrees[[i]] <- subtree
+
+    graph <- list_tgraphs[[i]]
+    mod_from_graph <- tibble::tibble(module = tidygraph::activate(graph,nodes) %>%
+                                       dplyr::filter(type == TRUE) %>%
+                                       dplyr::pull(module),
+                                     label = tidygraph::activate(graph,nodes) %>%
+                                       dplyr::filter(type == TRUE) %>%
+                                       dplyr::pull(name))
+    # extra step just to check that tip labels and graph node names match
+    tip_data <- tibble::tibble(label = subtree$tip.label) %>%
+      dplyr::inner_join(mod_from_graph, by = "label")
+    list_tip_data[[i]] <- tip_data
+  }
+
+  # add tree and module info for present time
+  list_subtrees[[9]] <- tree
+  list_tip_data[[9]] <- tibble::tibble(label = tree$tip.label) %>%
+    dplyr::inner_join(dplyr::filter(matched_modules, age == 0), by = c("label" = "name"))
+
+  # plot
+  if(is.null(module_levels)) module_levels <- unique(matched_modules$module)
+  if(is.null(palette)) palette <- hue_pal()(length(module_levels))
+
+  plot_list <- list()
+
+  for(t in 1:length(ages)){
+    plot_age <- plot_network_at_age(list_subtrees[[t]], list_tip_data[[t]], list_tgraphs[[t]], module_levels, palette)
+    plot_list[[t]] <- plot_age
+  }
+
+  return(plot_list)
+
+}
+
+#' Plot one ancestral network with module information at a given time
+#'
+#' @param subtree a `phylo` object of the original tree sliced at a given time in the past.
+#' @param tip_data a `data.frame` containing the module information for each tip in the subtree.
+#' @param tgraph a `tbl_graph` containing the nodes and edges of the ancestral network and the module information for each node.
+#' @param module_levels Order in which the modules should be organized. Affects which color each module will be assigned.
+#' @param palette Color palette used to plot module information.
+#'
+#' @return An assembly of plots, of class `patchwork`.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+
+#' }
+plot_network_at_age <- function(subtree, tip_data, tgraph, module_levels, palette){
+
+  ggt <- ggtree::ggtree(subtree, ladderize = T) %<+% tip_data +
+    ggtree::geom_tippoint(ggplot2::aes(color = factor(module, levels = module_levels))) +  # aes_ doesn't work with factor(~module, ...)
+    ggtree::geom_rootedge(rootedge = 1) +
+    ggplot2::scale_color_manual(values = palette, na.value = "grey70", drop = F) +
+    ggtree::theme_tree2() +
+    ggplot2::theme(legend.position = "none")
+
+  # WIP! x-axis is correct but tree is snapped to the present    ----
+  # can we use subtree$root.time to position the tree in the x-axis?
+  ggt_rev <- ggtree::revts(ggt) + ggplot2::xlim(c(-tree$root.time,0))
+
+
+  ggn <- ggraph::ggraph(tgraph, layout = 'stress') +
+    ggraph::geom_edge_link(aes(width = weight), color = "grey50") +
+    ggraph::geom_node_point(aes(shape = type, color = factor(module, levels = module_levels))) +
+    ggplot2::scale_shape_manual(values = c("square","circle")) +
+    ggplot2::scale_color_manual(values = palette, na.value = "grey70", drop = F) +
+    ggraph::scale_edge_width("Probability", range = c(0.3,1)) +
+    #labs(title = paste0(ages[[i]]," Ma"), shape = "", color = "Module") +
+    ggplot2::theme_void()
+
+  plot_age <- ggt_rev + ggn
+
+  return(plot_age)
+
 }

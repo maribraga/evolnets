@@ -25,7 +25,7 @@ network is represented, otherwise a weighted network is assumed.}
 
 \item{samples_at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
 
-\item{tree}{The phylogeny belonging the parasites or herbivores. Object of class \code{phylo}.}
+\item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class \code{phylo}.}
 
 \item{host_tree}{The phylogeny belonging to the hosts. Object of class \code{phylo}.
 

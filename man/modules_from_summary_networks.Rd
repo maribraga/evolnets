@@ -4,7 +4,7 @@
 \alias{modules_from_summary_networks}
 \title{Identify modules for each summary network at each age}
 \usage{
-modules_from_summary_networks(summary_networks, ages)
+modules_from_summary_networks(summary_networks)
 }
 \arguments{
 \item{summary_networks}{List of reconstructed summary networks for each age.}
@@ -14,5 +14,5 @@ A list of 2 elements: 1) a data frame containing the module membership
 of each node at each age; 2) a list of \code{moduleWeb} objects for each age.
 }
 \description{
-Identify modules for each summary network at each age
+This function is called within \code{modules_across_ages()}.
 }
