@@ -50,7 +50,12 @@ posterior_at_ages <- function(history, ages, tree, host_tree, state=c(2), drop_e
     post_ages[[i]] = ages_samp_post[[2]]
   }
 
+  names(samp_ages) <- names(post_ages) <- c(ages)
   samp_post_ages <- list(samp_ages, post_ages)
+  names(samp_post_ages) <- c("Samples", "Posterior Probabilities")
+
+  return(samp_post_ages)
+
 }
 
 
