@@ -76,8 +76,8 @@ count_gl <- function(history) {
   root <- max(history$node_index)
 
   filtered_history <- history %>%
-    dplyr::filter(transition_type == "anagenetic", node_index < root) %>%
-    dplyr::select(iteration, start_state, end_state)
+    dplyr::filter(.data$transition_type == "anagenetic", .data$node_index < root) %>%
+    dplyr::select(.data$iteration, .data$start_state, .data$end_state)
 
   # str_split_fixed creates a matrix of size [n_chars, n_obs]
   str_size <- stringr::str_length(filtered_history$start_state[1])
@@ -122,6 +122,3 @@ rate_gl <- function(history, tree) {
   rgl
 
 }
-
-
-iteration <- transition_type <- node_index <- n <- start_state <- end_state <- type <- NULL
