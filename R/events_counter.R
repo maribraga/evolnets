@@ -108,6 +108,8 @@ count_gl <- function(history) {
 #' @describeIn events_counter Get the effective rate of host gain and host loss
 #' @export
 rate_gl <- function(history, tree) {
+  # history will be checked in count_gl
+  if (!inherits(tree, 'phylo')) stop('`tree` should be a phylogeny of class `phylo`.')
 
   gl <- count_gl(history)
   tree_length <- sum(tree$edge.length)
