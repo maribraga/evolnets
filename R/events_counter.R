@@ -33,16 +33,10 @@ NULL
 count_events <- function(history){
 
   root <- max(history$node_index)
-
-  n_events <- history %>%
-    dplyr::filter(transition_type == "anagenetic", node_index < root) %>%
-    dplyr::group_by(iteration) %>%
-    dplyr::summarise(n = dplyr::n(), .groups = 'drop') %>%
-    dplyr::summarise(mean = mean(n)) %>%
-    dplyr::pull(mean)
+  transitions <- sum(history$transition_type[history$node_index < root] == 'anagenetic')
+  n_events <- transitions / dplyr::n_distinct(history$iteration)
 
   n_events
-
 }
 
 
