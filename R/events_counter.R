@@ -40,7 +40,8 @@ count_events <- function(history){
 
   root <- max(history$node_index)
   transitions <- sum(history$transition_type[history$node_index < root] == 'anagenetic')
-  n_events <- transitions / dplyr::n_distinct(history$iteration)
+  iters <- dplyr::n_distinct(history$iteration)
+  n_events <- transitions / iters
 
   n_events
 }
@@ -72,35 +73,35 @@ count_gl <- function(history) {
     stop('`history` needs to have columns `node_index`, `iteration`, `transition_type`, `start_date` and `end_date`.')
   }
 
-
   root <- max(history$node_index)
 
-  ngl <- history %>%
+  filtered_history <- history %>%
     dplyr::filter(transition_type == "anagenetic", node_index < root) %>%
-    dplyr::select(iteration, start_state, end_state) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(start = sum(as.numeric(stringr::str_split(start_state, "")[[1]])),
-                  end = sum(as.numeric(stringr::str_split(end_state, "")[[1]]))) %>%
-    dplyr::mutate(type = dplyr::case_when(end > start ~ "gain",
-                                          end < start ~ "loss"))
+    dplyr::select(iteration, start_state, end_state)
 
-  ngains <- dplyr::filter(ngl, type == "gain") %>%
-    dplyr::group_by(iteration) %>%
-    dplyr::summarise(n = dplyr::n()) %>%
-    dplyr::summarise(mean = mean(n)) %>%
-    dplyr::pull(mean)
+  # str_split_fixed creates a matrix of size [n_chars, n_obs]
+  str_size <- stringr::str_length(filtered_history$start_state[1])
+  starts <- stringr::str_split_fixed(filtered_history$start_state, "", str_size)
+  ends   <- stringr::str_split_fixed(filtered_history$end_state,   "", str_size)
 
-  nloss <- dplyr::filter(ngl, type == "loss") %>%
-    dplyr::group_by(iteration) %>%
-    dplyr::summarise(n = dplyr::n()) %>%
-    dplyr::summarise(mean = mean(n)) %>%
-    dplyr::pull(mean)
+  # Change to numeric:
+  storage.mode(starts) <- storage.mode(ends) <- 'numeric'
+
+  # Compare the sums
+  start_sums <- rowSums(starts)
+  end_sums   <- rowSums(ends)
+  gains <- sum(end_sums > start_sums)
+  loss  <- sum(end_sums < start_sums)
+
+  iters <- dplyr::n_distinct(filtered_history$iteration)
+
+  ngains <- gains / iters
+  nloss  <- loss  / iters
 
   gl <- c(ngains, nloss)
   names(gl) <- c("gains","losses")
 
   gl
-
 }
 
 
