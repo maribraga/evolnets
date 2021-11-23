@@ -50,6 +50,8 @@ count_events <- function(history){
 #'   of events per million years, along each tree branch
 #' @export
 effective_rate <- function(history, tree) {
+  # history will be checked in count_events
+  if (!inherits(tree, 'phylo')) stop('`tree` should be a phylogeny of class `phylo`.')
 
   nev <- count_events(history)
   tree_length <- sum(tree$edge.length)
