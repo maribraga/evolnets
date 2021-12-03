@@ -1,4 +1,4 @@
-#' Posterior distribution of indices of network structure across ancestral networks
+#' Posterior distribution of network structure indices across ancestral networks
 #'
 #' Calculate z-scores for nestedness (NODF) or modularity (Q) for each MCMC sample at
 #'   time points in the past based on null networks where all interactions have
