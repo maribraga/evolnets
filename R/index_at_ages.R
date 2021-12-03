@@ -46,7 +46,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
       dplyr::group_by(.data$age, .data$sample) %>%
       dplyr::summarise(p = sum(.data$NODFnull >= .data$obs_NODF) / null, .groups = 'drop')
 
-    Nzsamples <- NODF_null %>%
+    NODF_zsamples <- NODF_null %>%
       dplyr::group_by(.data$age, .data$sample) %>%
       dplyr::summarize(
         mean_NODF = mean(.data$NODFnull),
@@ -57,7 +57,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
       dplyr::mutate(z = (.data$obs_NODF - .data$mean_NODF) / .data$sd_NODF) %>%
       dplyr::left_join(NODF_pvals, by = c("age", "sample"))
 
-    Nzsamples
+    as.data.frame(NODF_zsamples)
 
   } else if(index == "Q"){
 
@@ -69,7 +69,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
       dplyr::group_by(age, sample) %>%
       dplyr::summarise(p = sum(Qnull >= obs_Q)/null, .groups = 'drop')
 
-    Qzsamples <- Q_null %>%
+    Q_zsamples <- Q_null %>%
       dplyr::group_by(.data$age, .data$sample) %>%
       dplyr::summarize(
         mean_Q = mean(.data$Qnull),
@@ -80,7 +80,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
       dplyr::mutate(z = (.data$obs_Q - .data$mean_Q) / .data$sd_Q) %>%
       dplyr::left_join(Q_pvals, by = c("age", "sample"))
 
-    as.data.frame(Qzsamples)
+    as.data.frame(Q_zsamples)
 
   } else stop("index must match one of the available indices")
 
