@@ -111,9 +111,6 @@ NODF_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
   )
 
   for (a in seq_along(samples_at_ages)) {
-
-    Nulls_age <- list()
-
     for (i in seq_len(nsamp)) {
       net <- samples_at_ages[[a]][i, , ]
       net <- net[rowSums(net) != 0, ]
@@ -121,7 +118,6 @@ NODF_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
 
       nullm <- vegan::nullmodel(net, "r00")
       sim <- stats::simulate(nullm, nsim = nnull, seed = seed)
-      Nulls_age[[i]] <- sim
 
       for (j in seq_len(nnull)) {
         Nrandom <- bipartite::networklevel(sim[, , j], index = "NODF")
@@ -165,9 +161,6 @@ Q_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
   )
 
   for (a in seq_along(samples_at_ages)) {
-
-    Nulls_age <- list()
-
     for (i in seq_len(nsamp)) {
       net <- samples_at_ages[[a]][i, , ]
       net <- net[rowSums(net) != 0, ]
@@ -175,7 +168,6 @@ Q_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
 
       nullm <- vegan::nullmodel(net, "r00")
       sim <- stats::simulate(nullm, nsim = nnull, seed = seed)
-      Nulls_age[[i]] <- sim
 
       for (j in 1:nnull) {
         set.seed(seed)
@@ -199,8 +191,8 @@ Q_samples_at_ages <- function(samples_at_ages, ages){
     age = rep.int(NA, nsamp * length(samples_at_ages)), sample = NA, obs_Q = NA
   )
 
-  for(a in seq_along(samples_at_ages)){
-    for(i in seq_len(nsamp)){
+  for (a in seq_along(samples_at_ages)) {
+    for (i in seq_len(nsamp)) {
       net <- samples_at_ages[[a]][i,,]
       mod <- mycomputeModules(net)
       Q <- mod@likelihood
