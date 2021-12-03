@@ -1,18 +1,17 @@
 #' Posterior distribution of network structure indices across ancestral networks
 #'
-#' Calculate z-scores for nestedness (NODF) or modularity (Q) for each MCMC sample at
-#'   time points in the past based on null networks where all interactions have
-#'   the same probability. By calculating z-scores, we can compare ancestral
-#'   networks at different ages.
+#' Calculate z-scores for nestedness (NODF) or modularity (Q) for each MCMC sample at time points in
+#' the past based on null networks where all interactions have the same probability. By calculating
+#' z-scores, we can compare ancestral networks at different ages.
 #'
-#' @param samples_at_ages List of ancestral networks sampled across MCMC at
-#'   given ages.
-#' @param ages Vector of ages (time points in the past) of ancestral networks.
-#' @param index Index to be calculated for each ancestral network. "NODF" to
-#' calculate nestedness or "Q" to calculate modularity.
+#' @param samples_at_ages List of ancestral networks sampled across MCMC at given ages.
+#' @param index Index to be calculated for each ancestral network. "NODF" to calculate nestedness or
+#'   "Q" to calculate modularity.
+#' @param ages Vector of ages (time points in the past) of ancestral networks. By default, uses all
+#'   ages present in `samples_at_ages`.
 #' @param null Number of null networks to generate to calculate the z-score.
-#' @param seed Seed passed to `stats::simulate` to generate null networks and set before calculating Q.
-#'   Default to NULL.
+#' @param seed Seed passed to `stats::simulate` to generate null networks and set before calculating
+#'   Q. Default to NULL.
 #'
 #' @return A data.frame of z-scores and p-values across samples and ages.
 #' @importFrom magrittr %>%
@@ -32,7 +31,9 @@
 #'
 #' #  calculate posterior distribution of modularity (SLOW!)
 #' # Qz <- index_at_ages(samples_at_ages, ages, index = "Q")
-index_at_ages <- function(samples_at_ages, ages, index, null = 100, seed = NULL){
+index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed = NULL){
+
+  if (is.null(ages)) ages <- as.numeric(names(samples_at_ages))
 
   if(index == "NODF"){
 
