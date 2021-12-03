@@ -44,7 +44,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
   }
   index <- match.arg(index, c('NODF', 'Q'), several.ok = FALSE)
   if (!is.null(ages) & !is.numeric(ages)) stop('`ages` should be numeric.')
-  if (!is.numeric(ages)) stop('`ages` should be numeric.')
+  if (!is.numeric(null)) stop('`null` should be numeric.')
   if (!is.null(seed) & !is.numeric(seed)) stop('`seed` should be numeric.')
 
   if (is.null(ages)) ages <- as.numeric(names(samples_at_ages))
