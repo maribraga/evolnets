@@ -71,7 +71,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
       dplyr::mutate(z = (.data$obs_NODF - .data$mean_NODF) / .data$sd_NODF) %>%
       dplyr::left_join(NODF_pvals, by = c("age", "sample"))
 
-    as.data.frame(NODF_zsamples)
+    ret <- as.data.frame(NODF_zsamples)
   }
 
   if (index == "Q") {
@@ -95,8 +95,9 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
       dplyr::mutate(z = (.data$obs_Q - .data$mean_Q) / .data$sd_Q) %>%
       dplyr::left_join(Q_pvals, by = c("age", "sample"))
 
-    as.data.frame(Q_zsamples)
+    ret <- as.data.frame(Q_zsamples)
   }
+  return(ret)
 }
 
 
