@@ -72,13 +72,13 @@ posterior_at_ages <- function(history, ages, tree, host_tree, state = 2, drop_em
 }
 
 
-make_samples_post_at_age = function(dat, age, tree, host_tree, state, drop_empty) {
+make_samples_post_at_age <- function(dat, age, tree, host_tree, state, drop_empty) {
 
   iterations <- sort(unique(dat$iteration))
   n_iter <- length(iterations)
 
   # get dimensions
-  n_host_tip <- length(stringr::str_split(dat$start_state[1], "")[[1]])
+  n_host_tip <- nchar(dat$start_state[1])
   n_parasite_lineage <- length(unique(dat$node_index))
   n_parasite_tip <- (n_parasite_lineage + 1) / 2
 
