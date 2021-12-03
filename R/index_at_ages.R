@@ -14,7 +14,7 @@
 #' @param seed Seed passed to `stats::simulate` to generate null networks and set before calculating Q.
 #'   Default to NULL.
 #'
-#' @return A tibble of z-scores and p-values across samples and ages.
+#' @return A data.frame of z-scores and p-values across samples and ages.
 #' @importFrom magrittr %>%
 #' @importFrom methods is slot
 #' @export
@@ -68,7 +68,7 @@ index_at_ages <- function(samples_at_ages, ages, index, null = 100, seed = NULL)
                          dplyr::summarise(p = sum(Qnull >= obs_Q)/null, .groups = 'drop'),
                        by = c("age", "sample"))
 
-    Qzsamples
+    as.data.frame(Qzsamples)
 
   } else stop("index must match one of the available indices")
 
