@@ -107,11 +107,11 @@ NODF_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
   nsamp <- dim(samples_at_ages[[1]])[1]
   NODF_null <- dplyr::tibble()
 
-  for(a in 1:length(samples_at_ages)){
+  for(a in seq_along(samples_at_ages)){
 
     Nulls_age <- list()
 
-    for(i in 1:nsamp){
+    for(i in seq_len(nsamp)){
       net <- samples_at_ages[[a]][i,,]
       net = net[ rowSums(net)!=0, ]
       net = net[ ,colSums(net)!=0 ]
@@ -141,8 +141,8 @@ NODF_samples_at_ages <- function(samples_at_ages, ages){
   nsamp <- dim(samples_at_ages[[1]])[1]
   NODF_samples <- dplyr::tibble()
 
-  for(a in 1:length(samples_at_ages)){
-    for(i in 1:nsamp){
+  for(a in seq_along(samples_at_ages)){
+    for(i in seq_len(nsamp)){
       net <- samples_at_ages[[a]][i,,]
       nodf <- bipartite::networklevel(net, index="NODF")
       NODF_samples <- dplyr::bind_rows(NODF_samples, dplyr::tibble(age = ages[a], sample = i, obs_NODF=nodf))
@@ -160,11 +160,11 @@ Q_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
   nsamp <- dim(samples_at_ages[[1]])[1]
   Q_null <- dplyr::tibble()
 
-  for(a in 1:length(samples_at_ages)){
+  for(a in seq_along(samples_at_ages)){
 
     Nulls_age <- list()
 
-    for(i in 1:nsamp){
+    for(i in seq_len(nsamp)){
       net <- samples_at_ages[[a]][i,,]
       net = net[ rowSums(net)!=0, ]
       net = net[ ,colSums(net)!=0 ]
@@ -197,8 +197,8 @@ Q_samples_at_ages <- function(samples_at_ages, ages){
   nsamp <- dim(samples_at_ages[[1]])[1]
   Q_samples <- dplyr::tibble()
 
-  for(a in 1:length(samples_at_ages)){
-    for(i in 1:nsamp){
+  for(a in seq_along(samples_at_ages)){
+    for(i in seq_len(nsamp)){
       net <- samples_at_ages[[a]][i,,]
       mod <- mycomputeModules(net)
       Q <- mod@likelihood
