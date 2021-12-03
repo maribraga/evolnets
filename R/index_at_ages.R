@@ -28,47 +28,57 @@
 #' samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)$Samples
 #'
 #' # calculate posterior distribution of nestedness
-#' Nz <- index_at_ages(samples_at_ages, ages, index = "NODF")
+#' Nz <- index_at_ages(samples_at_ages, index = "NODF")
 #'
 #' #  calculate posterior distribution of modularity (SLOW!)
-#' # Qz <- index_at_ages(samples_at_ages, ages, index = "Q")
+#' # Qz <- index_at_ages(samples_at_ages, index = "Q")
 index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed = NULL){
 
   if (is.null(ages)) ages <- as.numeric(names(samples_at_ages))
 
-  if(index == "NODF"){
+  if (index == "NODF") {
 
-  NODF_null <- NODF_samples_null(samples_at_ages, ages, null, seed)
-  NODF_samples <- NODF_samples_at_ages(samples_at_ages, ages)
+    NODF_null <- NODF_samples_null(samples_at_ages, ages, null, seed)
+    NODF_samples <- NODF_samples_at_ages(samples_at_ages, ages)
 
-  Nzsamples <- NODF_null %>%
-    dplyr::group_by(age, sample) %>%
-    dplyr::summarize(mean_NODF = mean(NODFnull), sd_NODF = stats::sd(NODFnull), .groups = 'drop') %>%
-    dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
-    dplyr::mutate(z = (obs_NODF - mean_NODF)/sd_NODF) %>%
-    dplyr::left_join(NODF_null %>%
-                       dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
-                       dplyr::group_by(age, sample) %>%
-                       dplyr::summarise(p = sum(NODFnull >= obs_NODF)/null, .groups = 'drop'),
-                     by = c("age", "sample"))
+    NODF_pvals <- NODF_null %>%
+      dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
+      dplyr::group_by(.data$age, .data$sample) %>%
+      dplyr::summarise(p = sum(.data$NODFnull >= .data$obs_NODF) / null, .groups = 'drop')
 
-  Nzsamples
+    Nzsamples <- NODF_null %>%
+      dplyr::group_by(.data$age, .data$sample) %>%
+      dplyr::summarize(
+        mean_NODF = mean(.data$NODFnull),
+        sd_NODF = stats::sd(.data$NODFnull),
+        .groups = 'drop'
+      ) %>%
+      dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
+      dplyr::mutate(z = (.data$obs_NODF - .data$mean_NODF) / .data$sd_NODF) %>%
+      dplyr::left_join(NODF_pvals, by = c("age", "sample"))
+
+    Nzsamples
 
   } else if(index == "Q"){
 
     Q_null <- Q_samples_null(samples_at_ages, ages, null, seed)
     Q_samples <- Q_samples_at_ages(samples_at_ages, ages)
 
-    Qzsamples <- Q_null %>%
-      dplyr::group_by(age, sample) %>%
-      dplyr::summarize(mean_Q = mean(Qnull), sd_Q = stats::sd(Qnull), .groups = 'drop') %>%
+    Q_pvals <- Q_null %>%
       dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
-      dplyr::mutate(z = (obs_Q - mean_Q)/sd_Q) %>%
-      dplyr::left_join(Q_null %>%
-                         dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
-                         dplyr::group_by(age, sample) %>%
-                         dplyr::summarise(p = sum(Qnull >= obs_Q)/null, .groups = 'drop'),
-                       by = c("age", "sample"))
+      dplyr::group_by(age, sample) %>%
+      dplyr::summarise(p = sum(Qnull >= obs_Q)/null, .groups = 'drop')
+
+    Qzsamples <- Q_null %>%
+      dplyr::group_by(.data$age, .data$sample) %>%
+      dplyr::summarize(
+        mean_Q = mean(.data$Qnull),
+        sd_Q = stats::sd(.dataQnull),
+        .groups = 'drop'
+      ) %>%
+      dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
+      dplyr::mutate(z = (.data$obs_Q - .data$mean_Q) / .data$sd_Q) %>%
+      dplyr::left_join(Q_pvals, by = c("age", "sample"))
 
     as.data.frame(Qzsamples)
 
