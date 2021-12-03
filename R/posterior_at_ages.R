@@ -83,7 +83,7 @@ make_samples_post_at_age <- function(dat, age, tree, host_tree, state, drop_empt
   n_parasite_tip <- (n_parasite_lineage + 1) / 2
 
   m_names <- list(
-    1:n_iter,
+    seq_len(n_iter),
     c(rev(tree$tip.label), paste0("Index_", (n_parasite_tip + 1):n_parasite_lineage)),
     host_tree$tip.label
   )
