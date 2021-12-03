@@ -203,6 +203,3 @@ Q_samples_at_ages <- function(samples_at_ages, ages){
   Q_samples
 
 }
-
-age <- sample <- obs_NODF <- NODFnull <- mean_NODF <- sd_NODF <- obs_Q <- Qnull <- mean_Q <- sd_Q <- NULL
-
