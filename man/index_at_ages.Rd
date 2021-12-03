@@ -2,32 +2,32 @@
 % Please edit documentation in R/index_at_ages.R
 \name{index_at_ages}
 \alias{index_at_ages}
-\title{Posterior distribution of indices of network structure across ancestral networks}
+\title{Posterior distribution of network structure indices across ancestral networks}
 \usage{
-index_at_ages(samples_at_ages, ages, index, null = 100, seed = NULL)
+index_at_ages(samples_at_ages, index, ages = NULL, null = 100, seed = NULL)
 }
 \arguments{
-\item{samples_at_ages}{List of ancestral networks sampled across MCMC at
-given ages.}
+\item{samples_at_ages}{List of ancestral networks sampled across MCMC at given ages. Usually from
+the output of \code{posterior_at_ages}, see example.}
 
-\item{ages}{Vector of ages (time points in the past) of ancestral networks.}
+\item{index}{Index to be calculated for each ancestral network. "NODF" to calculate nestedness or
+"Q" to calculate modularity.}
 
-\item{index}{Index to be calculated for each ancestral network. "NODF" to
-calculate nestedness or "Q" to calculate modularity.}
+\item{ages}{Vector of ages (time points in the past) of ancestral networks. By default, uses all
+ages present in \code{samples_at_ages}.}
 
 \item{null}{Number of null networks to generate to calculate the z-score.}
 
-\item{seed}{Seed passed to \code{stats::simulate} to generate null networks and set before calculating Q.
-Default to NULL.}
+\item{seed}{Seed passed to \code{stats::simulate} to generate null networks and set before calculating
+Q. Default to NULL.}
 }
 \value{
-A tibble of z-scores and p-values across samples and ages.
+A data.frame of z-scores and p-values across samples and ages.
 }
 \description{
-Calculate z-scores for nestedness (NODF) or modularity (Q) for each MCMC sample at
-time points in the past based on null networks where all interactions have
-the same probability. By calculating z-scores, we can compare ancestral
-networks at different ages.
+Calculate z-scores for nestedness (NODF) or modularity (Q) for each MCMC sample at time points in
+the past based on null networks where all interactions have the same probability. By calculating
+z-scores, we can compare ancestral networks at different ages.
 }
 \examples{
 data(tree)
@@ -35,11 +35,11 @@ data(host_tree)
 data(history)
 
 ages <- c(60,50,40)
-samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)[[1]]
+samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)$Samples
 
 # calculate posterior distribution of nestedness
-Nz <- index_at_ages(samples_at_ages, ages, index = "NODF", null = 100, seed = NULL)
+Nz <- index_at_ages(samples_at_ages, index = "NODF")
 
 #  calculate posterior distribution of modularity (SLOW!)
-# Qz <- index_at_ages(samples_at_ages, ages, index = "Q", null = 100, seed = NULL)
+# Qz <- index_at_ages(samples_at_ages, index = "Q")
 }
