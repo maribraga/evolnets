@@ -79,7 +79,7 @@ make_samples_post_at_age <- function(dat, age, tree, host_tree, state, drop_empt
 
   # get dimensions
   n_host_tip <- nchar(dat$start_state[1])
-  n_parasite_lineage <- length(unique(dat$node_index))
+  n_parasite_lineage <- dplyr::n_distinct(dat$node_index)
   n_parasite_tip <- (n_parasite_lineage + 1) / 2
 
   m_names <- list(
