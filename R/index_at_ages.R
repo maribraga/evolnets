@@ -81,14 +81,14 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
 
     Q_pvals <- Q_null %>%
       dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
-      dplyr::group_by(age, sample) %>%
-      dplyr::summarise(p = sum(Qnull >= obs_Q)/null, .groups = 'drop')
+      dplyr::group_by(.data$age, .data$sample) %>%
+      dplyr::summarise(p = sum(.data$Qnull >= .data$obs_Q) / null, .groups = 'drop')
 
     Q_zsamples <- Q_null %>%
       dplyr::group_by(.data$age, .data$sample) %>%
       dplyr::summarize(
         mean_Q = mean(.data$Qnull),
-        sd_Q = stats::sd(.dataQnull),
+        sd_Q = stats::sd(.data$Qnull),
         .groups = 'drop'
       ) %>%
       dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
