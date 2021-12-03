@@ -25,7 +25,7 @@
 #' data(history)
 #'
 #' ages <- c(60,50,40)
-#' samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)[[1]]
+#' samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)$Samples
 #'
 #' # calculate posterior distribution of nestedness
 #' Nz <- index_at_ages(samples_at_ages, ages, index = "NODF", null = 100, seed = NULL)
