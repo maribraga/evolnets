@@ -28,10 +28,10 @@
 #' samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)$Samples
 #'
 #' # calculate posterior distribution of nestedness
-#' Nz <- index_at_ages(samples_at_ages, ages, index = "NODF", null = 100, seed = NULL)
+#' Nz <- index_at_ages(samples_at_ages, ages, index = "NODF")
 #'
 #' #  calculate posterior distribution of modularity (SLOW!)
-#' # Qz <- index_at_ages(samples_at_ages, ages, index = "Q", null = 100, seed = NULL)
+#' # Qz <- index_at_ages(samples_at_ages, ages, index = "Q")
 index_at_ages <- function(samples_at_ages, ages, index, null = 100, seed = NULL){
 
   if(index == "NODF"){
