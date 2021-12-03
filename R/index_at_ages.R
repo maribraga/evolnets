@@ -4,7 +4,8 @@
 #' the past based on null networks where all interactions have the same probability. By calculating
 #' z-scores, we can compare ancestral networks at different ages.
 #'
-#' @param samples_at_ages List of ancestral networks sampled across MCMC at given ages.
+#' @param samples_at_ages List of ancestral networks sampled across MCMC at given ages. Usually from
+#'   the output of `posterior_at_ages`, see example.
 #' @param index Index to be calculated for each ancestral network. "NODF" to calculate nestedness or
 #'   "Q" to calculate modularity.
 #' @param ages Vector of ages (time points in the past) of ancestral networks. By default, uses all
