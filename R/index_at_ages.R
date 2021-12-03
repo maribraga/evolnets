@@ -49,6 +49,9 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
 
   if (is.null(ages)) ages <- as.numeric(names(samples_at_ages))
 
+  # Keep only specified ages
+  samples_at_ages <- samples_at_ages[as.character(ages)]
+
   # Calculating indices
   if (index == "NODF") {
 
