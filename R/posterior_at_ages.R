@@ -55,7 +55,7 @@ posterior_at_ages <- function(history, ages, tree, host_tree, state = 2, drop_em
   # get the posteriors
   samp_ages <- post_ages <- list()
 
-  for (i in 1:length(ages)) {
+  for (i in seq_along(ages)) {
     age <- ages[i]
     ages_samp_post <- make_samples_post_at_age(history, age, tree, host_tree, state, drop_empty)
 
@@ -82,7 +82,7 @@ make_samples_post_at_age = function(dat, age, tree, host_tree, state, drop_empty
   n_parasite_lineage <- length(unique(dat$node_index))
   n_parasite_tip <- (n_parasite_lineage + 1) / 2
 
-  m_names = list(
+  m_names <- list(
     1:n_iter,
     c(rev(tree$tip.label), paste0("Index_", (n_parasite_tip + 1):n_parasite_lineage)),
     host_tree$tip.label
@@ -91,8 +91,8 @@ make_samples_post_at_age = function(dat, age, tree, host_tree, state, drop_empty
   m_sample <- array(0, dim = c(n_iter, n_parasite_lineage, n_host_tip), dimnames = m_names)
   m_posterior <- matrix(data = 0, nrow = n_parasite_lineage, ncol = n_host_tip)
 
-  for (it_idx in 1:length(iterations)) {
-    it = iterations[it_idx]
+  for (it_idx in seq_along(iterations)) {
+    it <- iterations[it_idx]
 
     # get dataset for iteration
     dat_it <- dat[dat$iteration == it, ]
@@ -101,7 +101,7 @@ make_samples_post_at_age = function(dat, age, tree, host_tree, state, drop_empty
     dat_it <- make_dat_age(dat_it, age)
 
     # add edges ( parasite x host )
-    for (i in 1:nrow(dat_it)) {
+    for (i in seq_len(nrow(dat_it))) {
       n_idx <- dat_it$node_index[i]
       s <- as.numeric(stringr::str_split(dat_it$end_state[i], "")[[1]])
       s_idx <- s %in% state
@@ -146,7 +146,7 @@ make_dat_age <- function(dat, age) {
   )
 
   ret <- list()
-  for (i in 1:length(nodes)) {
+  for (i in seq_along(nodes)) {
     if (!(nodes[i] %in% dat3$node_index)) {             # if changes happened only after age
       parent <- dat[dat$node_index == nodes[i], 12][1]  # get state at parent node
       dat4 <- dat[dat$node_index == parent, ]
