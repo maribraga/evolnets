@@ -89,7 +89,7 @@ make_samples_post_at_age <- function(dat, age, tree, host_tree, state, drop_empt
   )
 
   m_sample <- array(0, dim = c(n_iter, n_parasite_lineage, n_host_tip), dimnames = m_names)
-  m_posterior <- matrix(data = 0, nrow = n_parasite_lineage, ncol = n_host_tip)
+  m_posterior <- matrix(data = 0, nrow = n_parasite_lineage, ncol = n_host_tip, dimnames = m_names[2:3])
 
   for (it_idx in seq_along(iterations)) {
     it <- iterations[it_idx]
@@ -110,12 +110,6 @@ make_samples_post_at_age <- function(dat, age, tree, host_tree, state, drop_empt
       m_posterior[n_idx, s_idx] <- m_posterior[n_idx, s_idx] + 1
     }
   }
-
-  row.names(m_posterior) <- c(
-    rev(tree$tip.label),
-    paste0("Index_", (n_parasite_tip + 1):n_parasite_lineage)
-  )
-  colnames(m_posterior) <- host_tree$tip.label
 
   # remove empty rows/columns
   if (drop_empty) {
