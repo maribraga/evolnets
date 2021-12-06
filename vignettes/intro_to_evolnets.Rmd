@@ -174,12 +174,12 @@ Then, we can calculate network properties for each sampled network.
 
 ```{r}
 # calculate posterior distribution of nestedness
-Nz <- index_at_ages(samples_at_ages, ages, index = "NODF", null = 10)
+Nz <- index_at_ages(samples_at_ages, index = "NODF", null = 10)
 ```
 
 ```{r, eval=FALSE}
 # calculate posterior distribution of modularity
-Qz <- index_at_ages(samples_at_ages, ages, index = "Q", null = 10)
+Qz <- index_at_ages(samples_at_ages, index = "Q", null = 10)
 ```
 
 
