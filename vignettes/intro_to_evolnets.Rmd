@@ -125,7 +125,7 @@ pp_at_deep_nodes[,c("Fabaceae", "Capparaceae", "Rosaceae")]
 
 We can see that Fabaceae was most likely an ancestral hosts for Pieridae butterflies. Capparaceae might have been a host at the origin of Pieridae, but most certainly starting at node "Index_128". On the other hand, the probability that these butterflies used Rosaceae as a host is very small.
 
-Instead of just looking at numbers, we can plot the ancestral hosts for all internal nodes in the symbiont tree. For that, we have to choose a probability threshold over which to plot (default is 0.9). Ancestral states are colored by modules in the extant network, so we have to either define the modules first or let it be done within the plotting function. Let's plot both trees, the interactions matrix, and the ancestral states at once, like so:
+Instead of just looking at numbers, we can plot the ancestral hosts for all internal nodes in the symbiont tree. For that, we have to choose a probability threshold over which to plot (default is 0.9). Ancestral states are colored by modules in the extant network, so we have to either define the modules first or let it be done within the plotting function. Let's plot both trees, the interaction matrix, and the ancestral states at once, like so:
 
 ```{r}
 at_nodes <- posterior_at_nodes(history, tree, host_tree)
