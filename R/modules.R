@@ -16,7 +16,7 @@ modules_across_ages <- function(summary_networks, tree){
   matched_modules <- match_modules(summary_networks, unmatched_modules[[1]], tree)
 
   list <- list(matched_modules, unmatched_modules)
-  names(list) <- c("Matched modules", "Original modules")
+  names(list) <- c("matched_modules", "original_modules")
 
   return(list)
 }
@@ -67,8 +67,10 @@ modules_from_summary_networks <- function(summary_networks){
                                           TRUE ~ "error"))
 
   names(summary_modules) <- names(summary_networks)
+  list_out <-list(all_mod,summary_modules)
+  names(list_out) <- c("nodes_and_original_modules_per_age", "moduleWeb_objects")
 
-  return(list(all_mod,summary_modules))
+  return(list_out)
 }
 
 
@@ -472,7 +474,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
   # replace with user given names
 
   list <- list(mod_df, mod_idx_name)
-  names(list) <- c("Nodes and modules per age", "Original-matched module names")
+  names(list) <- c("nodes_and_modules_per_age", "original_and_matched_module_names")
 
   return(list)
 
