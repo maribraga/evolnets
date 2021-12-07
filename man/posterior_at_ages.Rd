@@ -2,38 +2,43 @@
 % Please edit documentation in R/posterior_at_ages.R
 \name{posterior_at_ages}
 \alias{posterior_at_ages}
-\title{Functions to calculate the posterior probability of ancestral host
-repertoires at ages.}
+\title{Calculate the posterior probability of ancestral host repertoires at time points in the past (ages)}
 \usage{
-posterior_at_ages(history, ages, tree, host_tree, state = c(2), drop_empty = T)
+posterior_at_ages(
+  history,
+  ages,
+  tree,
+  host_tree,
+  extant_prob = FALSE,
+  state = 2,
+  drop_empty = TRUE
+)
 }
 \arguments{
-\item{history}{Data frame with posterior samples of interaction histories.}
+\item{history}{Data frame with posterior samples of interaction histories. Output from \code{read_history()}.}
 
-\item{ages}{Vector of ages (time points in the past) at which samples will be
-retrieved.}
+\item{ages}{Vector of ages (time points in the past) at which samples will be retrieved. The present (age = 0) must be included.}
 
-\item{tree}{Parasite tree}
+\item{tree}{Symbiont tree.}
 
-\item{host_tree}{Host tree}
+\item{host_tree}{Host tree.}
 
-\item{state}{Which state? Default is 2. For analyses using the 3-state model,
-can take the values 1 (potential host) or 2 (actual host).}
+\item{extant_prob}{Should posterior probabilities be calculated for extant network? Default to FALSE. TRUE only makes sense if interactions in the extant network were also inferred. When FALSE, only the first MCMC sample will be retrieved at age = 0.}
+
+\item{state}{Probabilities will be calculated for which state? Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host). For analyses using the 2-state model, state = 1 is ignored.}
 
 \item{drop_empty}{Logical. Remove taxa without any interactions?}
 }
 \value{
-A list of arrays of samples x parasites x hosts (first element) and a matrix of
+A list of arrays of samples x symbionts x hosts (first element) and a matrix of
 posterior probabilities (second element). The number of samples is the number of
-iterations in \code{history}. At each age, all hosts and all extant parasite lineages are included.
+iterations in \code{history}. At each age, all hosts and all extant symbiont lineages are included.
 }
 \description{
-Group of functions to retrieve samples in the history.txt file produced by the
-analysis of host-repertoire evolution in RevBayes and calculate the posterior
-probabilities of ancestral host repertoires at specific time points in the past.
+Calculate the posterior probability of ancestral host repertoires at time points in the past (ages)
 }
 \examples{
-# read parasite and host tree
+# read symbiont and host tree
 data(tree)
 data(host_tree)
 
@@ -41,10 +46,10 @@ data(host_tree)
 data(history)
 
 # get samples at ages
-ages <- c(80,70)
+ages <- c(80,70,0)
 at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-samples_at_ages <- at_ages[[1]]
+samples_at_ages <- at_ages$samples
 
 # get posterior probabilities at ages
-pp_at_ages <- at_ages[[2]]
+pp_at_ages <- at_ages$posterior_probabilities
 }

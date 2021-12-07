@@ -39,17 +39,14 @@ of events per branch unit, along each tree branch. Mean and HP95 are outputted.
 }}
 
 \examples{
-# read symbiont tree
 data(tree)
-
-# read hist
 data(history)
 
-# effective rate
+# all events
 n_events <- count_events(history)
 rate <- effective_rate(history,tree)
 
-# gains and losses
+# gains and losses separately
 gl_events <- count_gl(history)
 gl_rates <- rate_gl(history, tree)
 

@@ -1,27 +1,20 @@
-#' Functions to calculate the posterior probability of ancestral host
-#' repertoires at ages.
+#' Calculate the posterior probability of ancestral host repertoires at time points in the past (ages)
 #'
-#' Group of functions to retrieve samples in the history.txt file produced by the
-#'   analysis of host-repertoire evolution in RevBayes and calculate the posterior
-#'   probabilities of ancestral host repertoires at specific time points in the past.
-#'
-#'
-#' @param history Data frame with posterior samples of interaction histories.
-#' @param ages Vector of ages (time points in the past) at which samples will be
-#'   retrieved.
-#' @param tree Parasite tree
-#' @param host_tree Host tree
-#' @param state Which state? Default is 2. For analyses using the 3-state model,
-#'   can take the values 1 (potential host) or 2 (actual host).
+#' @param history Data frame with posterior samples of interaction histories. Output from `read_history()`.
+#' @param ages Vector of ages (time points in the past) at which samples will be retrieved. The present (age = 0) must be included.
+#' @param tree Symbiont tree.
+#' @param host_tree Host tree.
+#' @param extant_prob Should posterior probabilities be calculated for extant network? Default to FALSE. TRUE only makes sense if interactions in the extant network were also inferred. When FALSE, only the first MCMC sample will be retrieved at age = 0.
+#' @param state Probabilities will be calculated for which state? Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host). For analyses using the 2-state model, state = 1 is ignored.
 #' @param drop_empty Logical. Remove taxa without any interactions?
 #'
-#' @return A list of arrays of samples x parasites x hosts (first element) and a matrix of
+#' @return A list of arrays of samples x symbionts x hosts (first element) and a matrix of
 #'   posterior probabilities (second element). The number of samples is the number of
-#'   iterations in `history`. At each age, all hosts and all extant parasite lineages are included.
+#'   iterations in `history`. At each age, all hosts and all extant symbiont lineages are included.
 #' @export
 #'
 #' @examples
-#' # read parasite and host tree
+#' # read symbiont and host tree
 #' data(tree)
 #' data(host_tree)
 #'
@@ -29,13 +22,13 @@
 #' data(history)
 #'
 #' # get samples at ages
-#' ages <- c(80,70)
+#' ages <- c(80,70,0)
 #' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-#' samples_at_ages <- at_ages[[1]]
+#' samples_at_ages <- at_ages$samples
 #'
 #' # get posterior probabilities at ages
-#' pp_at_ages <- at_ages[[2]]
-posterior_at_ages <- function(history, ages, tree, host_tree, state = 2, drop_empty = TRUE) {
+#' pp_at_ages <- at_ages$posterior_probabilities
+posterior_at_ages <- function(history, ages, tree, host_tree, extant_prob = FALSE, state = 2, drop_empty = TRUE) {
 
   # input checking
   if (!is.data.frame(history)) {
@@ -45,6 +38,7 @@ posterior_at_ages <- function(history, ages, tree, host_tree, state = 2, drop_em
     stop('`history` needs to have columns `node_index`, `iteration` and `transition_type`.')
   }
   if (!is.numeric(ages)) stop('`ages` should be a numeric vector.')
+  if (!(0 %in% ages)) stop('`ages` has to include 0 (the present).')
   if (!inherits(tree, 'phylo')) stop('`tree` should be a phylogeny of class `phylo`.')
   if (!inherits(host_tree, 'phylo')) stop('`host_tree` should be a phylogeny of class `phylo`.')
   if (!is.numeric(state)) stop('`state` should be a numeric vector.')
@@ -57,18 +51,73 @@ posterior_at_ages <- function(history, ages, tree, host_tree, state = 2, drop_em
 
   for (i in seq_along(ages)) {
     age <- ages[i]
-    ages_samp_post <- make_samples_post_at_age(history, age, tree, host_tree, state, drop_empty)
+
+    if (!extant_prob & age == 0) {
+      ages_samp_post <- get_extant_binary_network(history, tree, host_tree, state, drop_empty)
+    } else{
+      ages_samp_post <- make_samples_post_at_age(history, age, tree, host_tree, state, drop_empty)
+    }
 
     samp_ages[[i]] <- ages_samp_post[[1]]
     post_ages[[i]] <- ages_samp_post[[2]]
+
   }
 
   names(samp_ages) <- names(post_ages) <- ages
   samp_post_ages <- list(samp_ages, post_ages)
-  names(samp_post_ages) <- c("Samples", "Posterior Probabilities")
+  names(samp_post_ages) <- c("samples", "posterior_probabilities")
 
   return(samp_post_ages)
 
+}
+
+
+get_extant_binary_network <- function(dat, tree, host_tree, state, drop_empty) {
+
+  iterations <- sort(unique(dat$iteration))
+  n_iter <- 1
+
+  # get dimensions
+  n_host_tip <- nchar(dat$start_state[1])
+  n_parasite_lineage <- dplyr::n_distinct(dat$node_index)
+  n_parasite_tip <- (n_parasite_lineage + 1) / 2
+
+  m_names <- list(
+    seq_len(n_iter),
+    c(rev(tree$tip.label), paste0("Index_", (n_parasite_tip + 1):n_parasite_lineage)),
+    host_tree$tip.label
+  )
+
+  m_sample <- array(0, dim = c(n_iter, n_parasite_lineage, n_host_tip), dimnames = m_names)
+  m_posterior <- matrix(data = 0, nrow = n_parasite_lineage, ncol = n_host_tip, dimnames = m_names[2:3])
+
+  it <- iterations[1]
+
+  # get dataset for iteration
+  dat_it <- dat[dat$iteration == it, ]
+
+  # extract relevant branches
+  dat_it <- make_dat_age(dat_it, age = 0)
+
+  # add edges ( parasite x host )
+  for (i in seq_len(nrow(dat_it))) {
+    n_idx <- dat_it$node_index[i]
+    s <- as.numeric(stringr::str_split(dat_it$end_state[i], "")[[1]])
+    s_idx <- s %in% state
+
+    m_sample[it_idx, n_idx, s_idx] <- state
+    m_posterior[n_idx, s_idx] <- m_posterior[n_idx, s_idx] + 1
+  }
+
+  # remove empty rows/columns
+  if (drop_empty) {
+    m_posterior <- m_posterior[rowSums(m_posterior) != 0, ]
+    m_posterior <- m_posterior[, colSums(m_posterior) != 0]
+  }
+
+  samp_post <- list(m_sample, m_posterior)
+
+  return(samp_post)
 }
 
 
