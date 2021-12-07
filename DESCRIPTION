@@ -40,7 +40,12 @@ Imports:
     vegan,
     purrr,
     tibble,
-    tidyselect
+    tidyselect,
+    coda,
+    tidygraph,
+    ggraph,
+    treeio,
+    dispRity
 Depends: 
     R (>= 2.10)
 URL: https://github.com/maribraga/evolnets

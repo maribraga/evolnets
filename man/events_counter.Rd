@@ -18,36 +18,32 @@ rate_gl(history, tree)
 }
 \arguments{
 \item{history}{A data frame containing the character history produced by
-RevBayes}
+RevBayes and read by \code{read_history()}.}
 
-\item{tree}{A phylogenetic tree of the parasite clade}
+\item{tree}{A phylogenetic tree of the symbiont clade}
 }
 \description{
 Calculate the number of host gains, host losses, and the
-effective rate of host repertoire evolution
+effective rate of host repertoire evolution.
 }
 \section{Functions}{
 \itemize{
-\item \code{count_events}: Get the total number of events along the parasite tree
+\item \code{count_events}: Get the average number of events along the symbiont tree and the highest posterior density interval with 95\% probability (HPD95), based on all MCMC iterations in \code{history}.
 
 \item \code{effective_rate}: Get the effective rate of evolution, i.e. number
-of events per million years, along each tree branch
+of events per branch unit, along each tree branch. Mean and HP95 are outputted.
 
-\item \code{count_gl}: Get the number of host gains and host losses
+\item \code{count_gl}: Get the average number of host gains and host losses
 
-\item \code{rate_gl}: Get the effective rate of host gain and host loss
+\item \code{rate_gl}: Get the average effective rate of host gain and host loss
 }}
 
 \examples{
-# read parasite tree
+# read symbiont tree
 data(tree)
 
 # read hist
 data(history)
-
-# remove burnin and thin samples
-it_seq <- seq(10000,100000,1000)
-history <- dplyr::filter(history, iteration \%in\% it_seq)
 
 # effective rate
 n_events <- count_events(history)

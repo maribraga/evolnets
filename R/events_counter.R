@@ -1,34 +1,28 @@
 #' Calculate the rate of host-repertoire evolution
 #'
 #' Calculate the number of host gains, host losses, and the
-#'   effective rate of host repertoire evolution
+#'   effective rate of host repertoire evolution.
+#'
 #' @param history A data frame containing the character history produced by
-#'   RevBayes
-#' @param tree A phylogenetic tree of the parasite clade
+#'   RevBayes and read by `read_history()`.
+#' @param tree A phylogenetic tree of the symbiont clade
 #'
 #' @examples
-#' # read parasite tree
 #' data(tree)
-#'
-#' # read hist
 #' data(history)
 #'
-#' # remove burnin and thin samples
-#' it_seq <- seq(10000,100000,1000)
-#' history <- dplyr::filter(history, iteration %in% it_seq)
-#'
-#' # effective rate
+#' # all events
 #' n_events <- count_events(history)
 #' rate <- effective_rate(history,tree)
 #'
-#' # gains and losses
+#' # gains and losses separately
 #' gl_events <- count_gl(history)
 #' gl_rates <- rate_gl(history, tree)
 #'
 #' @name events_counter
 NULL
 
-#' @describeIn events_counter Get the total number of events along the parasite tree
+#' @describeIn events_counter Get the average number of events along the symbiont tree and the highest posterior density interval with 95% probability (HPD95), based on all MCMC iterations in `history`.
 #' @export
 count_events <- function(history){
   if (!is.data.frame(history)) {
@@ -38,17 +32,26 @@ count_events <- function(history){
     stop('`history` needs to have columns `node_index`, `iteration` and `transition_type`.')
   }
 
-  root <- max(history$node_index)
-  transitions <- sum(history$transition_type[history$node_index < root] == 'anagenetic')
-  iters <- dplyr::n_distinct(history$iteration)
-  n_events <- transitions / iters
+  dist_events <- history %>%
+  dplyr::filter(.data$node_index < root,
+                .data$transition_type == 'anagenetic') %>%
+  dplyr::group_by(iteration) %>%
+    dplyr::summarise(n_events = n()) %>%
+    dplyr::pull(n_events)
 
-  n_events
+  mean <- mean(dist_events)
+  events_mcmc <- coda::mcmc(dist_events)
+  hpd <- coda::HPDinterval(events_mcmc)
+
+  out <- data.frame(mean = mean, HPD95 = hpd)
+  rownames(out) <- NULL
+
+  return(out)
 }
 
 
 #' @describeIn events_counter Get the effective rate of evolution, i.e. number
-#'   of events per million years, along each tree branch
+#'   of events per branch unit, along each tree branch. Mean and HP95 are outputted.
 #' @export
 effective_rate <- function(history, tree) {
   # history will be checked in count_events
@@ -58,11 +61,11 @@ effective_rate <- function(history, tree) {
   tree_length <- sum(tree$edge.length)
   rate <- nev/tree_length
 
-  rate
+  export(rate)
 }
 
 
-#' @describeIn events_counter Get the number of host gains and host losses
+#' @describeIn events_counter Get the average number of host gains and host losses
 #' @export
 count_gl <- function(history) {
   if (!is.data.frame(history)) {
@@ -105,7 +108,7 @@ count_gl <- function(history) {
 }
 
 
-#' @describeIn events_counter Get the effective rate of host gain and host loss
+#' @describeIn events_counter Get the average effective rate of host gain and host loss
 #' @export
 rate_gl <- function(history, tree) {
   # history will be checked in count_gl
