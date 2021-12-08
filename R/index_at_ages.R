@@ -10,9 +10,7 @@
 #'   "Q" to calculate modularity.
 #' @param ages Vector of ages (time points in the past) of ancestral networks. By default, uses all
 #'   ages present in `samples_at_ages`.
-#' @param null Number of null networks to generate to calculate the z-score.
-#' @param seed Seed passed to `stats::simulate` to generate null networks and set before calculating
-#'   Q. Default to NULL.
+#' @param nnull Number of null networks to generate to calculate the z-score. Default is 100.
 #'
 #' @return A data.frame of z-scores and p-values across samples and ages.
 #' @importFrom magrittr %>%
@@ -24,15 +22,15 @@
 #' data(host_tree)
 #' data(history)
 #'
-#' ages <- c(60,50,40)
-#' samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)$Samples
+#' ages <- c(60,50,40,0)
+#' samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)$samples
 #'
 #' # calculate posterior distribution of nestedness
 #' Nz <- index_at_ages(samples_at_ages, index = "NODF")
 #'
 #' #  calculate posterior distribution of modularity (SLOW!)
 #' # Qz <- index_at_ages(samples_at_ages, index = "Q")
-index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed = NULL){
+index_at_ages <- function(samples_at_ages, index, ages = NULL, nnull = 100){
 
   # Input checking
   if (!is.list(samples_at_ages)) {
@@ -40,12 +38,11 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
   }
   if (!(all(vapply(samples_at_ages, is.array, TRUE)))) {
     stop('All list entries of `samples_at_ages` should be arrays. Make sure you are only passing ',
-         'the `Samples` part of the `posterior_at_ages` output.')
+         'the `samples` part of the `posterior_at_ages` output.')
   }
   index <- match.arg(index, c('NODF', 'Q'), several.ok = FALSE)
   if (!is.null(ages) & !is.numeric(ages)) stop('`ages` should be numeric.')
-  if (!is.numeric(null)) stop('`null` should be numeric.')
-  if (!is.null(seed) & !is.numeric(seed)) stop('`seed` should be numeric.')
+  if (!is.numeric(nnull)) stop('`nnull` should be numeric.')
 
   if (is.null(ages)) ages <- as.numeric(names(samples_at_ages))
 
@@ -55,13 +52,13 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
   # Calculating indices
   if (index == "NODF") {
 
-    NODF_null <- NODF_samples_null(samples_at_ages, ages, null, seed)
+    NODF_null <- NODF_samples_null(samples_at_ages, ages, nnull)
     NODF_samples <- NODF_samples_at_ages(samples_at_ages, ages)
 
     NODF_pvals <- NODF_null %>%
       dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
       dplyr::group_by(.data$age, .data$sample) %>%
-      dplyr::summarise(p = sum(.data$NODFnull >= .data$obs_NODF) / null, .groups = 'drop')
+      dplyr::summarise(p = sum(.data$NODFnull >= .data$obs_NODF) / nnull, .groups = 'drop')
 
     NODF_zsamples <- NODF_null %>%
       dplyr::group_by(.data$age, .data$sample) %>%
@@ -79,13 +76,13 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
 
   if (index == "Q") {
 
-    Q_null <- Q_samples_null(samples_at_ages, ages, null, seed)
+    Q_null <- Q_samples_null(samples_at_ages, ages, nnull)
     Q_samples <- Q_samples_at_ages(samples_at_ages, ages)
 
     Q_pvals <- Q_null %>%
       dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
       dplyr::group_by(.data$age, .data$sample) %>%
-      dplyr::summarise(p = sum(.data$Qnull >= .data$obs_Q) / null, .groups = 'drop')
+      dplyr::summarise(p = sum(.data$Qnull >= .data$obs_Q) / nnull, .groups = 'drop')
 
     Q_zsamples <- Q_null %>%
       dplyr::group_by(.data$age, .data$sample) %>%
@@ -105,9 +102,8 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, null = 100, seed 
 
 
 # Simulate null networks and calculate NODF
-NODF_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
+NODF_samples_null <- function(samples_at_ages, ages, nnull){
 
-  nnull <- null
   nsamp <- dim(samples_at_ages[[1]])[1]
 
   NODF_null <- data.frame(
@@ -121,7 +117,7 @@ NODF_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
       net <- net[, colSums(net) != 0]
 
       nullm <- vegan::nullmodel(net, "r00")
-      sim <- stats::simulate(nullm, nsim = nnull, seed = seed)
+      sim <- stats::simulate(nullm, nsim = nnull)
 
       for (j in seq_len(nnull)) {
         Nrandom <- bipartite::networklevel(sim[, , j], index = "NODF")
@@ -156,9 +152,8 @@ NODF_samples_at_ages <- function(samples_at_ages, ages){
 }
 
 # Simulate null networks and calculate Q
-Q_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
+Q_samples_null <- function(samples_at_ages, ages, nnull){
 
-  nnull <- null
   nsamp <- dim(samples_at_ages[[1]])[1]
   Q_null <- data.frame(
     age = rep.int(NA, nnull * nsamp * length(samples_at_ages)), sample = NA, sim = NA, Qnull = NA
@@ -171,10 +166,9 @@ Q_samples_null <- function(samples_at_ages, ages, null = 100, seed = NULL){
       net <- net[, colSums(net) != 0]
 
       nullm <- vegan::nullmodel(net, "r00")
-      sim <- stats::simulate(nullm, nsim = nnull, seed = seed)
+      sim <- stats::simulate(nullm, nsim = nnull)
 
       for (j in 1:nnull) {
-        set.seed(seed)
         mod <- mycomputeModules(sim[, , j])
         Qrandom <- mod@likelihood
         Q_null[(a - 1) * nsamp + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Qrandom)
