@@ -25,7 +25,7 @@ posterior_at_ages(
 
 \item{extant_prob}{Should posterior probabilities be calculated for extant network? Default to FALSE. TRUE only makes sense if interactions in the extant network were also inferred. When FALSE, only the first MCMC sample will be retrieved at age = 0.}
 
-\item{state}{Probabilities will be calculated for which state? Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host). For analyses using the 2-state model, state = 1 is ignored.}
+\item{state}{Probabilities will be calculated only for this state. Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host). For analyses using the 2-state model, state = 1 is ignored.}
 
 \item{drop_empty}{Logical. Remove taxa without any interactions?}
 }
