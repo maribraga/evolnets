@@ -39,6 +39,8 @@ posterior_at_ages <- function(history, ages, tree, host_tree, extant_prob = FALS
   }
   if (!is.numeric(ages)) stop('`ages` should be a numeric vector.')
   if (!(0 %in% ages)) stop('`ages` has to include 0 (the present).')
+  origin <- max(dispRity::tree.age(tree)$ages)
+  if (max(ages) > origin) stop('all `ages` must be younger than the origin of the symbiont clade.')
   if (!inherits(tree, 'phylo')) stop('`tree` should be a phylogeny of class `phylo`.')
   if (!inherits(host_tree, 'phylo')) stop('`host_tree` should be a phylogeny of class `phylo`.')
   if (!is.numeric(state)) stop('`state` should be a numeric vector.')
