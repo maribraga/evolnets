@@ -36,22 +36,22 @@ get_summary_network <- function(pp_at_ages, ages = NULL, pt, weighted = TRUE){
   if (is.null(ages)) ages <- as.numeric(names(pp_at_ages))
   net_list <- list()
 
-  for(m in 1:length(ages)){
+  for (m in 1:length(ages)) {
     matrix <- pp_at_ages[[m]]
-    for(i in 1:nrow(matrix)){
-      for(j in 1:ncol(matrix)){
-        if(matrix[i,j] < pt){
-          matrix[i,j] = 0
-        } else{
-          if(weighted == FALSE){
-            matrix[i,j] = 1
+    for (i in 1:nrow(matrix)) {
+      for (j in 1:ncol(matrix)) {
+        if (matrix[i, j] < pt) {
+          matrix[i, j] <- 0
+        } else {
+          if (weighted == FALSE) {
+            matrix[i, j] <- 1
           }
         }
       }
     }
     df <- as.data.frame(matrix)
-    df = df[ rowSums(df)!=0, ]
-    df = df[ ,colSums(df)!=0 ]
+    df = df[rowSums(df) != 0, ]
+    df = df[, colSums(df) != 0]
     net_list[[m]] <- df
   }
 
