@@ -107,7 +107,7 @@ get_extant_binary_network <- function(dat, tree, host_tree, state, drop_empty) {
     s <- as.numeric(stringr::str_split(dat_it$end_state[i], "")[[1]])
     s_idx <- s %in% state
 
-    m_sample[it_idx, n_idx, s_idx] <- state
+    m_sample[1, n_idx, s_idx] <- state
     m_posterior[n_idx, s_idx] <- m_posterior[n_idx, s_idx] + 1
   }
 
