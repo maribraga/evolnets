@@ -3,9 +3,10 @@
 #'
 #' @param pp_at_ages List of matrices with posterior probabilities for each
 #'   interaction of extant lineages at given ages
-#' @param ages Vector of ages (time points in the past) at which samples were retrieved.
 #' @param pt Probability threshold to include an interaction in the network.
 #'   Interactions with posterior probability < pt will be dropped.
+#' @param ages Vector of ages (time points in the past) at which samples were retrieved. By default,
+#'   uses all ages present in `pp_at_ages`.
 #' @param weighted Logical. Use posterior probabilities as interaction weights?
 #'
 #' @return A list of incidence matrices (summary network) for each time slice in `ages`.
@@ -19,15 +20,20 @@
 #' ages <- c(60, 50, 40, 0)
 #' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 #' pp_at_ages <- at_ages$posterior_probabilities
-#' weighted_net_50 <- get_summary_network(pp_at_ages, ages, pt = 0.5, weighted = TRUE)
-#' binary_net_90 <- get_summary_network(pp_at_ages, ages, pt = 0.9, weighted = FALSE)
-get_summary_network <- function(pp_at_ages, ages, pt, weighted = TRUE){
+#' weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
+#' binary_net_90 <- get_summary_network(pp_at_ages, pt = 0.9, weighted = FALSE)
+get_summary_network <- function(pp_at_ages, ages = NULL, pt, weighted = TRUE){
 
   if (!is.list(pp_at_ages)) stop('`pp_at_ages` should be a list.')
-  if (!(pt > 0 & pt <= 1)) stop('`pt` should be a value between 0 and 1.')
+  if (!is.numeric(pt) || !(pt > 0 & pt <= 1)) stop('`pt` should be a numeric value between 0 and 1.')
   if (length(pp_at_ages) != length(ages)) {
     stop('`pp_at_ages` must contain the same time slices as `ages`.')
   }
+  if (!is.null(ages) && !is.numeric(ages)) stop('`ages` should be a numeric vector or NULL.')
+  if (!is.logical(weigthed)) stop('`logical` should be a logical value (TRUE/FALSE).')
+
+  # find ages if not provided
+  if (is.null(ages)) ages <- as.numeric(names(pp_at_ages))
   net_list <- list()
 
   for(m in 1:length(ages)){
