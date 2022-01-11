@@ -22,7 +22,7 @@
 #' pp_at_ages <- at_ages$posterior_probabilities
 #' weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
 #' binary_net_90 <- get_summary_network(pp_at_ages, pt = 0.9, weighted = FALSE)
-get_summary_network <- function(pp_at_ages, ages = NULL, pt, weighted = TRUE){
+get_summary_network <- function(pp_at_ages, pt, ages = NULL, weighted = TRUE){
 
   if (!is.list(pp_at_ages)) stop('`pp_at_ages` should be a list.')
   if (!is.numeric(pt) || !(pt > 0 & pt <= 1)) stop('`pt` should be a numeric value between 0 and 1.')
@@ -50,8 +50,8 @@ get_summary_network <- function(pp_at_ages, ages = NULL, pt, weighted = TRUE){
       }
     }
     df <- as.data.frame(matrix)
-    df = df[rowSums(df) != 0, ]
-    df = df[, colSums(df) != 0]
+    df <- df[rowSums(df) != 0, ]
+    df <- df[, colSums(df) != 0]
     net_list[[m]] <- df
   }
 
