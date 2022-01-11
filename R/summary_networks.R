@@ -26,20 +26,20 @@ get_summary_network <- function(pp_at_ages, ages = NULL, pt, weighted = TRUE){
 
   if (!is.list(pp_at_ages)) stop('`pp_at_ages` should be a list.')
   if (!is.numeric(pt) || !(pt > 0 & pt <= 1)) stop('`pt` should be a numeric value between 0 and 1.')
-  if (length(pp_at_ages) != length(ages)) {
+  if (!is.null(ages) && (length(pp_at_ages) != length(ages))) {
     stop('`pp_at_ages` must contain the same time slices as `ages`.')
   }
   if (!is.null(ages) && !is.numeric(ages)) stop('`ages` should be a numeric vector or NULL.')
-  if (!is.logical(weigthed)) stop('`logical` should be a logical value (TRUE/FALSE).')
+  if (!is.logical(weighted)) stop('`logical` should be a logical value (TRUE/FALSE).')
 
   # find ages if not provided
   if (is.null(ages)) ages <- as.numeric(names(pp_at_ages))
   net_list <- list()
 
-  for (m in 1:length(ages)) {
+  for (m in seq_along(ages)) {
     matrix <- pp_at_ages[[m]]
-    for (i in 1:nrow(matrix)) {
-      for (j in 1:ncol(matrix)) {
+    for (i in seq_len(nrow(matrix))) {
+      for (j in seq_len(ncol(matrix))) {
         if (matrix[i, j] < pt) {
           matrix[i, j] <- 0
         } else {
