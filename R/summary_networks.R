@@ -37,19 +37,13 @@ get_summary_network <- function(pp_at_ages, pt, ages = NULL, weighted = TRUE){
   net_list <- list()
 
   for (m in seq_along(ages)) {
-    matrix <- pp_at_ages[[m]]
-    for (i in seq_len(nrow(matrix))) {
-      for (j in seq_len(ncol(matrix))) {
-        if (matrix[i, j] < pt) {
-          matrix[i, j] <- 0
-        } else {
-          if (weighted == FALSE) {
-            matrix[i, j] <- 1
-          }
-        }
-      }
+    mat <- pp_at_ages[[m]]
+    mat[mat < pt] <- 0
+    if (!weighted) {
+      mat[mat >= pt] <- 1
     }
-    df <- as.data.frame(matrix)
+
+    df <- as.data.frame(mat)
     df <- df[rowSums(df) != 0, ]
     df <- df[, colSums(df) != 0]
     net_list[[m]] <- df
@@ -59,5 +53,3 @@ get_summary_network <- function(pp_at_ages, pt, ages = NULL, weighted = TRUE){
 
   net_list
 }
-
-
