@@ -1,15 +1,23 @@
 #' Evolution of modules: find and match modules across time slices
 #'
-#' @param summary_networks List of reconstructed summary networks for each age.
+#' @param summary_networks List of reconstructed summary networks for each age (output from `get_summary_network()`).
 #' @param tree The phylogeny of the symbiont clade (e.g. parasite, herbivore), a `phylo` object.
 #'
-#' @return A data frame with module membership for each node of summary networks
-#' at each age.
+#' @return A list with: 1) A data frame with module membership for each node of summary networks
+#' at each age after matching module names; 2) A data frame with original module names (before matching).
 #' @importFrom rlang .data
 #' @export
 #'
 #' @examples
+#' data(tree)
+#' data(host_tree)
+#' data(history)
 #'
+#' ages <- c(60, 50, 40, 0)
+#' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+#' pp_at_ages <- at_ages$posterior_probabilities
+#' weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
+#' all_mod <- modules_across_ages(weighted_net_50, tree)
 modules_across_ages <- function(summary_networks, tree){
 
   unmatched_modules <- modules_from_summary_networks(summary_networks)
@@ -42,7 +50,7 @@ modules_from_summary_networks <- function(summary_networks){
   summary_modules <- list()
 
   for(i in 1:length(summary_networks)){
-    wmod <- computeModules(summary_networks[[i]])
+    wmod <- mycomputeModules(summary_networks[[i]])
     summary_modules[[i]] <- wmod
     wmod_list <- listModuleInformation(wmod)[[2]]
     nwmod <- length(wmod_list)
@@ -110,7 +118,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 
   # Get a tibble with tree information for finding child nodes
   tree_t <- tibble::as_tibble(tree) %>%
-    dplyr::mutate(depth = round(max(node.depth.edgelength(tree)) - node.depth.edgelength(tree), digits = 5))
+    dplyr::mutate(depth = round(max(ape::node.depth.edgelength(tree)) - ape::node.depth.edgelength(tree), digits = 5))
 
   # Find all nodes between this time slice and the previous one
   # Reverse inherit modules
