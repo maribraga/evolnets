@@ -32,6 +32,7 @@ count_events <- function(history){
     stop('`history` needs to have columns `node_index`, `iteration` and `transition_type`.')
   }
 
+  root <- max(history$node_index)
   dist_events <- history %>%
   dplyr::filter(.data$node_index < root,
                 .data$transition_type == 'anagenetic') %>%
@@ -61,7 +62,7 @@ effective_rate <- function(history, tree) {
   tree_length <- sum(tree$edge.length)
   rate <- nev/tree_length
 
-  export(rate)
+  return(rate)
 }
 
 
