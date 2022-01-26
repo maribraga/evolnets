@@ -69,7 +69,8 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, nnull = 100){
       ) %>%
       dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
       dplyr::mutate(z = (.data$obs_NODF - .data$mean_NODF) / .data$sd_NODF) %>%
-      dplyr::left_join(NODF_pvals, by = c("age", "sample"))
+      dplyr::left_join(NODF_pvals, by = c("age", "sample")) %>%
+      tidyr::drop_na()
 
     ret <- as.data.frame(NODF_zsamples)
   }
@@ -93,7 +94,8 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, nnull = 100){
       ) %>%
       dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
       dplyr::mutate(z = (.data$obs_Q - .data$mean_Q) / .data$sd_Q) %>%
-      dplyr::left_join(Q_pvals, by = c("age", "sample"))
+      dplyr::left_join(Q_pvals, by = c("age", "sample")) %>%
+      tidyr::drop_na()
 
     ret <- as.data.frame(Q_zsamples)
   }
@@ -121,7 +123,7 @@ NODF_samples_null <- function(samples_at_ages, ages, nnull){
 
       for (j in seq_len(nnull)) {
         Nrandom <- bipartite::networklevel(sim[, , j], index = "NODF")
-        NODF_null[(a - 1) * nsamp + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Nrandom)
+        NODF_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Nrandom)
       }
     }
   }
@@ -171,7 +173,7 @@ Q_samples_null <- function(samples_at_ages, ages, nnull){
       for (j in 1:nnull) {
         mod <- mycomputeModules(sim[, , j])
         Qrandom <- mod@likelihood
-        Q_null[(a - 1) * nsamp + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Qrandom)
+        Q_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Qrandom)
       }
     }
   }
