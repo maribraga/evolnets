@@ -523,12 +523,14 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #' Validate modules from summary networks by calculating the frequency with
 #' which pairs of nodes are placed in the same module in networks sampled across MCMC
 #'
-#' @param mod_samples Data frame produced by `modules_from_samples()` containing module membership of each node for each sampled network at each time slice.
-#' @param ages Vector of ages (time points in the past) at which samples will be retrieved.
+#' @param mod_samples Data frame produced by `modules_from_samples()` containing module membership of each node for each sampled network at each time slice before the present.
+#' @param modules_across_ages Data frame containing the module information for the summary network. A `list` object returned from `modules_across_ages()` or a `data.frame` object defining the models in the network. If a `data.frame` is passed, it must contain three columns:
+#'   $age - the age of the network,
+#'   $name - taxon names,
+#'   $module - the module the taxon was assigned to.
 #' @param threshold Minimum frequency with which two nodes are placed in the same module to consider it supported.
 #' @param edge_list Logical. Whether to return a list of edge lists or a list of matrices of pairwise frequency.
 #' @param include_all Logical. Include all nodes or only those present at the time slice?
-#' @param modules_across_ages Data frame containing the module information for the summary network.
 #' @param palette Optional. Color palette for module colors in the plot.
 #'
 #' @return A list containing:
@@ -551,14 +553,24 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #'   support <- support_for_modules(mod_samples, ages, modules_across_ages)
 #'   support$plot
 #' }
-support_for_modules <- function(mod_samples, ages, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE, palette = NULL) {
+support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE, palette = NULL) {
 
-  if (length(unique(mod_samples$age)) != length(ages)) {
-    stop('`mod_samples` must contain the same time slices as `ages`.')
+  if (!is.null(modules_across_ages) && (
+    !inherits(modules_across_ages, 'list') && !inherits(modules_across_ages, 'data.frame')
+  )) {
+    stop('`modules_across_ages` should be of class `list` or `data.frame`.')
   }
-  if (length(unique(modules_across_ages$age)) < length(ages)) {
-    stop('`modules_across_ages` must contain all time slices in `ages`.')
+
+  if(inherits(modules_across_ages, 'list')){
+    modules_across_ages <- modules_across_ages$matched_modules$nodes_and_modules_per_age %>%
+      dplyr::rename(module = module_name)
   }
+
+  if (!all(unique(mod_samples$age) %in% unique(modules_across_ages$age))) {
+    stop('`modules_across_ages` must contain all time slices in `mod_samples`.')
+  }
+
+  ages <- rev(unique(mod_samples$age))
 
   # calculate pairwise module membership
   pair_mod_tbl <- pairwise_membership(mod_samples, ages, edge_list)
@@ -621,6 +633,7 @@ support_for_modules <- function(mod_samples, ages, modules_across_ages, threshol
 plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL){
 
   nages <- length(pair_heatmaps)
+  plot_list <- list()
 
   for(a in 1:nages){
     heatmap <- pair_heatmaps[[a]]
@@ -644,15 +657,11 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL){
       p <- p + ggplot2::scale_fill_manual(values = palette, na.value = "grey20", drop = F)
     }
 
-    if(a == 1){
-      plot <- p
-    } else{
-      plot <- wrap_plots(plot, p)
-    }
+    plot_list[[a]] <- p
 
   }
 
-  plot
+  plot <- wrap_plots(plot_list, nrow = 1)
 
 }
 
@@ -717,7 +726,6 @@ module.y <- module.x <- freq <- name <- NULL
 #' Find modules in networks sampled across MCMC at specific time slices
 #'
 #' @param samples_at_ages List of sampled networks at time slices produces by calling posterior_at_ages().
-#' @param ages Vector of ages (time slices in the past) at which samples were retrieved.
 #'
 #' @return Data frame with module membership information for each sampled network at each time slice.
 #' @importFrom dplyr mutate group_by distinct summarize left_join case_when select bind_rows tibble n
@@ -728,18 +736,17 @@ module.y <- module.x <- freq <- name <- NULL
 #' \dontrun{
 #'   mod_samples <- modules_from_samples(samples_at_ages, ages)
 #' }
-modules_from_samples <- function(samples_at_ages, ages) {
+modules_from_samples <- function(samples_at_ages) {
 
-  if (length(samples_at_ages) != length(ages)) {
-    stop('`samples_at_ages` must contain the same time slices as `ages`.')
-  }
+  ages <- as.numeric(names(samples_at_ages))
+  if (!(0 %in% ages)) stop('the last element in `samples_at_ages` has to be the present (age = 0).')
 
   Qsamples <- tibble()
   mod_samples <- tibble()
 
   nsamp <- dim(samples_at_ages[[1]])[1]
 
-  for(a in 1:length(ages)){
+  for(a in 1:(length(ages)-1)){
     for(i in 1:nsamp){
       net <- samples_at_ages[[a]][i,,]
 
