@@ -137,7 +137,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
     all_submodules <- modules_age[tidyselect::matches("\\d", vars = modules_age)]
     submod_letters <- unique(sub("\\d","",all_submodules))
 
-    modules_age <- sort(c(modules_age, submod_letters))
+    modules_age <- sort(unique(c(modules_age, submod_letters)))
 
     # Data frame with all nodes at the network at max age
     mod_df_sym_age <- unmatched_modules %>%
@@ -432,12 +432,18 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 
     # Are there submodules among the valid modules?
     sub_mod_left <- valid_mods[valid_mods %in% all_submodules]
+    full_mods <- dplyr::setdiff(valid_mods, sub_mod_left)
+
     if(length(sub_mod_left) != 0){
       for(l in submod_letters){
         n_sub <- tidyselect::contains(l, vars = sub_mod_left) %>% length()
-        # If there is only one submodule of a module left, give it the module name (just letter)
+        # If there is only one submodule of a module left
         if(n_sub == 1){
-          mod_df_sym_age[tidyselect::contains(l, vars = mod_df_sym_age$module_name),"module_name"] <- l
+          # and there isn't another module with the same letter
+          if(!(l %in% full_mods)){
+            # give it the module name (just letter)
+            mod_df_sym_age[tidyselect::contains(l, vars = mod_df_sym_age$module_name),"module_name"] <- l
+          }
         }
       }
     }
