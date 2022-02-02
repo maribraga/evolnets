@@ -405,10 +405,9 @@ plot_ancestral_networks <- function(summary_networks, matched_modules, tree, mod
     wnet <- as.matrix(summary_networks[[n]])
 
     graph <- tidygraph::as_tbl_graph(t(wnet), directed = F) %>%
-      dplyr::left_join(dplyr::filter(dplyr::select(matched_modules, age, name, module_name),
+      dplyr::left_join(dplyr::filter(dplyr::select(matched_modules, age, name, module),
                                      age == ages[n]), by = "name") %>%
-      dplyr::select(type, name, module_name) %>%
-      dplyr::rename(module = module_name)
+      dplyr::select(type, name, module)
 
     list_tgraphs[[n]] <- graph
   }
@@ -443,11 +442,10 @@ plot_ancestral_networks <- function(summary_networks, matched_modules, tree, mod
   list_tip_data[[length(ages)]] <- tibble::tibble(label = tree$tip.label) %>%
     dplyr::inner_join(dplyr::filter(matched_modules, age == 0),
                       by = c("label" = "name")) %>%
-    dplyr::select(label, module_name) %>%
-    dplyr::rename(module = module_name)
+    dplyr::select(label, module)
 
   # plot
-  if(is.null(module_levels)) module_levels <- unique(matched_modules$module_name)
+  if(is.null(module_levels)) module_levels <- unique(matched_modules$module)
   if(is.null(palette)) palette <- scales::hue_pal()(length(module_levels))
 
   plot_list <- list()
