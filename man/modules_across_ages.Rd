@@ -7,17 +7,25 @@
 modules_across_ages(summary_networks, tree)
 }
 \arguments{
-\item{summary_networks}{List of reconstructed summary networks for each age.}
+\item{summary_networks}{List of reconstructed summary networks for each age (output from \code{get_summary_network()}).}
 
 \item{tree}{The phylogeny of the symbiont clade (e.g. parasite, herbivore), a \code{phylo} object.}
 }
 \value{
-A data frame with module membership for each node of summary networks
-at each age.
+A list with: 1) A data frame with module membership for each node of summary networks
+at each age after matching module names; 2) A data frame with original module names (before matching).
 }
 \description{
 Evolution of modules: find and match modules across time slices
 }
 \examples{
+data(tree)
+data(host_tree)
+data(history)
 
+ages <- c(60, 50, 40, 0)
+at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+pp_at_ages <- at_ages$posterior_probabilities
+weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
+all_mod <- modules_across_ages(weighted_net_50, tree)
 }

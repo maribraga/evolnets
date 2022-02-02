@@ -5,16 +5,17 @@
 \title{Get summary networks from posterior probabilities of interactions of extant
 lineages at given time points in the past}
 \usage{
-get_summary_network(pp_at_ages, ages, pt, weighted = TRUE)
+get_summary_network(pp_at_ages, pt, ages = NULL, weighted = TRUE)
 }
 \arguments{
-\item{pp_at_ages}{List of matrices with posterior probabilities for each
-interaction of extant lineages at given ages}
-
-\item{ages}{Vector of ages (time points in the past) at which samples were retrieved.}
+\item{pp_at_ages}{List of matrices with posterior probabilities for each interaction of extant
+lineages at given ages. Usually calculated \code{posterior_at_ages}, see example.}
 
 \item{pt}{Probability threshold to include an interaction in the network.
-Interactions with posterior probability < pt will be dropped.}
+Interactions with posterior \code{probability < pt} will be dropped.}
+
+\item{ages}{Vector of ages (time points in the past) at which samples were retrieved. By default,
+uses all ages present in \code{pp_at_ages}.}
 
 \item{weighted}{Logical. Use posterior probabilities as interaction weights?}
 }
@@ -30,8 +31,9 @@ data(tree)
 data(host_tree)
 data(history)
 
-ages <- c(60,50,40)
-pp_at_ages <- posterior_at_ages(history, ages, tree, host_tree)[[2]]
-weighted_net_50 <- get_summary_network(pp_at_ages, ages, pt = 0.5, weighted = TRUE)
-binary_net_90 <- get_summary_network(pp_at_ages, ages, pt = 0.9, weighted = FALSE)
+ages <- c(60, 50, 40, 0)
+at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+pp_at_ages <- at_ages$posterior_probabilities
+weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
+binary_net_90 <- get_summary_network(pp_at_ages, pt = 0.9, weighted = FALSE)
 }

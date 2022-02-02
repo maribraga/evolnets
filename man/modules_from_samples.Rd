@@ -4,12 +4,10 @@
 \alias{modules_from_samples}
 \title{Find modules in networks sampled across MCMC at specific time slices}
 \usage{
-modules_from_samples(samples_at_ages, ages)
+modules_from_samples(samples_at_ages)
 }
 \arguments{
 \item{samples_at_ages}{List of sampled networks at time slices produces by calling posterior_at_ages().}
-
-\item{ages}{Vector of ages (time slices in the past) at which samples were retrieved.}
 }
 \value{
 Data frame with module membership information for each sampled network at each time slice.

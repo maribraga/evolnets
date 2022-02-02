@@ -6,7 +6,6 @@
 \usage{
 support_for_modules(
   mod_samples,
-  ages,
   modules_across_ages,
   threshold = 0.7,
   edge_list = TRUE,
@@ -15,11 +14,12 @@ support_for_modules(
 )
 }
 \arguments{
-\item{mod_samples}{Data frame produced by \code{modules_from_samples()} containing module membership of each node for each sampled network at each time slice.}
+\item{mod_samples}{Data frame produced by \code{modules_from_samples()} containing module membership of each node for each sampled network at each time slice before the present.}
 
-\item{ages}{Vector of ages (time points in the past) at which samples will be retrieved.}
-
-\item{modules_across_ages}{Data frame containing the module information for the summary network.}
+\item{modules_across_ages}{Data frame containing the module information for the summary network. A \code{list} object returned from \code{modules_across_ages()} or a \code{data.frame} object defining the models in the network. If a \code{data.frame} is passed, it must contain three columns:
+$age - the age of the network,
+$name - taxon names,
+$module - the module the taxon was assigned to.}
 
 \item{threshold}{Minimum frequency with which two nodes are placed in the same module to consider it supported.}
 

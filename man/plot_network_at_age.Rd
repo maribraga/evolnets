@@ -23,7 +23,3 @@ An assembly of plots, of class \code{patchwork}.
 \description{
 Plot one ancestral network with module information at a given time
 }
-\examples{
-\dontrun{
-}
-}

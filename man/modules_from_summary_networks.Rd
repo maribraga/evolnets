@@ -7,7 +7,7 @@
 modules_from_summary_networks(summary_networks)
 }
 \arguments{
-\item{summary_networks}{List of reconstructed summary networks for each age.}
+\item{summary_networks}{List of reconstructed summary networks for each age (output from \code{get_summary_network()}).}
 }
 \value{
 A list of 2 elements: 1) a data frame containing the module membership
