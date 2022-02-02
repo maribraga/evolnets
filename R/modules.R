@@ -482,7 +482,8 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 
   mod_df_host <- dplyr::left_join(mod_df_host, mod_idx_name, by = c("age","original_module"))
 
-  mod_df <- bind_rows(mod_df_sym, mod_df_host)
+  mod_df <- bind_rows(mod_df_sym, mod_df_host) %>%
+    dplyr::rename(module = module_name)
 
 
   # replace with user given names
@@ -568,8 +569,7 @@ support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.
   }
 
   if(inherits(modules_across_ages, 'list')){
-    modules_across_ages <- modules_across_ages$matched_modules$nodes_and_modules_per_age %>%
-      dplyr::rename(module = module_name)
+    modules_across_ages <- modules_across_ages$matched_modules$nodes_and_modules_per_age
   }
 
   if (!all(unique(mod_samples$age) %in% unique(modules_across_ages$age))) {
