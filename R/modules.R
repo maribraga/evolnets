@@ -667,7 +667,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL){
 
   }
 
-  plot <- wrap_plots(plot_list, nrow = 1)
+  plot <- wrap_plots(plot_list)
 
 }
 
