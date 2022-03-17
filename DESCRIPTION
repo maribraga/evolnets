@@ -7,6 +7,9 @@ Authors@R: c(
            role = c("aut", "cre"),
            email = "mpiresbr@gmail.com",
            comment = c(ORCID = "0000-0002-1253-2536")),
+    person(given = "Wouter",
+           family = "van der Bijl",
+           role = "aut"),
     person(given = "Michael",
            family = "Landis",
            role = "aut"))
