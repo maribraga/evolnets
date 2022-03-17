@@ -4,7 +4,15 @@
 \alias{plot_network_at_age}
 \title{Plot one ancestral network with module information at a given time}
 \usage{
-plot_network_at_age(subtree, tip_data, tgraph, module_levels, palette)
+plot_network_at_age(
+  subtree,
+  tip_data,
+  tgraph,
+  module_levels,
+  palette,
+  tree,
+  age
+)
 }
 \arguments{
 \item{subtree}{a \code{phylo} object of the original tree sliced at a given time in the past.}
@@ -16,10 +24,19 @@ plot_network_at_age(subtree, tip_data, tgraph, module_levels, palette)
 \item{module_levels}{Order in which the modules should be organized. Affects which color each module will be assigned.}
 
 \item{palette}{Color palette used to plot module information.}
+
+\item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class \code{phylo}.}
+
+\item{age}{Age of the ancestral network to be plotted as the tittle.}
 }
 \value{
 An assembly of plots, of class \code{patchwork}.
 }
 \description{
 Plot one ancestral network with module information at a given time
+}
+\examples{
+\dontrun{
+plot_network_at_age(subtree, tip_data, tgraph, module_levels, palette, tree, age)
+}
 }

@@ -49,5 +49,4 @@ rate <- effective_rate(history,tree)
 # gains and losses separately
 gl_events <- count_gl(history)
 gl_rates <- rate_gl(history, tree)
-
 }

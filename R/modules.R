@@ -3,8 +3,10 @@
 #' @param summary_networks List of reconstructed summary networks for each age (output from `get_summary_network()`).
 #' @param tree The phylogeny of the symbiont clade (e.g. parasite, herbivore), a `phylo` object.
 #'
-#' @return A list with: 1) A data frame with module membership for each node of summary networks
-#' at each age after matching module names; 2) A data frame with original module names (before matching).
+#' @return A list with:
+#' 1) A list of 2 elements: 1.1) a data frame containing the module information for each node at each
+#' network, 1.2) a data frame of correspondence between the original and the matched module names for each network;
+#' 2) A list of 2 elements: 2.1) a data frame containing the module membership of each node at each age before matching, 2.2) a list of `moduleWeb` objects for each age.
 #' @importFrom rlang .data
 #' @export
 #'
@@ -37,12 +39,15 @@ modules_across_ages <- function(summary_networks, tree){
 #' @inheritParams modules_across_ages
 #'
 #' @return A list of 2 elements: 1) a data frame containing the module membership
-#' of each node at each age; 2) a list of `moduleWeb` objects for each age.
+#' of each node at each age before matching; 2) a list of `moduleWeb` objects for each age.
 #' @importFrom tibble tibble
 #' @importFrom dplyr bind_rows
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'  unmatched_modules <- modules_from_summary_networks(summary_networks)
+#' }
 modules_from_summary_networks <- function(summary_networks){
 
   ages <- as.numeric(names(summary_networks))
@@ -52,7 +57,7 @@ modules_from_summary_networks <- function(summary_networks){
   for(i in 1:length(summary_networks)){
     wmod <- mycomputeModules(summary_networks[[i]])
     summary_modules[[i]] <- wmod
-    wmod_list <- listModuleInformation(wmod)[[2]]
+    wmod_list <- bipartite::listModuleInformation(wmod)[[2]]
     nwmod <- length(wmod_list)
 
     for(m in 1:nwmod){
@@ -96,8 +101,13 @@ modules_from_summary_networks <- function(summary_networks){
 #' @return A list of two elements: 1) a data frame containing the module information for each node at each
 #' network; 2) a data frame of correspondence between the original and the matched module names for each network.
 #' @export
+#' @importFrom rlang .data
 #'
 #' @examples
+#' \dontrun{
+#' unmatched_modules <- modules_from_summary_networks(summary_networks)
+#' matched_modules <- match_modules(summary_networks, unmatched_modules[[1]], tree)
+#' }
 match_modules <- function(summary_networks, unmatched_modules, tree){
 
   ages <- as.numeric(names(summary_networks))
@@ -192,7 +202,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
       dplyr::mutate(prop_mod = .data$degree_mod/.data$degree) %>%
       dplyr::left_join(mod_df_sym %>%
                          dplyr::filter(.data$age == age_min) %>%
-                         dplyr::select(original_module, module_name) %>%
+                         dplyr::select(.data$original_module, module_name) %>%
                          dplyr::distinct(),
                        by = "original_module")
 
@@ -202,8 +212,8 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
         node_treeio <- node_depth$node[n]
 
         children <- tree_t %>%
-          dplyr::filter(parent == node_treeio) %>%
-          dplyr::pull(label)
+          dplyr::filter(.data$parent == node_treeio) %>%
+          dplyr::pull(.data$label)
 
         # check if children are in between time intervals or in the next network
         # if they are in the network, get info from age_min
@@ -212,7 +222,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
           mod_child1 <- mod_df_sym %>%
             dplyr::filter(.data$age == age_min,
                           .data$name == children[1]) %>%
-            dplyr::pull(module_name)
+            dplyr::pull(.data$module_name)
 
           if(length(mod_child1) == 0){
             nodes_interval[which(nodes_interval$node == node_depth$node[n]),
@@ -586,7 +596,7 @@ support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.
 
   for(i in 1:length(ages)){
 
-    edge_list <- as_tibble(pair_mod_tbl[[i]]) %>%
+    edge_list <- tibble::as_tibble(pair_mod_tbl[[i]]) %>%
       purrr::when(include_all ~
                     full_join(., modules_across_ages %>% filter(age == ages[i]) %>% select(name, module), by = c("row" = "name")) %>%
                     full_join(modules_across_ages %>% filter(age == ages[i]) %>% select(name, module), by = c("col" = "name")),
@@ -678,7 +688,9 @@ pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
   pair_mod_tbl <- list()    # for heatmap from an edge list
 
   for(a in 1:length(ages)){
-    taxa = mod_samples %>% filter(age == ages[a]) %>% distinct(name)
+    taxa = mod_samples %>%
+      filter(.data$age == ages[a]) %>%
+      distinct(.data$name)
     ntaxa = nrow(taxa)
 
     heat <- matrix(data=0, nrow = ntaxa, ncol = ntaxa)
@@ -688,11 +700,15 @@ pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
       complete(row,col) %>%
       mutate(freq = 0)
 
-    mod_samples_at_age <- mod_samples %>% filter(age == ages[a]) %>% distinct(sample) %>% pull(sample)
+    mod_samples_at_age <- mod_samples %>%
+      filter(.data$age == ages[a]) %>%
+      distinct(.data$sample) %>%
+      pull(.data$sample)
 
     for(i in mod_samples_at_age){
 
-      table <- mod_samples %>% filter(age == ages[a], sample == i)
+      table <- mod_samples %>%
+        filter(.data$age == ages[a], sample == i)
       mods <- unique(table$original_module)
 
       for(m in mods){
@@ -763,7 +779,7 @@ modules_from_samples <- function(samples_at_ages) {
         q <- mod@likelihood
         Qsamples <- bind_rows(Qsamples, tibble(age = ages[a], sample = i, Q=q))
 
-        mod_list <- listModuleInformation(mod)[[2]]
+        mod_list <- bipartite::listModuleInformation(mod)[[2]]
         nmod <- length(mod_list)
         for(m in 1:nmod){
           members <- unlist(mod_list[[m]])
@@ -844,93 +860,93 @@ mycomputeModules = function(web, method="Beckett", steps=1000000, tolerance=1e-1
 
 }
 
-
-# This function is ALSO in drawModules.R!! Auxiliary function checking whether
-# the passed object is an object of class "moduleWeb" and contains correctly
-# formatted information
-isCorrectModuleWebObject = function(moduleWebObject) {
-
-  if (!is(moduleWebObject, "moduleWeb")) {
-    warning("Object of wrong class.");
-    FALSE;
-  }
-  else if(dim(slot(moduleWebObject, "originalWeb")) == 0 ||  dim(slot(moduleWebObject, "moduleWeb")) != dim(slot(moduleWebObject, "originalWeb")) || dim(slot(moduleWebObject, "modules")) == 0) {
-    warning("Object corrupt.");
-    FALSE;
-  }
-  else if(min(slot(moduleWebObject, "originalWeb")) < 0 || min(slot(moduleWebObject, "moduleWeb")) < 0) {
-    warning("entries of matrix have to be greater than or equal to 0.");
-    FALSE;
-  }
-  else {
-    TRUE;
-  }
-}
-#---
-
-listModuleInformation = function(moduleWebObject) {
-
-  if(isCorrectModuleWebObject(moduleWebObject)) {
-
-    result	= list();
-
-    web	= slot(moduleWebObject, "originalWeb");
-    modules	= slot(moduleWebObject, "modules");
-
-    n_a	= nrow(web);
-    n_b	= ncol(web);
-
-    offset	= 2;
-
-    for(depth in unique(modules[,1])) {
-      result[[depth+1]] = list();
-
-      counter = 1;
-
-      for(i in 1:nrow(modules)) {
-        if(modules[i,1] == depth) {
-          result[[depth+1]][[counter]]		= list();
-          result[[depth+1]][[counter]][[1]]	= rownames(web)[modules[i,(offset+1):(n_a+offset)][modules[i,(offset+1):(n_a+offset)] > 0]];
-          result[[depth+1]][[counter]][[2]]	= colnames(web)[(modules[i,(n_a+offset+1):(n_a+n_b+offset)][modules[i,(n_a+offset+1):(n_a+n_b+offset)] > 0])-n_a];
-
-          counter = counter + 1;
-        }
-      }
-    }
-
-    result;
-  }
-}
-
-
-printoutModuleInformation = function(moduleWebObject) {
-
-  if(isCorrectModuleWebObject(moduleWebObject)) {
-
-    modules	= slot(moduleWebObject, "modules");
-
-    listOfModules = listModuleInformation(moduleWebObject);
-
-    linebreak = "\n";
-
-    a = linebreak;
-
-    for(depth in unique(modules[,1])) {
-      for(i in 1:length(listOfModules[[depth+1]])) {
-        a = paste(a, "Depth: ", depth, linebreak, linebreak, "Nr of module: ", i, linebreak, linebreak, "Rownames: ", linebreak, sep="");
-        for(j in 1:length(listOfModules[[depth+1]][[i]][[1]])) {
-          a = paste(a, paste("\t", listOfModules[[depth+1]][[i]][[1]][j], sep=""), sep=linebreak);
-        }
-        a = paste(a, linebreak, linebreak, "Colnames: ", linebreak, sep="");
-        for(j in 1:length(listOfModules[[depth+1]][[i]][[2]])) {
-          a = paste(a, paste("\t", listOfModules[[depth+1]][[i]][[2]][j], sep=""), sep=linebreak);
-        }
-        a = paste(a, linebreak, linebreak, "__________________________", linebreak, linebreak, sep="");
-      }
-      a = paste(a, "__________________________", linebreak, linebreak, sep="");
-    }
-
-    cat(a);
-  }
-}
-
+#
+# # This function is ALSO in drawModules.R!! Auxiliary function checking whether
+# # the passed object is an object of class "moduleWeb" and contains correctly
+# # formatted information
+# isCorrectModuleWebObject = function(moduleWebObject) {
+#
+#   if (!is(moduleWebObject, "moduleWeb")) {
+#     warning("Object of wrong class.");
+#     FALSE;
+#   }
+#   else if(dim(slot(moduleWebObject, "originalWeb")) == 0 ||  dim(slot(moduleWebObject, "moduleWeb")) != dim(slot(moduleWebObject, "originalWeb")) || dim(slot(moduleWebObject, "modules")) == 0) {
+#     warning("Object corrupt.");
+#     FALSE;
+#   }
+#   else if(min(slot(moduleWebObject, "originalWeb")) < 0 || min(slot(moduleWebObject, "moduleWeb")) < 0) {
+#     warning("entries of matrix have to be greater than or equal to 0.");
+#     FALSE;
+#   }
+#   else {
+#     TRUE;
+#   }
+# }
+# #---
+#
+# listModuleInformation = function(moduleWebObject) {
+#
+#   if(isCorrectModuleWebObject(moduleWebObject)) {
+#
+#     result	= list();
+#
+#     web	= slot(moduleWebObject, "originalWeb");
+#     modules	= slot(moduleWebObject, "modules");
+#
+#     n_a	= nrow(web);
+#     n_b	= ncol(web);
+#
+#     offset	= 2;
+#
+#     for(depth in unique(modules[,1])) {
+#       result[[depth+1]] = list();
+#
+#       counter = 1;
+#
+#       for(i in 1:nrow(modules)) {
+#         if(modules[i,1] == depth) {
+#           result[[depth+1]][[counter]]		= list();
+#           result[[depth+1]][[counter]][[1]]	= rownames(web)[modules[i,(offset+1):(n_a+offset)][modules[i,(offset+1):(n_a+offset)] > 0]];
+#           result[[depth+1]][[counter]][[2]]	= colnames(web)[(modules[i,(n_a+offset+1):(n_a+n_b+offset)][modules[i,(n_a+offset+1):(n_a+n_b+offset)] > 0])-n_a];
+#
+#           counter = counter + 1;
+#         }
+#       }
+#     }
+#
+#     result;
+#   }
+# }
+#
+#
+# printoutModuleInformation = function(moduleWebObject) {
+#
+#   if(isCorrectModuleWebObject(moduleWebObject)) {
+#
+#     modules	= slot(moduleWebObject, "modules");
+#
+#     listOfModules = listModuleInformation(moduleWebObject);
+#
+#     linebreak = "\n";
+#
+#     a = linebreak;
+#
+#     for(depth in unique(modules[,1])) {
+#       for(i in 1:length(listOfModules[[depth+1]])) {
+#         a = paste(a, "Depth: ", depth, linebreak, linebreak, "Nr of module: ", i, linebreak, linebreak, "Rownames: ", linebreak, sep="");
+#         for(j in 1:length(listOfModules[[depth+1]][[i]][[1]])) {
+#           a = paste(a, paste("\t", listOfModules[[depth+1]][[i]][[1]][j], sep=""), sep=linebreak);
+#         }
+#         a = paste(a, linebreak, linebreak, "Colnames: ", linebreak, sep="");
+#         for(j in 1:length(listOfModules[[depth+1]][[i]][[2]])) {
+#           a = paste(a, paste("\t", listOfModules[[depth+1]][[i]][[2]][j], sep=""), sep=linebreak);
+#         }
+#         a = paste(a, linebreak, linebreak, "__________________________", linebreak, linebreak, sep="");
+#       }
+#       a = paste(a, "__________________________", linebreak, linebreak, sep="");
+#     }
+#
+#     cat(a);
+#   }
+# }
+#

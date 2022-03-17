@@ -13,6 +13,11 @@ plot_ancestral_networks(
 )
 }
 \arguments{
+\item{summary_networks}{A list of incidence matrices (summary network) for each time slice in \code{ages}. Output of \code{get_summary_network()}}
+
+\item{matched_modules}{A data frame containing the module information for each node at each
+network. Output of \code{modules_across_ages()[[1]][[1]]}.}
+
 \item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class \code{phylo}.}
 
 \item{module_levels}{Order in which the modules should be organized. Affects which color each module will be assigned.

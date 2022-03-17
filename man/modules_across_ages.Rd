@@ -12,8 +12,12 @@ modules_across_ages(summary_networks, tree)
 \item{tree}{The phylogeny of the symbiont clade (e.g. parasite, herbivore), a \code{phylo} object.}
 }
 \value{
-A list with: 1) A data frame with module membership for each node of summary networks
-at each age after matching module names; 2) A data frame with original module names (before matching).
+A list with:
+\enumerate{
+\item A list of 2 elements: 1.1) a data frame containing the module information for each node at each
+network, 1.2) a data frame of correspondence between the original and the matched module names for each network;
+\item A list of 2 elements: 2.1) a data frame containing the module membership of each node at each age before matching, 2.2) a list of \code{moduleWeb} objects for each age.
+}
 }
 \description{
 Evolution of modules: find and match modules across time slices
