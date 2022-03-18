@@ -442,6 +442,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 
     # Are there submodules among the valid modules?
     sub_mod_left <- valid_mods[valid_mods %in% all_submodules]
+    sub_mod_left_updated <- sub_mod_left
     full_mods <- dplyr::setdiff(valid_mods, sub_mod_left)
 
     if(length(sub_mod_left) != 0){

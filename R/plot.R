@@ -501,7 +501,7 @@ plot_network_at_age <- function(subtree, tip_data, tgraph, module_levels, palett
     ggplot2::labs(shape = "", color = "Module") +
     ggplot2::theme_void()
 
-  plot_age <- ggt + ggn
+  plot_age <- ggt + ggn + plot_layout(widths = c(2,3))
 
   return(plot_age)
 
