@@ -110,8 +110,8 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
   mod_df_sym <- unmatched_modules %>%
     dplyr::filter(.data$age == 0, .data$type == "symbiont") %>%
     dplyr::mutate(#child1_mod = '0',
-                  #child2_mod = '0',
-                  module_name = LETTERS[.data$original_module])
+      #child2_mod = '0',
+      module_name = LETTERS[.data$original_module])
 
   mod_df_host <- unmatched_modules %>%
     dplyr::filter(.data$type == "host")
@@ -144,9 +144,9 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
       dplyr::filter(.data$age == age_max,
                     .data$type == "symbiont") %>%
       dplyr::mutate(#child1_mod = '0',
-                    #child2_mod = '0',
-                    module_name = '0',
-                    strength = 0)
+        #child2_mod = '0',
+        module_name = '0',
+        strength = 0)
     mods_strength <- matrix(data = 0, nrow = nrow(mod_df_sym_age), ncol = length(modules_age))
     colnames(mods_strength) <- paste0("strength_",modules_age)
     mod_df_sym_age <- cbind(mod_df_sym_age, mods_strength)
@@ -185,7 +185,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
       tidyr::pivot_longer(!.data$name, names_to = "host", values_to = "state") %>%
       dplyr::left_join(module_members_age, by = c("host" = "name")) %>%
       dplyr::filter(.data$state > 0) %>%
-      dplyr::group_by(.data$name, .data$original_module) %>%
+      dplyr::group_by(.data$name, .data$original_module) %>%             # host's original module only
       dplyr::summarise(degree_mod = sum(.data$state)) %>%
       dplyr::group_by(.data$name) %>%
       dplyr::mutate(degree = sum(.data$degree_mod)) %>%
@@ -423,10 +423,10 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
     # first, give the same module name (the strongest) to all nodes in the same original module
     for(r in 1:nrow(mod_df_sym_age)){
       #if(mod_df_sym_age$module_name[r] %in% invalid_mods){
-        valid_mod <- idx_name_strength[
-          which(idx_name_strength$original_module == mod_df_sym_age$original_module[r]),
-          "module_name"]
-        mod_df_sym_age$module_name[r] <- dplyr::pull(valid_mod)
+      valid_mod <- idx_name_strength[
+        which(idx_name_strength$original_module == mod_df_sym_age$original_module[r]),
+        "module_name"]
+      mod_df_sym_age$module_name[r] <- dplyr::pull(valid_mod)
       #}
     }
 
@@ -443,30 +443,47 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
           if(!(l %in% full_mods)){
             # give it the module name (just letter)
             mod_df_sym_age[tidyselect::contains(l, vars = mod_df_sym_age$module_name),"module_name"] <- l
+            idx_name_strength[tidyselect::contains(l, vars = idx_name_strength$module_name),"module_name"] <- l
+            sub_mod_left_updated <- setdiff(sub_mod_left, sub_mod_left[tidyselect::contains(l, vars = sub_mod_left)])
           }
         }
       }
     }
 
-    # second, create submodules (at max age) for modules (at min age) that were split
-    for(m in 1:length(mods)){
+    mods_left <- mod_df_sym_age %>%
+      dplyr::pull(.data$module_name) %>%
+      unique()
 
-      # how many original modules (submodules) are linked to each module name?
+    # second, create submodules (at max age) for modules (at min age) that were split
+    for(m in 1:length(mods_left)){
+
+      # how many original modules (submodules) are linked to this module name?
       n_originals <- idx_name_strength %>%
-        dplyr::filter(.data$module_name == mods[m]) %>%
+        dplyr::filter(.data$module_name == mods_left[m]) %>%
         dplyr::pull(.data$original_module) %>%
         length()
 
       # if more than 1, give numbers to module names
       if(n_originals > 1){
         originals <- idx_name_strength %>%
-          dplyr::filter(.data$module_name == mods[m]) %>%
+          dplyr::filter(.data$module_name == mods_left[m]) %>%
           dplyr::pull(.data$original_module)
 
         for(o in 1:length(originals)){
-          mod_df_sym_age[which(mod_df_sym_age$module_name == mods[m] &
-                       mod_df_sym_age$original_module == originals[o]),
-               'module_name'] <- paste0(mods[m], which(originals == originals[o]))
+          # if splitting a submodule, don't do nested splits
+          if(mods_left[m] %in% sub_mod_left_updated){
+
+            sub_let <- sub("\\d","",mods_left[m])
+            nsubs <- tidyselect::contains(sub_let, vars = sub_mod_left_updated) %>% length()
+
+            mod_df_sym_age[which(mod_df_sym_age$module_name == mods_left[m] &
+                                   mod_df_sym_age$original_module == originals[o]),
+                           'module_name'] <- paste0(sub_let, which(originals == originals[o]) + nsubs)
+          } else{
+            mod_df_sym_age[which(mod_df_sym_age$module_name == mods_left[m] &
+                                   mod_df_sym_age$original_module == originals[o]),
+                           'module_name'] <- paste0(mods_left[m], which(originals == originals[o]))
+          }
         }
       }
     }
