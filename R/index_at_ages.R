@@ -56,6 +56,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, nnull = 100){
     NODF_samples <- NODF_samples_at_ages(samples_at_ages, ages)
 
     NODF_pvals <- NODF_null %>%
+      dplyr::filter(!is.na(NODFnull)) %>%
       dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
       dplyr::group_by(.data$age, .data$sample) %>%
       dplyr::summarise(p = sum(.data$NODFnull >= .data$obs_NODF) / nnull, .groups = 'drop')
@@ -81,6 +82,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, nnull = 100){
     Q_samples <- Q_samples_at_ages(samples_at_ages, ages)
 
     Q_pvals <- Q_null %>%
+      dplyr::filter(!is.na(Qnull)) %>%
       dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
       dplyr::group_by(.data$age, .data$sample) %>%
       dplyr::summarise(p = sum(.data$Qnull >= .data$obs_Q) / nnull, .groups = 'drop')
@@ -121,9 +123,11 @@ NODF_samples_null <- function(samples_at_ages, ages, nnull){
       nullm <- vegan::nullmodel(net, "r00")
       sim <- stats::simulate(nullm, nsim = nnull)
 
-      for (j in seq_len(nnull)) {
+      if(!is.vector(net)) {
+        for (j in seq_len(nnull)) {
         Nrandom <- bipartite::networklevel(sim[, , j], index = "NODF")
         NODF_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Nrandom)
+        }
       }
     }
   }
@@ -170,10 +174,12 @@ Q_samples_null <- function(samples_at_ages, ages, nnull){
       nullm <- vegan::nullmodel(net, "r00")
       sim <- stats::simulate(nullm, nsim = nnull)
 
-      for (j in 1:nnull) {
-        mod <- mycomputeModules(sim[, , j])
-        Qrandom <- mod@likelihood
-        Q_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Qrandom)
+      if(!is.vector(net)) {
+        for (j in 1:nnull) {
+          mod <- mycomputeModules(sim[, , j])
+          Qrandom <- mod@likelihood
+          Q_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Qrandom)
+        }
       }
     }
   }
