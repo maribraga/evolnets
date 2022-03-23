@@ -70,8 +70,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, nnull = 100){
       ) %>%
       dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
       dplyr::mutate(z = (.data$obs_NODF - .data$mean_NODF) / .data$sd_NODF) %>%
-      dplyr::left_join(NODF_pvals, by = c("age", "sample")) %>%
-      tidyr::drop_na()
+      dplyr::left_join(NODF_pvals, by = c("age", "sample"))
 
     ret <- as.data.frame(NODF_zsamples)
   }
@@ -96,8 +95,7 @@ index_at_ages <- function(samples_at_ages, index, ages = NULL, nnull = 100){
       ) %>%
       dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
       dplyr::mutate(z = (.data$obs_Q - .data$mean_Q) / .data$sd_Q) %>%
-      dplyr::left_join(Q_pvals, by = c("age", "sample")) %>%
-      tidyr::drop_na()
+      dplyr::left_join(Q_pvals, by = c("age", "sample"))
 
     ret <- as.data.frame(Q_zsamples)
   }
@@ -148,8 +146,13 @@ NODF_samples_at_ages <- function(samples_at_ages, ages){
   for (a in seq_along(samples_at_ages)) {
     for (i in seq_len(dim(samples_at_ages[[a]])[1])) {
       net <- samples_at_ages[[a]][i, , ]
-      nodf <- bipartite::networklevel(net, index = "NODF")
-      NODF_samples[(a - 1) * nsamp + i, ] <- c(ages[a], i, nodf)
+      net <- net[rowSums(net) != 0, ]
+      net <- net[, colSums(net) != 0]
+
+      if(!is.vector(net)) {
+        nodf <- bipartite::networklevel(net, index = "NODF")
+        NODF_samples[(a - 1) * nsamp + i, ] <- c(ages[a], i, nodf)
+      }
     }
   }
 
@@ -200,9 +203,14 @@ Q_samples_at_ages <- function(samples_at_ages, ages){
   for (a in seq_along(samples_at_ages)) {
     for (i in seq_len(dim(samples_at_ages[[a]])[1])) {
       net <- samples_at_ages[[a]][i,,]
-      mod <- mycomputeModules(net)
-      Q <- mod@likelihood
-      Q_samples[(a - 1) * nsamp + i, ] <- c(ages[a], i, Q)
+      net <- net[rowSums(net) != 0, ]
+      net <- net[, colSums(net) != 0]
+
+      if(!is.vector(net)) {
+        mod <- mycomputeModules(net)
+        Q <- mod@likelihood
+        Q_samples[(a - 1) * nsamp + i, ] <- c(ages[a], i, Q)
+      }
     }
   }
 
