@@ -10,7 +10,8 @@ support_for_modules(
   threshold = 0.7,
   edge_list = TRUE,
   include_all = FALSE,
-  palette = NULL
+  palette = NULL,
+  axis_text = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ $module - the module the taxon was assigned to.}
 \item{include_all}{Logical. Include all nodes or only those present at the time slice?}
 
 \item{palette}{Optional. Color palette for module colors in the plot.}
+
+\item{axis_text}{Logical. Plot taxon names?}
 }
 \value{
 A list containing:

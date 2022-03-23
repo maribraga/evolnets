@@ -567,6 +567,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #' @param edge_list Logical. Whether to return a list of edge lists or a list of matrices of pairwise frequency.
 #' @param include_all Logical. Include all nodes or only those present at the time slice?
 #' @param palette Optional. Color palette for module colors in the plot.
+#' @param axis_text Logical. Plot taxon names?
 #'
 #' @return A list containing:
 #' 1) `plot`: A plot of pairwise frequency with which the two nodes are placed in the same module at each time slice in `ages`;
@@ -588,7 +589,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #'   support <- support_for_modules(mod_samples, ages, modules_across_ages)
 #'   support$plot
 #' }
-support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE, palette = NULL) {
+support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE, palette = NULL, axis_text = FALSE) {
 
   if (!is.null(modules_across_ages) && (
     !inherits(modules_across_ages, 'list') && !inherits(modules_across_ages, 'data.frame')
@@ -654,7 +655,7 @@ support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.
 
   names(means) <- ages
 
-  plot <- plot_pairwise_membership(pair_heatmaps, ages)
+  plot <- plot_pairwise_membership(pair_heatmaps, ages, axis_text = axis_text)
 
   support_list <- list(plot, pair_heatmaps, means)
   names(support_list) <- c("plot", "pairwise_membership", "mean_support")
@@ -664,7 +665,7 @@ support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.
 }
 
 
-plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL){
+plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_text){
 
   nages <- length(pair_heatmaps)
   plot_list <- list()
@@ -673,8 +674,8 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL){
     heatmap <- pair_heatmaps[[a]]
 
     p <- ggplot2::ggplot(heatmap, ggplot2::aes(x = row, y = reorder(col,desc(col)),
-                             fill = .data$supported_mod,
-                             alpha = freq)) +
+                                               fill = .data$supported_mod,
+                                               alpha = freq)) +
       ggplot2::geom_tile() +
       ggplot2::theme_bw() +
       ggplot2::scale_x_discrete(drop = FALSE) +
@@ -686,6 +687,14 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL){
         axis.text.x = ggplot2::element_text(angle = 270),
         legend.title = ggplot2::element_blank()) +
       ggplot2::ggtitle(paste0(ages[a]," Ma"))
+
+    if(!axis_text){
+      p <- p + ggplot2::theme(
+        axis.text.x = ggplot2::element_blank(),
+        axis.text.y = ggplot2::element_blank(),
+        axis.ticks = ggplot2::element_blank()
+      )
+    }
 
     if(!is.null(palette)){
       p <- p + ggplot2::scale_fill_manual(values = palette, na.value = "grey20", drop = F)
