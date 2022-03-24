@@ -655,7 +655,7 @@ support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.
 
   names(means) <- ages
 
-  plot <- plot_pairwise_membership(pair_heatmaps, ages, axis_text = axis_text)
+  plot <- plot_pairwise_membership(pair_heatmaps, ages, palette = palette, axis_text = axis_text)
 
   support_list <- list(plot, pair_heatmaps, means)
   names(support_list) <- c("plot", "pairwise_membership", "mean_support")
