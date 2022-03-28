@@ -832,25 +832,27 @@ modules_from_samples <- function(samples_at_ages) {
 
   nsamp <- dim(samples_at_ages[[1]])[1]
 
-  for(a in 1:(length(ages)-1)){
-    for(i in 1:nsamp){
-      net <- samples_at_ages[[a]][i,,]
+  for (a in seq_len(length(ages) - 1)) {
+    for (i in seq_len(nsamp)) {
+      net <- samples_at_ages[[a]][i, , ]
 
-      if(ncol(empty(net)) > 1){
+      if (ncol(empty(net)) > 1) {
 
         mod <- mycomputeModules(net)
 
         q <- mod@likelihood
-        Qsamples <- bind_rows(Qsamples, tibble(age = ages[a], sample = i, Q=q))
+        Qsamples <- bind_rows(Qsamples, tibble(age = ages[a], sample = i, Q = q))
 
         mod_list <- bipartite::listModuleInformation(mod)[[2]]
         nmod <- length(mod_list)
-        for(m in 1:nmod){
+        for (m in seq_len(nmod)) {
           members <- unlist(mod_list[[m]])
-          mtbl <- tibble(name = members,
-                         age = rep(ages[a], length(members)),
-                         sample = rep(i, length(members)),
-                         original_module = rep(m, length(members)))
+          mtbl <- tibble(
+            name = members,
+            age = rep(ages[a], length(members)),
+            sample = rep(i, length(members)),
+            original_module = rep(m, length(members))
+          )
 
           mod_samples <- bind_rows(mod_samples, mtbl)
         }
@@ -868,8 +870,11 @@ modules_from_samples <- function(samples_at_ages) {
 
 remove_duplicate_modules <- function(mod_samples) {
 
-  duplicates_removed <- mod_samples %>% group_by(age, sample) %>% distinct(name) %>% summarize(u=n()) %>%
-    left_join(mod_samples %>% group_by(age, sample) %>% summarize(n=n())) %>%
+  duplicates_removed <- mod_samples %>%
+    group_by(age, sample) %>%
+    distinct(name) %>%
+    summarize(u = n()) %>%
+    left_join(mod_samples %>% group_by(age, sample) %>% summarize(n = n())) %>%
     mutate(problem = case_when(u != .data$n ~ "YES", u == .data$n ~ "NO")) %>%
     left_join(mod_samples) %>%
     mutate(original_module = case_when(problem == "YES" ~ 1,
@@ -885,9 +890,15 @@ n <- name <- NULL
 
 
 # modified compute_modules() from bipartite
-setClass("moduleWeb", representation(originalWeb="matrix", moduleWeb="matrix", orderA="vector", orderB="vector", modules="matrix", likelihood="numeric"));
+setClass(
+  "moduleWeb",
+  representation(
+    originalWeb = "matrix", moduleWeb = "matrix", orderA = "vector", orderB = "vector",
+    modules = "matrix", likelihood = "numeric"
+  )
+)
 
-#' Modified version of bipartite's computer_module function
+#' Modified version of bipartite's computeModules function
 #'
 #' @param web Incidence matrix
 #' @param method Becket
@@ -903,7 +914,9 @@ setClass("moduleWeb", representation(originalWeb="matrix", moduleWeb="matrix", o
 #'   extant_net <- data(extant_net)
 #'   mod <- mycomputeModules(extant_net)
 #' }
-mycomputeModules = function(web, method="Beckett", steps=1000000, tolerance=1e-10, forceLPA=FALSE) {
+mycomputeModules <- function(
+  web, method = "Beckett", steps = 1000000, tolerance = 1e-10, forceLPA = FALSE
+) {
 
   # check if, for binary data, any species is present everywhere ("empty" takes care of the "nowhere"):
   # if (length(table(unlist(web))) == 2  & ( any(colSums(web) == nrow(web)) | any(rowSums(web) == ncol(web)))){
