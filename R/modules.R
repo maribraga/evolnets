@@ -764,13 +764,13 @@ pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
   pair_mod_matrix <- list() # for heatmap from a matrix
   pair_mod_tbl <- list()    # for heatmap from an edge list
 
-  for(a in 1:length(ages)){
-    taxa = mod_samples %>%
-      filter(.data$age == ages[a]) %>%
+  for (Age in ages) {
+    taxa <- mod_samples %>%
+      filter(.data$age == Age) %>%
       distinct(.data$name)
-    ntaxa = nrow(taxa)
+    ntaxa <- nrow(taxa)
 
-    heat <- matrix(data=0, nrow = ntaxa, ncol = ntaxa)
+    heat <- matrix(data = 0, nrow = ntaxa, ncol = ntaxa)
     rownames(heat) <- colnames(heat) <- taxa$name
 
     tbl <- tibble(row = taxa$name, col = taxa$name) %>%
@@ -778,23 +778,22 @@ pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
       mutate(freq = 0)
 
     mod_samples_at_age <- mod_samples %>%
-      filter(.data$age == ages[a]) %>%
+      filter(.data$age == Age) %>%
       distinct(.data$sample) %>%
       pull(.data$sample)
 
-    for(i in mod_samples_at_age){
+    for (i in mod_samples_at_age) {
 
-      table <- mod_samples %>%
-        filter(.data$age == ages[a], sample == i)
+      table <- filter(mod_samples, .data$age == Age, sample == i)
       mods <- unique(table$original_module)
 
-      for(m in mods){
+      for (m in mods) {
         module <- filter(table, .data$original_module == m)
 
-        for(r in 1:nrow(heat)){
-          for(c in 1:ncol(heat)){
-            if(rownames(heat)[r] %in% module$name & colnames(heat)[c] %in% module$name){
-              heat[r,c] = heat[r,c] + 1
+        for (r in 1:nrow(heat)) {
+          for (c in 1:ncol(heat)) {
+            if (rownames(heat)[r] %in% module$name & colnames(heat)[c] %in% module$name) {
+              heat[r, c] <- heat[r, c] + 1
               tbl <- mutate(tbl, freq = case_when(row == rownames(heat)[r] & col == colnames(heat)[c] ~ freq + 1,
                                                   TRUE ~ freq))
             }
@@ -803,17 +802,17 @@ pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
       }
     }
 
-    heat <- heat/length(mod_samples_at_age)
-    tbl <- mutate(tbl, freq = freq/length(mod_samples_at_age))
+    heat <- heat / length(mod_samples_at_age)
+    tbl <- mutate(tbl, freq = freq / length(mod_samples_at_age))
 
     pair_mod_matrix[[a]] <- heat
     pair_mod_tbl[[a]] <- tbl
 
   }
 
-  if(edge_list){
+  if (edge_list) {
     return(pair_mod_tbl)
-  } else{
+  } else {
     return(pair_mod_matrix)
   }
 
