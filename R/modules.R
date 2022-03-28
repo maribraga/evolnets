@@ -609,7 +609,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #' 1) `plot`: A plot of pairwise frequency with which the two nodes are placed in the same module at each time slice in `ages`;
 #' 2) `pairwise_membership`: A list of edge lists or matrices with the pairwise frequencies at each time slice;
 #' 3) `mean_support`: A list of mean and geometric mean pairwise frequency for each module at each time slice.
-#' @importFrom dplyr mutate case_when arrange pull arrange bind_rows distinct filter left_join select summarize tibble desc
+#' @importFrom dplyr mutate case_when arrange pull arrange bind_rows distinct filter left_join inner_join select summarize tibble desc
 #' @importFrom tidyr complete
 #' @importFrom rlang .data
 #' @importFrom patchwork wrap_plots
@@ -633,18 +633,19 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #'   support <- support_for_modules(mod_samples, all_mod)
 #'   support$plot
 #' }
-support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE, palette = NULL, axis_text = FALSE) {
+support_for_modules <- function(
+  mod_samples, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE,
+  palette = NULL, axis_text = FALSE
+) {
 
   if (!is.null(modules_across_ages) && (
     !inherits(modules_across_ages, 'list') && !inherits(modules_across_ages, 'data.frame')
   )) {
     stop('`modules_across_ages` should be of class `list` or `data.frame`.')
   }
-
-  if(inherits(modules_across_ages, 'list')){
+  if (inherits(modules_across_ages, 'list')) {
     modules_across_ages <- modules_across_ages$matched_modules$nodes_and_modules_per_age
   }
-
   if (!all(unique(mod_samples$age) %in% unique(modules_across_ages$age))) {
     stop('`modules_across_ages` must contain all time slices in `mod_samples`.')
   }
@@ -657,22 +658,26 @@ support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.
   # make heatmaps
   pair_heatmaps <- list()
 
-  for(i in 1:length(ages)){
+  for (i in seq_along(ages)) {
 
-    edge_list <- tibble::as_tibble(pair_mod_tbl[[i]]) %>%
+    Edge_list <- tibble::as_tibble(pair_mod_tbl[[i]]) %>%
       purrr::when(include_all ~
                     full_join(., modules_across_ages %>% filter(age == ages[i]) %>% select(name, module), by = c("row" = "name")) %>%
                     full_join(modules_across_ages %>% filter(age == ages[i]) %>% select(name, module), by = c("col" = "name")),
                   ~ inner_join(., modules_across_ages %>% filter(age == ages[i]) %>% select(name, module), by = c("row" = "name")) %>%
                     inner_join(modules_across_ages %>% filter(age == ages[i]) %>% select(name, module), by = c("col" = "name"))) %>%
-      mutate(Module = ifelse(module.x == module.y, module.x, NA),
-             supported_mod = case_when(freq >= threshold ~ Module))
+      mutate(
+        Module = ifelse(module.x == module.y, module.x, NA),
+        supported_mod = case_when(freq >= threshold ~ Module)
+      )
 
-    order <- edge_list %>% arrange(module.x) %>% pull(row) %>% unique()
+    order <- Edge_list %>% arrange(module.x) %>% pull(row) %>% unique()
 
-    for_heatmap <- edge_list %>% mutate(
+    for_heatmap <- mutate(
+      Edge_list,
       row = factor(row, levels = order),
-      col = factor(col, levels = order))
+      col = factor(col, levels = order)
+    )
 
     pair_heatmaps[[i]] <- for_heatmap
   }
@@ -682,11 +687,11 @@ support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.
   # calculate mean support
   means <- list()
 
-  for(i in 1:length(ages)){
+  for (i in seq_along(ages)) {
     means_age <- data.frame(module = NULL, mean = NULL, geo_mean = NULL)
     mods <- sort(unique(pair_heatmaps[[i]]$module.x))
 
-    for(m in mods){
+    for (m in mods) {
       within_mod <- filter(pair_heatmaps[[i]], .data$Module == m)
       mean <- mean(within_mod$freq)
       gmean <- exp(mean(log(within_mod$freq)))
