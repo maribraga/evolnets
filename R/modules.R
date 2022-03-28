@@ -591,11 +591,14 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #' Validate modules from summary networks by calculating the frequency with
 #' which pairs of nodes are placed in the same module in networks sampled across MCMC
 #'
-#' @param mod_samples Data frame produced by `modules_from_samples()` containing module membership of each node for each sampled network at each time slice before the present.
-#' @param modules_across_ages Data frame containing the module information for the summary network. A `list` object returned from `modules_across_ages()` or a `data.frame` object defining the models in the network. If a `data.frame` is passed, it must contain three columns:
-#'   $age - the age of the network,
-#'   $name - taxon names,
-#'   $module - the module the taxon was assigned to.
+#' @param mod_samples Data frame produced by `modules_from_samples()` containing module membership
+#'   of each node for each sampled network at each time slice before the present.
+#' @param modules_across_ages Data frame containing the module information for the summary network.
+#'   A `list` object returned from `modules_across_ages()` or a `data.frame` object defining the
+#'   models in the network. If a `data.frame` is passed, it must contain three columns:
+#'   `$age` - the age of the network,
+#'   `$name` - taxon names,
+#'   `$module` - the module the taxon was assigned to.
 #' @param threshold Minimum frequency with which two nodes are placed in the same module to consider it supported.
 #' @param edge_list Logical. Whether to return a list of edge lists or a list of matrices of pairwise frequency.
 #' @param include_all Logical. Include all nodes or only those present at the time slice?
@@ -615,11 +618,19 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #'
 #' @examples
 #' \dontrun{
+#'   ages <- c(60, 50, 40, 0)
+#'   at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+#'   samples_at_ages <- at_ages$samples
+#'   pp_at_ages <- at_ages$posterior_probabilities
+#'
+#'   weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
+#'   all_mod <- modules_across_ages(weighted_net_50, tree)
+#'
 #'   # find modules for each sampled network
 #'   mod_samples <- modules_from_samples(samples_at_ages)
 #'
 #'   # calculate support
-#'   support <- support_for_modules(mod_samples, modules_across_ages)
+#'   support <- support_for_modules(mod_samples, all_mod)
 #'   support$plot
 #' }
 support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE, palette = NULL, axis_text = FALSE) {
