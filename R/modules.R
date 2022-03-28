@@ -761,61 +761,49 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_t
 
 pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
 
-  pair_mod_matrix <- list() # for heatmap from a matrix
-  pair_mod_tbl <- list()    # for heatmap from an edge list
+  result <- list()
 
-  for (Age in ages) {
+  for (a in seq_along(ages)) {
     taxa <- mod_samples %>%
-      filter(.data$age == Age) %>%
+      filter(.data$age == ages[a]) %>%
       distinct(.data$name)
     ntaxa <- nrow(taxa)
 
     heat <- matrix(data = 0, nrow = ntaxa, ncol = ntaxa)
     rownames(heat) <- colnames(heat) <- taxa$name
 
-    tbl <- tibble(row = taxa$name, col = taxa$name) %>%
-      complete(row,col) %>%
-      mutate(freq = 0)
-
     mod_samples_at_age <- mod_samples %>%
-      filter(.data$age == Age) %>%
+      filter(.data$age == ages[a]) %>%
       distinct(.data$sample) %>%
       pull(.data$sample)
 
     for (i in mod_samples_at_age) {
-
-      table <- filter(mod_samples, .data$age == Age, sample == i)
+      table <- filter(mod_samples, .data$age == ages[a], sample == i)
       mods <- unique(table$original_module)
 
       for (m in mods) {
         module <- filter(table, .data$original_module == m)
 
-        for (r in 1:nrow(heat)) {
-          for (c in 1:ncol(heat)) {
-            if (rownames(heat)[r] %in% module$name & colnames(heat)[c] %in% module$name) {
-              heat[r, c] <- heat[r, c] + 1
-              tbl <- mutate(tbl, freq = case_when(row == rownames(heat)[r] & col == colnames(heat)[c] ~ freq + 1,
-                                                  TRUE ~ freq))
-            }
-          }
-        }
+        mod_mat <- outer(rownames(heat) %in% module$name, colnames(heat) %in% module$name, '&')
+        heat <- heat + as.numeric(mod_mat)
       }
     }
 
     heat <- heat / length(mod_samples_at_age)
-    tbl <- mutate(tbl, freq = freq / length(mod_samples_at_age))
 
-    pair_mod_matrix[[a]] <- heat
-    pair_mod_tbl[[a]] <- tbl
-
+    if (edge_list) {
+      tbl <- heat %>%
+        as.data.frame() %>%
+        tibble::rownames_to_column('row') %>%
+        tidyr::pivot_longer(-row, names_to = 'col', values_to = 'freq') %>%
+        dplyr::arrange(row, col)
+      result[[a]] <- tbl
+    } else {
+      result[[a]] <- heat
+    }
   }
 
-  if (edge_list) {
-    return(pair_mod_tbl)
-  } else {
-    return(pair_mod_matrix)
-  }
-
+  return(result)
 }
 
 module.y <- module.x <- freq <- name <- NULL
