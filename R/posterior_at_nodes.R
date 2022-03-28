@@ -77,7 +77,7 @@ posterior_at_nodes <- function(history, tree, host_tree, nodes = NULL, state = c
   colnames(g) <- host_tree$tip.label
 
   list <- list(array, g)
-  names(list) <- c("Samples", "Posterior Probabilities")
+  names(list) <- c("samples", "posterior_probabilities")
 
   return(list)
 }
