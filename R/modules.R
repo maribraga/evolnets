@@ -616,10 +616,10 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #' @examples
 #' \dontrun{
 #'   # find modules for each sampled network
-#'   mod_samples <- modules_from_samples(samples_at_ages, ages)
+#'   mod_samples <- modules_from_samples(samples_at_ages)
 #'
 #'   # calculate support
-#'   support <- support_for_modules(mod_samples, ages, modules_across_ages)
+#'   support <- support_for_modules(mod_samples, modules_across_ages)
 #'   support$plot
 #' }
 support_for_modules <- function(mod_samples, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE, palette = NULL, axis_text = FALSE) {
