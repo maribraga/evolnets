@@ -12,7 +12,10 @@
 #' @param state Which state? Default is 2. For analyses using the 3-state model,
 #'   can take the values 1 (potential host) or 2 (actual host).
 #'
-#' @return A matrix with marginal posterior probabilities of interactions at given internal nodes.
+#' @return A list with marginal posterior probabilities of interactions at given internal nodes.
+#' @return A list of an array of samples x nodes x hosts (first element) and a matrix of
+#'   posterior probabilities (second element). The number of samples is the number of
+#'   iterations in `history`.
 #' @export
 #' @importFrom rlang .data
 #'
