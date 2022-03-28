@@ -719,17 +719,18 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_t
   nages <- length(pair_heatmaps)
   plot_list <- list()
 
-  for(a in 1:nages){
+  for (a in seq_along(nages)) {
     heatmap <- pair_heatmaps[[a]]
 
-    p <- ggplot2::ggplot(heatmap, ggplot2::aes(x = row, y = reorder(col,desc(col)),
-                                               fill = .data$supported_mod,
-                                               alpha = freq)) +
+    p <- ggplot2::ggplot(
+      heatmap,
+      ggplot2::aes(x = row, y = reorder(col,desc(col)),fill = .data$supported_mod, alpha = freq)
+    ) +
       ggplot2::geom_tile() +
       ggplot2::theme_bw() +
       ggplot2::scale_x_discrete(drop = FALSE) +
       ggplot2::scale_y_discrete(drop = FALSE) +
-      ggplot2::scale_alpha(ggplot2::aes(range = c(min(freq), max(freq)))) +
+      ggplot2::scale_alpha(ggplot2::aes(range = range(freq))) +
       ggplot2::theme(
         axis.title.x = ggplot2::element_blank(),
         axis.title.y = ggplot2::element_blank(),
@@ -737,7 +738,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_t
         legend.title = ggplot2::element_blank()) +
       ggplot2::ggtitle(paste0(ages[a]," Ma"))
 
-    if(!axis_text){
+    if (!axis_text) {
       p <- p + ggplot2::theme(
         axis.text.x = ggplot2::element_blank(),
         axis.text.y = ggplot2::element_blank(),
@@ -745,7 +746,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_t
       )
     }
 
-    if(!is.null(palette)){
+    if (!is.null(palette)) {
       p <- p + ggplot2::scale_fill_manual(values = palette, na.value = "grey20", drop = F)
     }
 
@@ -753,7 +754,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_t
 
   }
 
-  plot <- wrap_plots(plot_list)
+  plot <- patchwork::wrap_plots(plot_list)
 
 }
 
