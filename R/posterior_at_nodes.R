@@ -40,12 +40,12 @@ posterior_at_nodes <- function(history, tree, host_tree, nodes = NULL, state = c
   if (!all(c('node_index', 'iteration', 'transition_type') %in% names(history))) {
     stop('`history` needs to have columns `node_index`, `iteration` and `transition_type`.')
   }
-  if (!is.numeric(nodes)) stop('`nodes` should be a numeric vector.')
   if (!inherits(tree, 'phylo')) stop('`tree` should be a phylogeny of class `phylo`.')
   if (!inherits(host_tree, 'phylo')) stop('`host_tree` should be a phylogeny of class `phylo`.')
   if (!is.numeric(state)) stop('`state` should be a numeric vector.')
 
   if (is.null(nodes)) nodes <- (ape::Ntip(tree) + 1):(ape::Ntip(tree) + ape::Nnode(tree))
+  if (!is.numeric(nodes)) stop('`nodes` should be a numeric vector.')
 
   dat <- dplyr::filter(history, .data$node_index %in% nodes)
   iterations <- sort(unique(dat$iteration))
