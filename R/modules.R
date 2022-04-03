@@ -296,6 +296,9 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 
           nodes_interval[which(nodes_interval$node == node_depth$node[n]),
                          'child1_mod'] <- mod_child1
+        } else {
+          child1_strengths <- NULL
+          mod_child1 <- NA
         }
 
         if (children[2] %in% dplyr::filter(mod_df_sym, .data$age == age_min)$name) {
@@ -343,6 +346,9 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 
           nodes_interval[which(nodes_interval$node == node_depth$node[n]),
                          'child2_mod'] <- mod_child2
+        } else {
+          child2_strengths <- NULL
+          mod_child2 <- NA
         }
 
         # Combine children strengths
@@ -351,7 +357,11 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
         # Merge submodules of the same module (letter) when each children are in submodules of the same module
         letter_mod_children <- c(substring(mod_child1, 1, 1), substring(mod_child2, 1, 1))
 
-        if (mod_child1 != mod_child2 & letter_mod_children[1] == letter_mod_children[2]) {
+        if (!is.na(mod_child1) &
+            !is.na(mod_child2) &
+            mod_child1 != mod_child2 &
+            letter_mod_children[1] == letter_mod_children[2]
+            ) {
 
           submodules <- children_strengths %>%
             dplyr::select(tidyselect::matches("\\d")) %>%
@@ -363,35 +373,45 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
             dplyr::select(-tidyselect::matches("\\d"))
         }
 
-        # get average strength
-        mean_strengths <- colMeans(children_strengths)
-        # and find strongest module
-        strongest_mod_idx <- max.col(t(as.matrix(mean_strengths)), "random")
 
-        # add all strengths to data frame of all nodes within the time interval
-        for (c in seq_along(mean_strengths)) {
-          nodes_interval[which(nodes_interval$node == node_depth$node[n]),
-                         names(mean_strengths)[c]] <- mean_strengths[names(mean_strengths)[c]]
-        }
+        if(!is.null(children_strengths)){
+          if(nrow(children_strengths) == 1){
+            # divide only strength by 2
+            mean_strengths <- children_strengths/2
+            # and find strongest module
+            strongest_mod_idx <- max.col(as.matrix(mean_strengths), "random")
+          } else if(nrow(children_strengths) == 2){
+            # get average strength
+            mean_strengths <- colMeans(children_strengths)
+            # and find strongest module
+            strongest_mod_idx <- max.col(t(as.matrix(mean_strengths)), "random")
+          }
 
-        # Assign strongest module to node
-        nodes_interval[which(nodes_interval$node == node_depth$node[n]),
-                       'module_name'] <- sub("strength_","",names(mean_strengths)[strongest_mod_idx])
-        nodes_interval[which(nodes_interval$node == node_depth$node[n]),
-                       'strength'] <- mean_strengths[strongest_mod_idx]
-
-        # Write strengths for nodes in the network at max age
-        if (node_depth$node_name[n] %in% mod_df_sym_age$name) {
+          # add all strengths to data frame of all nodes within the time interval
           for (c in seq_along(mean_strengths)) {
-            mod_df_sym_age[which(mod_df_sym_age$name == node_depth$node_name[n]),
+            nodes_interval[which(nodes_interval$node == node_depth$node[n]),
                            names(mean_strengths)[c]] <- mean_strengths[names(mean_strengths)[c]]
           }
 
-          # also write the strongest module
-          mod_df_sym_age[which(mod_df_sym_age$name == node_depth$node_name[n]),
-                         'strength'] <- mean_strengths[strongest_mod_idx]
-          mod_df_sym_age[which(mod_df_sym_age$name == node_depth$node_name[n]),
+          # Assign strongest module to node
+          nodes_interval[which(nodes_interval$node == node_depth$node[n]),
                          'module_name'] <- sub("strength_","",names(mean_strengths)[strongest_mod_idx])
+          nodes_interval[which(nodes_interval$node == node_depth$node[n]),
+                         'strength'] <- mean_strengths[strongest_mod_idx]
+
+          # Write strengths for nodes in the network at max age
+          if (node_depth$node_name[n] %in% mod_df_sym_age$name) {
+            for (c in seq_along(mean_strengths)) {
+              mod_df_sym_age[which(mod_df_sym_age$name == node_depth$node_name[n]),
+                             names(mean_strengths)[c]] <- mean_strengths[names(mean_strengths)[c]]
+            }
+
+            # also write the strongest module
+            mod_df_sym_age[which(mod_df_sym_age$name == node_depth$node_name[n]),
+                           'strength'] <- mean_strengths[strongest_mod_idx]
+            mod_df_sym_age[which(mod_df_sym_age$name == node_depth$node_name[n]),
+                           'module_name'] <- sub("strength_","",names(mean_strengths)[strongest_mod_idx])
+          }
         }
       }
     }
