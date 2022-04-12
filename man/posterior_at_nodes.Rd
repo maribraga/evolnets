@@ -7,7 +7,8 @@
 posterior_at_nodes(history, tree, host_tree, nodes = NULL, state = c(2))
 }
 \arguments{
-\item{history}{Data frame with posterior samples of interaction histories returned from \code{read_history()}.}
+\item{history}{Data frame with posterior samples of interaction histories returned from
+\code{read_history()}.}
 
 \item{tree}{Symbiont tree}
 
@@ -20,7 +21,11 @@ probability of \code{state}.}
 can take the values 1 (potential host) or 2 (actual host).}
 }
 \value{
-A matrix with marginal posterior probabilities of interactions at given internal nodes.
+A list with marginal posterior probabilities of interactions at given internal nodes.
+
+A list of an array of samples x nodes x hosts (first element) and a matrix of
+posterior probabilities (second element). The number of samples is the number of
+iterations in \code{history}.
 }
 \description{
 Group of functions to calculate the posterior probabilities of

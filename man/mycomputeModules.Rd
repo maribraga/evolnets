@@ -2,7 +2,7 @@
 % Please edit documentation in R/modules.R
 \name{mycomputeModules}
 \alias{mycomputeModules}
-\title{Modified version of bipartite's computer_module function}
+\title{Modified version of bipartite's computeModules function}
 \usage{
 mycomputeModules(
   web,
@@ -27,7 +27,7 @@ mycomputeModules(
 Modularity Q
 }
 \description{
-Modified version of bipartite's computer_module function
+Modified version of bipartite's computeModules function
 }
 \examples{
 \dontrun{
