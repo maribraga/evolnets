@@ -9,13 +9,17 @@ plot_module_matrix2(
   samples_at_nodes,
   tree,
   host_tree,
+  type = "states",
+  state = 2,
+  repertoire = "fundamental",
   modules = NULL,
   module_order = NULL,
   threshold = 0.9,
   point_size = 3,
   dodge_width = 0.025,
   colors = NULL,
-  ladderize = FALSE
+  ladderize = FALSE,
+  ...
 )
 }
 \arguments{
@@ -30,6 +34,17 @@ network is represented, otherwise a weighted network is assumed.}
 \item{host_tree}{The phylogeny belonging to the hosts. Object of class \code{phylo}.
 
 See the examples on how to change the color scale.}
+
+\item{type}{One of \code{'states'} or \code{'repertoires'}. If \code{'states'}, will plot the presence of a
+state when its posterior probablity is higher than \code{threshold}. If \verb{'repertoires}, will plot
+the same but for the given \code{repertoire}.}
+
+\item{state}{Which state? Default is 2. For analyses using the 3-state model, choose \code{1} or \code{2}
+(where 1 is a potential host and 2 an actual host). Only used if \code{type} is \code{'states'}.}
+
+\item{repertoire}{Either the \code{'realized'} repertoire which is defined as state 2, or the
+\code{'fundamental'} repertoire (default) which is defined as having any state (usually 1 or 2), and
+in the 3-state model includes both actual and potential hosts.}
 
 \item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the models in the network.
 If a \code{data.frame} is passed, it must contain three columns:

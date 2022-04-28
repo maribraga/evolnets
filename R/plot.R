@@ -153,7 +153,7 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #' @param module_order A character vector giving the order that modules should be plotted. Should contain
 #'   each module only once.
 #' @param type One of `'states'` or `'repertoires'`. If `'states'`, will plot the presence of a
-#'   state when its posterior probablity is higher than `threshold`. If `'repertoires`, will plot
+#'   state when its posterior probablity is higher than `threshold`. If `'repertoires'`, will plot
 #'   the same but for the given `repertoire`.
 #' @param state Which state? Default is 2. For analyses using the 3-state model, choose `1` or `2`
 #'    (where 1 is a potential host and 2 an actual host). Only used if `type` is `'states'`.
@@ -339,7 +339,7 @@ plot_ancestral_states <- function(
 #'   plot_module_matrix2(extant_net, san, tree, host_tree, colors = rainbow(20))
 #' }
 plot_module_matrix2 <- function(
-  net, samples_at_nodes, tree, host_tree,
+  net, samples_at_nodes, tree, host_tree, type = "states", state = 2, repertoire = 'fundamental',
   modules = NULL, module_order = NULL,
   threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
 ) {
@@ -355,9 +355,9 @@ plot_module_matrix2 <- function(
 
   # Make the parasite tree plot
   parasite_plot <- plot_ancestral_states(
-    tree, samples_at_nodes, modules, module_order,
-    threshold = threshold, point_size = point_size, dodge_width = dodge_width, legend = FALSE,
-    colors = colors, ladderize = ladderize
+    tree, samples_at_nodes, modules, module_order, type = type, state = state,
+    repertoire = repertoire, threshold = threshold, point_size = point_size,
+    dodge_width = dodge_width, legend = FALSE, colors = colors, ladderize = ladderize
   )
   parasite_coords <- parasite_plot$data[parasite_plot$data$isTip, c('x', 'y', 'label', 'isTip')]
   parasite_coords <- parasite_coords[order(parasite_coords$y), ]
