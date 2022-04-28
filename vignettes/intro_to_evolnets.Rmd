@@ -114,13 +114,13 @@ First, we'll look at the host repertoires of the deepest nodes in the tree: node
 ```{r}
 deep_nodes <- c(128:131)
 at_deep_nodes <- posterior_at_nodes(history, tree, host_tree, deep_nodes)
-pp_at_deep_nodes <- at_deep_nodes$`Posterior Probabilities`
+pp_at_deep_nodes <- at_deep_nodes$post_states
 ```
 
 There are 50 hosts in this data set, so `pp_at_deep_nodes` has 50 columns. Let's have a look at a subset of those:
 
 ```{r}
-pp_at_deep_nodes[,c("Fabaceae", "Capparaceae", "Rosaceae")]
+pp_at_deep_nodes[, c("Fabaceae", "Capparaceae", "Rosaceae"), ]
 ```
 
 We can see that Fabaceae was most likely an ancestral hosts for Pieridae butterflies. Capparaceae might have been a host at the origin of Pieridae, but most certainly starting at node "Index_128". On the other hand, the probability that these butterflies used Rosaceae as a host is very small.
@@ -152,7 +152,7 @@ The main goal of `evolnets` is to reconstruct the evolution of networks. We can 
 `posterior_at_ages( )` finds the symbiont lineages that were extant at given time points in the past and calculates the posterior probability for interactions between these symbionts and each host based on samples from the MCMC. The first element of `at_ages` contains the sampled networks and the second, the posterior probabilities.
 
 ```{r}
-ages <- c(60,50,40)
+ages <- c(60, 50, 40, 0)
 at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 pp_at_ages <- at_ages[[2]]
 ```
@@ -167,19 +167,19 @@ binary_nets_90 <- get_summary_network(pp_at_ages, ages, pt = 0.9, weighted = FAL
 ### Sampled networks
 
 ```{r}
-samples_at_ages <- at_ages[[1]]
+samples_at_ages <- at_ages$samples
 ```
 
 Then, we can calculate network properties for each sampled network.
 
 ```{r}
 # calculate posterior distribution of nestedness
-Nz <- index_at_ages(samples_at_ages, index = "NODF", null = 10)
+Nz <- index_at_ages(samples_at_ages, index = "NODF", nnull = 10)
 ```
 
 ```{r, eval=FALSE}
-# calculate posterior distribution of modularity
-Qz <- index_at_ages(samples_at_ages, index = "Q", null = 10)
+# calculate posterior distribution of modularity (extremely slow)
+Qz <- index_at_ages(samples_at_ages, index = "Q", nnull = 10)
 ```
 
 
