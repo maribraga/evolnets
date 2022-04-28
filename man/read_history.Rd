@@ -12,7 +12,7 @@ read_history(path_to_hist, burnin = 0.1)
 \item{burnin}{Fraction of iterations to be removed as burnin. Default to 10\%.}
 }
 \value{
-A data frame
+A data.frame
 }
 \description{
 Read history.txt file containing the posterior samples of

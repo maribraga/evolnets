@@ -66,7 +66,7 @@ Plot a network with modules as an adjacency matrix, with aligned phylogenies.
 }
 \examples{
 \dontrun{
-  san <- posterior_at_nodes(history, 66 + 1:65, host_tree)
+  san <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
   plot_module_matrix2(extant_net, san, tree, host_tree)
   # manual_colors
   plot_module_matrix2(extant_net, san, tree, host_tree, colors = rainbow(20))

@@ -1,11 +1,16 @@
 #' Calculate the posterior probability of ancestral host repertoires at time points in the past (ages)
 #'
 #' @param history Data frame with posterior samples of interaction histories. Output from `read_history()`.
-#' @param ages Vector of ages (time points in the past) at which samples will be retrieved. The present (age = 0) must be included.
+#' @param ages Vector of ages (time points in the past) at which samples will be retrieved. The
+#'   present (age = 0) must be included.
 #' @param tree Symbiont tree.
 #' @param host_tree Host tree.
-#' @param extant_prob Should posterior probabilities be calculated for extant network? Default to FALSE. TRUE only makes sense if interactions in the extant network were also inferred. When FALSE, only the first MCMC sample will be retrieved at age = 0.
-#' @param state Probabilities will be calculated only for this state. Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host). For analyses using the 2-state model, state = 1 is ignored.
+#' @param extant_prob Should posterior probabilities be calculated for extant network? Default to
+#'   FALSE. TRUE only makes sense if interactions in the extant network were also inferred. When
+#'   FALSE, only the first MCMC sample will be retrieved at age = 0.
+#' @param state Probabilities will be calculated only for this state. Default is 2. For analyses
+#'   using the 3-state model, can take the values 1 (potential host) or 2 (actual host). For
+#'   analyses using the 2-state model, state = 1 is ignored.
 #' @param drop_empty Logical. Remove taxa without any interactions?
 #'
 #' @return A list of arrays of samples x symbionts x hosts (first element) and a matrix of

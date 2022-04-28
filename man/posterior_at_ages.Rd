@@ -17,15 +17,20 @@ posterior_at_ages(
 \arguments{
 \item{history}{Data frame with posterior samples of interaction histories. Output from \code{read_history()}.}
 
-\item{ages}{Vector of ages (time points in the past) at which samples will be retrieved. The present (age = 0) must be included.}
+\item{ages}{Vector of ages (time points in the past) at which samples will be retrieved. The
+present (age = 0) must be included.}
 
 \item{tree}{Symbiont tree.}
 
 \item{host_tree}{Host tree.}
 
-\item{extant_prob}{Should posterior probabilities be calculated for extant network? Default to FALSE. TRUE only makes sense if interactions in the extant network were also inferred. When FALSE, only the first MCMC sample will be retrieved at age = 0.}
+\item{extant_prob}{Should posterior probabilities be calculated for extant network? Default to
+FALSE. TRUE only makes sense if interactions in the extant network were also inferred. When
+FALSE, only the first MCMC sample will be retrieved at age = 0.}
 
-\item{state}{Probabilities will be calculated only for this state. Default is 2. For analyses using the 3-state model, can take the values 1 (potential host) or 2 (actual host). For analyses using the 2-state model, state = 1 is ignored.}
+\item{state}{Probabilities will be calculated only for this state. Default is 2. For analyses
+using the 3-state model, can take the values 1 (potential host) or 2 (actual host). For
+analyses using the 2-state model, state = 1 is ignored.}
 
 \item{drop_empty}{Logical. Remove taxa without any interactions?}
 }

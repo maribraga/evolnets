@@ -9,6 +9,9 @@ plot_ancestral_states(
   samples_at_nodes,
   modules,
   module_order = NULL,
+  type = "states",
+  state = 2,
+  repertoire = "fundamental",
   layout = "rectangular",
   threshold = 0.9,
   point_size = 3,
@@ -33,8 +36,19 @@ $type which defines if the taxon is a "host" or a "symbiont".}
 \item{module_order}{A character vector giving the order that modules should be plotted. Should contain
 each module only once.}
 
-\item{layout}{One of 'rectangular', 'slanted', 'fan', 'circular', 'radial', 'equal_angle', 'daylight'
-or 'ape'.}
+\item{type}{One of \code{'states'} or \code{'repertoires'}. If \code{'states'}, will plot the presence of a
+state when its posterior probablity is higher than \code{threshold}. If \verb{'repertoires}, will plot
+the same but for the given \code{repertoire}.}
+
+\item{state}{Which state? Default is 2. For analyses using the 3-state model, choose \code{1} or \code{2}
+(where 1 is a potential host and 2 an actual host). Only used if \code{type} is \code{'states'}.}
+
+\item{repertoire}{Either the \code{'realized'} repertoire which is defined as state 2, or the
+\code{'fundamental'} repertoire (default) which is defined as having any state (usually 1 or 2), and
+in the 3-state model includes both actual and potential hosts.}
+
+\item{layout}{One of \code{'rectangular'}, \code{'slanted'}, \code{'fan'}, \code{'circular'}, \code{'radial'},
+\code{'equal_angle'}, \code{'daylight'} or \code{'ape'}.}
 
 \item{threshold}{The posterior probability above which the ancestral states should be shown.
 Defaults to 90\% (\code{0.9}). Numeric vector of length 1.}
@@ -67,7 +81,7 @@ Plot ancestral states on the phylogeny.
 }
 \examples{
 \dontrun{
-  san <- posterior_at_nodes(history, 66 + 1:65, host_tree)
+  san <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
   mods <- mycomputeModules(extant_net)
   plot_ancestral_states(tree, san, mods)
   # Manual colors

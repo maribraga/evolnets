@@ -7,7 +7,8 @@
 posterior_at_nodes(history, tree, host_tree, nodes = NULL, state = c(2))
 }
 \arguments{
-\item{history}{Data frame with posterior samples of interaction histories returned from \code{read_history()}.}
+\item{history}{Data frame with posterior samples of interaction histories returned from
+\code{read_history()}.}
 
 \item{tree}{Symbiont tree}
 
@@ -16,11 +17,20 @@ posterior_at_nodes(history, tree, host_tree, nodes = NULL, state = c(2))
 \item{nodes}{Vector of internal nodes for which to calculate the posterior
 probability of \code{state}.}
 
-\item{state}{Which state? Default is 2. For analyses using the 3-state model,
-can take the values 1 (potential host) or 2 (actual host).}
+\item{state}{Which state? Default is 2. For analyses using the 3-state model, give \code{c(1, 2)} to
+include both states (where 1 is a potential host and 2 an actual host).}
 }
 \value{
-A matrix with marginal posterior probabilities of interactions at given internal nodes.
+A list with three elements:
+\itemize{
+\item{"\code{samples}"}{An array of samples x nodes x hosts, containing the state of each sample.}
+\item{"\code{post_states}"}{An array of nodes x hosts x state containing the posterior probability
+for each state.}
+\item{\code{post_repertoires}}{An array of nodes x hosts x repertoire containing the posterior
+probability for 1) the \code{"realized"} repertoire which is defined as state 2, and 2) the
+\code{"fundamental"} repertoire which is defined as having any state (usually 1 or 2).}
+}
+The number of samples is the number of iterations in \code{history}.
 }
 \description{
 Group of functions to calculate the posterior probabilities of
