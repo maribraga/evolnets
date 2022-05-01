@@ -63,7 +63,9 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
     para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
     para_mods <- dplyr::bind_rows(para_mods, .id = 'parasite_module')
   } else {
-    if (!inherits(modules, 'data.frame') | !(c('name', 'module', 'type') %in% names(modules))) {
+    if (inherits(modules, 'data.frame') && !all(
+      c('name', 'module', 'type') %in% names(modules)
+    )) {
       stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
     }
     host_mods <- modules %>%
@@ -115,10 +117,10 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
   module_mat$parasite <- factor(module_mat$parasite, levels = parasite_order)
   module_mat$host <- factor(module_mat$host, levels = host_order)
 
-  if (all(module_mat$weight %in% c(0L, 1L))) {
-    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
-  } else {
+  if (length(unique(module_mat$weight)) > 1) {
     p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~weight))
+  } else {
+    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
   }
 
   p +
