@@ -57,7 +57,7 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 
   if (inherits(modules, 'moduleWeb')) {
     # Take the modules, and put the host and symbiont modules in data.frames
-    mod_list <- listModuleInformation(modules)[[2]]
+    mod_list <- bipartite::listModuleInformation(modules)[[2]]
     host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
     host_mods <- dplyr::bind_rows(host_mods, .id = 'host_module')
     para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
@@ -154,8 +154,16 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #'   $type which defines if the taxon is a "host" or a "symbiont".
 #' @param module_order A character vector giving the order that modules should be plotted. Should contain
 #'   each module only once.
-#' @param layout One of 'rectangular', 'slanted', 'fan', 'circular', 'radial', 'equal_angle', 'daylight'
-#'   or 'ape'.
+#' @param type One of `'states'` or `'repertoires'`. If `'states'`, will plot the presence of a
+#'   state when its posterior probablity is higher than `threshold`. If `'repertoires'`, will plot
+#'   the same but for the given `repertoire`.
+#' @param state Which state? Default is 2. For analyses using the 3-state model, choose `1` or `2`
+#'    (where 1 is a potential host and 2 an actual host). Only used if `type` is `'states'`.
+#' @param repertoire Either the `'realized'` repertoire which is defined as state 2, or the
+##'  `'fundamental'` repertoire (default) which is defined as having any state (usually 1 or 2), and
+##'  in the 3-state model includes both actual and potential hosts.
+#' @param layout One of `'rectangular'`, `'slanted'`, `'fan'`, `'circular'`, `'radial'`,
+#'   `'equal_angle'`, `'daylight'` or `'ape'`.
 #' @param threshold The posterior probability above which the ancestral states should be shown.
 #'   Defaults to 90% (`0.9`). Numeric vector of length 1.
 #' @param point_size How large the ancestral state points should be, default at 3. Play with this
@@ -180,16 +188,16 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #'
 #' @examples
 #' \dontrun{
-#'   san <- posterior_at_nodes(history, 66 + 1:65, host_tree)
+#'   san <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
 #'   mods <- mycomputeModules(extant_net)
 #'   plot_ancestral_states(tree, san, mods)
 #'   # Manual colors
 #'   plot_ancestral_states(tree, san, mods, colors = rainbow(20))
 #' }
 plot_ancestral_states <- function(
-  tree, samples_at_nodes, modules, module_order = NULL, layout = "rectangular",
-  threshold = 0.9, point_size = 3, point_shape = NULL, dodge_width = 0.025, legend = TRUE,
-  colors = NULL, ladderize = FALSE
+  tree, samples_at_nodes, modules, module_order = NULL, type = "states", state = 2,
+  repertoire = 'fundamental', layout = "rectangular", threshold = 0.9, point_size = 3,
+  point_shape = NULL, dodge_width = 0.025, legend = TRUE, colors = NULL, ladderize = FALSE
 ) {
   if (!requireNamespace('ggtree')) {
     stop('Please install the ggtree package to use this function. Use `BiocManager::install("ggtree")`')
@@ -197,13 +205,22 @@ plot_ancestral_states <- function(
   # Check inputs
   if (!inherits(tree, 'phylo')) stop('`tree` should be of class `phylo`.')
   if (!is.list(samples_at_nodes)) stop('`samples_at_nodes` should be a list.')
-  if (!all(rownames(samples_at_nodes[[2]]) %in% tree$node.label)) {
+  if (!all(colnames(samples_at_nodes[['samples']]) %in% tree$node.label)) {
     stop('All nodes in `samples_at_nodes` should occur in the tree as internal nodes, check `tree$node.label`')
+  }
+  if (!(type %in% c('states', 'repertoires') & length(type) == 1)) {
+    stop("`type` should be either 'states' or 'repertoires'.")
+  }
+  if (!(as.character(state) %in% dimnames(samples_at_nodes[['post_states']])[[3]] & length(state) == 1)) {
+    stop("`state` should be a vector of length 1, and a valid state occuring in `samples_at_nodes`")
+  }
+  if (!(repertoire %in% c('fundamental', 'realized') & length(repertoire) == 1)) {
+    stop("`repertoire` should be either 'fundamental' or 'realized'.")
   }
 
   if (inherits(modules, 'moduleWeb')) {
     # Take the modules, and put the host modules in a data.frame
-    mod_list <- listModuleInformation(modules)[[2]]
+    mod_list <- bipartite::listModuleInformation(modules)[[2]]
     host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
     host_mods <- dplyr::bind_rows(host_mods, .id = 'module')
     mods <- seq_along(mod_list)
@@ -212,7 +229,7 @@ plot_ancestral_states <- function(
       stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
     }
     host_mods <- modules %>%
-      dplyr::filter(type == "host") %>%
+      dplyr::filter(.data$type == "host") %>%
       dplyr::select(.data$name, .data$module) %>%
       dplyr::rename(host = .data$name)
     if (!is.null(module_order)) {
@@ -223,7 +240,12 @@ plot_ancestral_states <- function(
   }
 
   # Get the ancestral states, reformat to plot on the parasite tree
-  node_df <- as.data.frame(samples_at_nodes[[2]])
+  if (type == 'states') {
+    node_df <- as.data.frame(samples_at_nodes[['post_states']][, , as.character(state)])
+  } else {
+    node_df <- as.data.frame(samples_at_nodes[['post_repertoires']][, , repertoire])
+  }
+
   node_df$node <- rownames(node_df)
   node_df <- tidyr::pivot_longer(node_df, -.data$node, names_to = 'host')
   node_df <- node_df[node_df$value >= threshold, ]
@@ -313,13 +335,13 @@ plot_ancestral_states <- function(
 #'
 #' @examples
 #' \dontrun{
-#'   san <- posterior_at_nodes(history, 66 + 1:65, host_tree)
+#'   san <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
 #'   plot_module_matrix2(extant_net, san, tree, host_tree)
 #'   # manual_colors
 #'   plot_module_matrix2(extant_net, san, tree, host_tree, colors = rainbow(20))
 #' }
 plot_module_matrix2 <- function(
-  net, samples_at_nodes, tree, host_tree,
+  net, samples_at_nodes, tree, host_tree, type = "states", state = 2, repertoire = 'fundamental',
   modules = NULL, module_order = NULL,
   threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
 ) {
@@ -335,16 +357,16 @@ plot_module_matrix2 <- function(
 
   # Make the parasite tree plot
   parasite_plot <- plot_ancestral_states(
-    tree, samples_at_nodes, modules, module_order,
-    threshold = threshold, point_size = point_size, dodge_width = dodge_width, legend = FALSE,
-    colors = colors, ladderize = ladderize
+    tree, samples_at_nodes, modules, module_order, type = type, state = state,
+    repertoire = repertoire, threshold = threshold, point_size = point_size,
+    dodge_width = dodge_width, legend = FALSE, colors = colors, ladderize = ladderize
   )
   parasite_coords <- parasite_plot$data[parasite_plot$data$isTip, c('x', 'y', 'label', 'isTip')]
   parasite_coords <- parasite_coords[order(parasite_coords$y), ]
 
   # Make the host tree plot
   if (inherits(modules, 'moduleWeb')) {
-    mods <- seq_along(listModuleInformation(modules)[[2]])
+    mods <- seq_along(bipartite::listModuleInformation(modules)[[2]])
   } else {
     mods <- sort(unique(modules$module))
   }
