@@ -23,10 +23,10 @@ include both states (where 1 is a potential host and 2 an actual host).}
 \value{
 A list with three elements:
 \itemize{
-\item{"\code{samples}"}{An array of samples x nodes x hosts, containing the state of each sample.}
-\item{"\code{post_states}"}{An array of nodes x hosts x state containing the posterior probability
+\item{"\code{samples}"}{ An array of samples x nodes x hosts, containing the state of each sample.}
+\item{"\code{post_states}"}{ An array of nodes x hosts x state containing the posterior probability
 for each state.}
-\item{\code{post_repertoires}}{An array of nodes x hosts x repertoire containing the posterior
+\item{"\code{post_repertoires}"}{ An array of nodes x hosts x repertoire containing the posterior
 probability for 1) the \code{"realized"} repertoire which is defined as state 2, and 2) the
 \code{"fundamental"} repertoire which is defined as having any state (usually 1 or 2).}
 }

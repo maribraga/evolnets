@@ -35,9 +35,17 @@ analyses using the 2-state model, state = 1 is ignored.}
 \item{drop_empty}{Logical. Remove taxa without any interactions?}
 }
 \value{
-A list of arrays of samples x symbionts x hosts (first element) and a matrix of
-posterior probabilities (second element). The number of samples is the number of
-iterations in \code{history}. At each age, all hosts and all extant symbiont lineages are included.
+A list of three lists, containing:
+\itemize{
+\item{"\code{samples}"}{ Arrays of samples x nodes x hosts, containing the state of each sample.}
+\item{"\code{post_states}"}{ Arrays of nodes x hosts x state containing the posterior probability
+for each state.}
+\item{"\code{post_repertoires}"}{ Arrays of nodes x hosts x repertoire containing the posterior
+probability for 1) the \code{"realized"} repertoire which is defined as state 2, and 2) the
+\code{"fundamental"} repertoire which is defined as having any state (usually 1 or 2).}
+}
+Each array in these lists is for one of the \code{ages}. The number of samples is the number of
+iterations in \code{history}.
 }
 \description{
 Calculate the posterior probability of ancestral host repertoires at time points in the past (ages)
@@ -56,5 +64,5 @@ at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 samples_at_ages <- at_ages$samples
 
 # get posterior probabilities at ages
-pp_at_ages <- at_ages$posterior_probabilities
+pp_at_ages <- at_ages$post_states
 }
