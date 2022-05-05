@@ -13,9 +13,17 @@
 #'   analyses using the 2-state model, state = 1 is ignored.
 #' @param drop_empty Logical. Remove taxa without any interactions?
 #'
-#' @return A list of arrays of samples x symbionts x hosts (first element) and a matrix of
-#'   posterior probabilities (second element). The number of samples is the number of
-#'   iterations in `history`. At each age, all hosts and all extant symbiont lineages are included.
+#' @return A list of three lists, containing:
+#' \itemize{
+#'  \item{"`samples`"}{ Arrays of samples x nodes x hosts, containing the state of each sample.}
+#'  \item{"`post_states`"}{ Arrays of nodes x hosts x state containing the posterior probability
+#'  for each state.}
+#'  \item{"`post_repertoires`"}{ Arrays of nodes x hosts x repertoire containing the posterior
+#'  probability for 1) the `"realized"` repertoire which is defined as state 2, and 2) the
+#'  `"fundamental"` repertoire which is defined as having any state (usually 1 or 2).}
+#' }
+#' Each array in these lists is for one of the `ages`. The number of samples is the number of
+#' iterations in `history`.
 #' @export
 #'
 #' @examples
@@ -32,7 +40,7 @@
 #' samples_at_ages <- at_ages$samples
 #'
 #' # get posterior probabilities at ages
-#' pp_at_ages <- at_ages$posterior_probabilities
+#' pp_at_ages <- at_ages$post_states
 posterior_at_ages <- function(history, ages, tree, host_tree, extant_prob = FALSE, state = 2, drop_empty = TRUE) {
 
   # input checking
@@ -54,133 +62,112 @@ posterior_at_ages <- function(history, ages, tree, host_tree, extant_prob = FALS
   }
 
   # get the posteriors
-  samp_ages <- post_ages <- list()
+  l <- list()
 
   for (i in seq_along(ages)) {
     age <- ages[i]
 
     if (!extant_prob & age == 0) {
-      ages_samp_post <- get_extant_binary_network(history, tree, host_tree, state, drop_empty)
-    } else{
-      ages_samp_post <- make_samples_post_at_age(history, age, tree, host_tree, state, drop_empty)
+      l[[i]] <- make_samples_post_at_age(
+        history[history$iteration == history$iteration[1], ],
+        age, tree, host_tree, state, drop_empty
+      )
+    } else {
+      l[[i]] <- make_samples_post_at_age(
+        history, age, tree, host_tree, state, drop_empty
+      )
     }
 
-    samp_ages[[i]] <- ages_samp_post[[1]]
-    post_ages[[i]] <- ages_samp_post[[2]]
-
   }
-
-  names(samp_ages) <- names(post_ages) <- ages
-  samp_post_ages <- list(samp_ages, post_ages)
-  names(samp_post_ages) <- c("samples", "posterior_probabilities")
-
-  return(samp_post_ages)
-
+  names(l) <- ages
+  purrr::transpose(l)
 }
-
-
-get_extant_binary_network <- function(dat, tree, host_tree, state, drop_empty) {
-
-  iterations <- sort(unique(dat$iteration))
-  n_iter <- 1
-
-  # get dimensions
-  n_host_tip <- nchar(dat$start_state[1])
-  n_parasite_lineage <- dplyr::n_distinct(dat$node_index)
-  n_parasite_tip <- (n_parasite_lineage + 1) / 2
-
-  m_names <- list(
-    seq_len(n_iter),
-    c(rev(tree$tip.label), paste0("Index_", (n_parasite_tip + 1):n_parasite_lineage)),
-    host_tree$tip.label
-  )
-
-  m_sample <- array(0, dim = c(n_iter, n_parasite_lineage, n_host_tip), dimnames = m_names)
-  m_posterior <- matrix(data = 0, nrow = n_parasite_lineage, ncol = n_host_tip, dimnames = m_names[2:3])
-
-  it <- iterations[1]
-
-  # get dataset for iteration
-  dat_it <- dat[dat$iteration == it, ]
-
-  # extract relevant branches
-  dat_it <- make_dat_age(dat_it, age = 0)
-
-  # add edges ( parasite x host )
-  for (i in seq_len(nrow(dat_it))) {
-    n_idx <- dat_it$node_index[i]
-    s <- as.numeric(stringr::str_split(dat_it$end_state[i], "")[[1]])
-    s_idx <- s %in% state
-
-    m_sample[1, n_idx, s_idx] <- state
-    m_posterior[n_idx, s_idx] <- m_posterior[n_idx, s_idx] + 1
-  }
-
-  # remove empty rows/columns
-  if (drop_empty) {
-    m_posterior <- m_posterior[rowSums(m_posterior) != 0, ]
-    m_posterior <- m_posterior[, colSums(m_posterior) != 0]
-  }
-
-  samp_post <- list(m_sample, m_posterior)
-
-  return(samp_post)
-}
-
 
 make_samples_post_at_age <- function(dat, age, tree, host_tree, state, drop_empty) {
 
   iterations <- sort(unique(dat$iteration))
   n_iter <- length(iterations)
 
-  # get dimensions
-  n_host_tip <- nchar(dat$start_state[1])
-  n_parasite_lineage <- dplyr::n_distinct(dat$node_index)
-  n_parasite_tip <- (n_parasite_lineage + 1) / 2
+  nodes <- sort(unique(dat$node_index))
+  n_nodes <- length(nodes)
+  node_names <- c(rev(tree$tip.label), paste0("Index_", (((n_nodes + 1) / 2) + 1):length(nodes)))
 
-  m_names <- list(
-    seq_len(n_iter),
-    c(rev(tree$tip.label), paste0("Index_", (n_parasite_tip + 1):n_parasite_lineage)),
-    host_tree$tip.label
-  )
+  # Apply `make_dat_age` to each iteration, then join them all together.
+  # This is the slowest step of the function.
+  dat2 <- purrr::map_dfr(split(dat, dat$iteration), make_dat_age, age = age)
 
-  m_sample <- array(0, dim = c(n_iter, n_parasite_lineage, n_host_tip), dimnames = m_names)
-  m_posterior <- matrix(data = 0, nrow = n_parasite_lineage, ncol = n_host_tip, dimnames = m_names[2:3])
+  dat2 <- dat2 %>%
+    # Select only the columns we need
+    dplyr::select(.data$iteration, .data$node_index, .data$end_state) %>%
+    dplyr::mutate(
+      # Keep making factors so we do not accidentally drop iterations or nodes
+      iteration = factor(.data$iteration, iterations),
+      node_index = factor(.data$node_index, nodes),
+      # Split the state string up to create one observation per node
+      end_state = stringr::str_split(.data$end_state, ""),
+      # add indices for the hosts
+      s_index = list(seq_along(.data$end_state[[1]]))
+    ) %>%
+    # Put each node on it's own row
+    tidyr::unnest(c(.data$end_state, .data$s_index)) %>%
+    # Keep making factors so we do not accidentally drop states or hosts
+    dplyr::mutate(
+      end_state = factor(.data$end_state, state),
+      s_index = factor(.data$s_index)
+    ) %>%
+    # Drop everything where the state was '0'
+    dplyr::filter(.data$end_state != '0')
 
-  for (it_idx in seq_along(iterations)) {
-    it <- iterations[it_idx]
-
-    # get dataset for iteration
-    dat_it <- dat[dat$iteration == it, ]
-
-    # extract relevant branches
-    dat_it <- make_dat_age(dat_it, age)
-
-    # add edges ( parasite x host )
-    for (i in seq_len(nrow(dat_it))) {
-      n_idx <- dat_it$node_index[i]
-      s <- as.numeric(stringr::str_split(dat_it$end_state[i], "")[[1]])
-      s_idx <- s %in% state
-
-      m_sample[it_idx, n_idx, s_idx] <- state
-      m_posterior[n_idx, s_idx] <- m_posterior[n_idx, s_idx] + 1
-    }
+  # Now count all combinations to make our samples array
+  all_combs <- unclass(table(dat2$iteration, dat2$node_index, dat2$s_index, dat2$end_state))
+  if (!all(all_combs %in% c(0, 1))) {
+    # Just in case something has gone horribly wrong.
+    stop('Duplicated combinations detected, please contact the maintainer of evolnets.')
   }
+  # We have to assign the correct state, so loop through the possible states and assign the state
+  # to wherever an interaction was found (i.e. count == 1)
+  l <- list()
+  for (s in seq_along(state)) {
+    # we need to be careful here, we want to drop dimension 4 (state), but not any other. For
+    # example, for extant networks, we may only have 1 iteration. You can't easily drop a specific
+    # array dimension in R, while keeping dimnames, so that's why this is a bit convoluted.
+    a <- all_combs[, , , s, drop = FALSE]
+    dm <- dimnames(a)
+    dim(a) <- dim(a)[1:3]
+    dimnames(a) <- dm[1:3]
+    a[a == 1] <- state[s]
+    l[[s]] <- a
+  }
+  # Then we merge the arrays for each state. We take the first array, and overwrite the elements
+  # where the second array is non-null with elements of the second. Repeat for a possible third
+  # state etc. (I don't think there is a third state, but this generalizes to n states.)
+  array <- Reduce(function(x, y) { x[y != 0] <- y[y != 0]; return(x) }, l)
+  # The line above should have the same result as the sum below, but the sum is much slower
+  #array <- apply(array, 1:3, sum)
+  # Finally we assign names to the array
+  dimnames(array) <- list(seq_len(n_iter), node_names, host_tree$tip.label)
 
-  # remove empty rows/columns
+  # For the probabilities arrays, we just need to count and divide by total iterations
+  # First, make an array of the posterior probabilities for each state
+  p_st <- unclass(table(dat2$node_index, dat2$s_index, dat2$end_state))
+  p_st <- p_st / n_iter
+  dimnames(p_st) <- list(node_names, host_tree$tip.label, state)
+  # Then, make an array that has the realized repertoire (state 2), and the fundamental repertoire
+  # (sum of the probabilities of all states)
+  p_rep <- array(0, c(dim(p_st)[1:2], 2), c(dimnames(p_st)[1:2], list(c('realized', 'fundamental'))))
+  if (2 %in% state) p_rep[, , 1] <- p_st[, , '2']
+  p_rep[, , 2] <- apply(p_st, 1:2, sum)
+
   if (drop_empty) {
-    m_posterior <- m_posterior[rowSums(m_posterior) != 0, ]
-    m_posterior <- m_posterior[, colSums(m_posterior) != 0]
+    symbionts_present <- rowSums(p_st) != 0
+    hosts_present <- apply(p_st, 2, sum) != 0
+    array <- array[, symbionts_present, hosts_present, drop = FALSE]
+    p_st  <-  p_st[symbionts_present, hosts_present, , drop = FALSE]
+    p_rep <- p_rep[symbionts_present, hosts_present, , drop = FALSE]
   }
 
-  # convert to probability
-  m_posterior <- m_posterior * (1 / n_iter)
-  samp_post <- list(m_sample, m_posterior)
-
-  return(samp_post)
+  list(samples = array, post_states = p_st, post_repertoires = p_rep)
 }
-
-
 
 # find lineages (and their repertoires) that exist during the specified age
 make_dat_age <- function(dat, age) {
