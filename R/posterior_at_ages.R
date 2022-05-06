@@ -91,9 +91,7 @@ make_samples_post_at_age <- function(dat, age, tree, host_tree, state, drop_empt
   n_nodes <- length(nodes)
   node_names <- c(rev(tree$tip.label), paste0("Index_", (((n_nodes + 1) / 2) + 1):length(nodes)))
 
-  # Apply `make_dat_age` to each iteration, then join them all together.
-  # This is the slowest step of the function.
-  dat2 <- purrr::map_dfr(split(dat, dat$iteration), make_dat_age, age = age)
+  dat2 <- make_dat_age(dat, age = age)
 
   dat2 <- dat2 %>%
     # Select only the columns we need
@@ -172,35 +170,64 @@ make_samples_post_at_age <- function(dat, age, tree, host_tree, state, drop_empt
 make_dat_age <- function(dat, age) {
 
   # reduce the history data frame to only include relevant branches
-  dat2 <- dat[dat$branch_start_time >= age & dat$branch_end_time <= age, ]
-
+  dat2 <- dplyr::filter(
+    dat,
+    .data$branch_start_time >= age,
+    .data$branch_end_time <= age,
+  )
+  # list unique nodes and iterations before further filtering
   nodes <- unique(dat2$node_index)
+  iterations <- sort(unique(dat2$iteration))
 
-  dat3 <- rbind(
+  # collect the branches without change or the events with an estimated transition time before the
+  # cut-off
+  dat2 <- rbind(
     dat2[dat2$transition_type == "no_change", ],
     dat2[dat2$transition_type == "anagenetic" & dat2$transition_time >= age, ]
   )
 
-  ret <- list()
-  for (i in seq_along(nodes)) {
-    if (!(nodes[i] %in% dat3$node_index)) {             # if changes happened only after age
-      parent <- dat[dat$node_index == nodes[i], 12][1]  # get state at parent node
-      dat4 <- dat[dat$node_index == parent, ]
-      dat4$node_index <- nodes[i]                       # fix node_index - back to child nodes
-      if (nrow(dat4) == 1) {                            # when type is no_change, time is NA and which.min doesn't work
-        ret[[i]] <- dat4
-      } else{
-        ret[[i]] <- dat4[which.min(dat4$transition_time), ]
-      }
-    } else {
-      dat4 <- dat3[dat3$node_index == nodes[i], ]
-      if (nrow(dat4) == 1) {
-        ret[[i]] <- dat4
-      } else{
-        ret[[i]] <- dat4[which.min(dat4$transition_time), ]  # get state at minimum, not maximum time (that is greater than age)
-      }
-    }
+  # find nodes and iterations that we have lost, since we need to deal with them separately below
+  if (nrow(dat2) > 0) {
+    missing_nodes <- dat2 %>%
+      dplyr::group_by(.data$iteration) %>%
+      dplyr::summarise(node_index = setdiff(nodes, .data$node_index), .groups = 'drop')
+    missing_iters <- dat2 %>%
+      dplyr::group_by(.data$node_index) %>%
+      dplyr::summarise(iteration = setdiff(iterations, .data$iteration), .groups = 'drop')
+    missing <- dplyr::bind_rows(missing_nodes, missing_iters)
+  } else {
+    missing <- expand.grid(
+      iteration = iterations,
+      node_index = nodes
+    )
   }
-  return(data.table::rbindlist(ret))
-}
 
+  if (nrow(missing) > 0) {
+    # for missing iterations and nodes, find their parent node instead
+    parents <- dplyr::left_join(
+      missing,
+      dat %>% dplyr::select(iteration, node_index, parent_index) %>% dplyr::distinct(),
+      c('iteration', 'node_index')
+    )
+    # now take those parents, get their data and rename their node_index back tot he child node
+    missing_values <- dplyr::inner_join(
+      dat,
+      parents,
+      by = c('iteration', 'node_index' = 'parent_index'),
+      suffix = c('', '_tmp')
+    ) %>%
+      dplyr::mutate(node_index = .data$node_index_tmp) %>%
+      dplyr::select(-.data$node_index_tmp)
+
+    # then join this with our previously found data
+    dat2 <- dplyr::bind_rows(dat2, missing_values)
+  }
+
+  # for each node at each iteration, find the youngest event. Use data.table since it needs to be
+  # fast for many groups.
+  dat2 <- data.table::as.data.table(dat2)
+  # first, sort the table for transition time, with NA values sorted at the end
+  data.table::setorderv(dat2, 'transition_time', na.last = TRUE)
+  # then for each group, take the first value
+  dat2[, .SD[1], by = c('iteration', 'node_index')]
+}
