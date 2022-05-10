@@ -37,7 +37,7 @@ $type which defines if the taxon is a "host" or a "symbiont".}
 each module only once.}
 
 \item{type}{One of \code{'states'} or \code{'repertoires'}. If \code{'states'}, will plot the presence of a
-state when its posterior probablity is higher than \code{threshold}. If \verb{'repertoires}, will plot
+state when its posterior probablity is higher than \code{threshold}. If \code{'repertoires'}, will plot
 the same but for the given \code{repertoire}.}
 
 \item{state}{Which state? Default is 2. For analyses using the 3-state model, choose \code{1} or \code{2}

@@ -14,13 +14,13 @@
 #'
 #' @return A list with three elements:
 #' \itemize{
-#'  \item{"`samples`"}{An array of samples x nodes x hosts, containing the state of each sample.}
-##'  \item{"`post_states`"}{An array of nodes x hosts x state containing the posterior probability
-##'  for each state.}
-##'  \item{`post_repertoires`}{An array of nodes x hosts x repertoire containing the posterior
-##'  probability for 1) the `"realized"` repertoire which is defined as state 2, and 2) the
-##'  `"fundamental"` repertoire which is defined as having any state (usually 1 or 2).}
-##' }
+#'  \item{"`samples`"}{ An array of samples x nodes x hosts, containing the state of each sample.}
+#'  \item{"`post_states`"}{ An array of nodes x hosts x state containing the posterior probability
+#'  for each state.}
+#'  \item{"`post_repertoires`"}{ An array of nodes x hosts x repertoire containing the posterior
+#'  probability for 1) the `"realized"` repertoire which is defined as state 2, and 2) the
+#'  `"fundamental"` repertoire which is defined as having any state (usually 1 or 2).}
+#' }
 #'  The number of samples is the number of iterations in `history`.
 #' @export
 #' @importFrom rlang .data

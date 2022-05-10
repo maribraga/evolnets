@@ -18,8 +18,7 @@ plot_module_matrix2(
   point_size = 3,
   dodge_width = 0.025,
   colors = NULL,
-  ladderize = FALSE,
-  ...
+  ladderize = FALSE
 )
 }
 \arguments{
@@ -36,7 +35,7 @@ network is represented, otherwise a weighted network is assumed.}
 See the examples on how to change the color scale.}
 
 \item{type}{One of \code{'states'} or \code{'repertoires'}. If \code{'states'}, will plot the presence of a
-state when its posterior probablity is higher than \code{threshold}. If \verb{'repertoires}, will plot
+state when its posterior probablity is higher than \code{threshold}. If \code{'repertoires'}, will plot
 the same but for the given \code{repertoire}.}
 
 \item{state}{Which state? Default is 2. For analyses using the 3-state model, choose \code{1} or \code{2}

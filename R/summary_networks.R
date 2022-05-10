@@ -19,7 +19,7 @@
 #'
 #' ages <- c(60, 50, 40, 0)
 #' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-#' pp_at_ages <- at_ages$posterior_probabilities
+#' pp_at_ages <- at_ages$post_states
 #' weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
 #' binary_net_90 <- get_summary_network(pp_at_ages, pt = 0.9, weighted = FALSE)
 get_summary_network <- function(pp_at_ages, pt, ages = NULL, weighted = TRUE){
