@@ -429,6 +429,9 @@ plot_ancestral_networks <- function(summary_networks, matched_modules, tree, mod
   # check that summary_networks is also in decreasing order
   # stop('`summary_networks` has to be in decreasing order of ages. Are you sure you used `get_summary_network`?'
 
+  # check that all summary networks contain at least 3 rows (symbionts)
+  # stop('all matrices in `summary_networks` have to contains at least 3 rows to produce a network')
+
   # make list of tidy graphs
   list_tgraphs <- list()
   for(n in 1:length(summary_networks)){
@@ -486,7 +489,10 @@ plot_ancestral_networks <- function(summary_networks, matched_modules, tree, mod
     plot_list[[t]] <- plot_age
   }
 
-  return(plot_list)
+  full_list <- list(plot_list, list_subtrees, list_tip_data, list_tgraphs)
+  names(full_list) <- c("plot", "subtrees", "tip_data", "graphs")
+
+  return(full_list)
 
 }
 

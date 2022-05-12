@@ -60,6 +60,9 @@ posterior_at_ages <- function(history, ages, tree, host_tree, extant_prob = FALS
     stop('`drop_empty` should be a logical vector of length 1.')
   }
 
+  # force ages to be in decreasing order (important in downstream functions)
+  ages <- sort(ages, decreasing = TRUE)
+
   # get the posteriors
   l <- list()
 
