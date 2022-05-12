@@ -423,7 +423,7 @@ plot_module_matrix2 <- function(
 #' }
 plot_ancestral_networks <- function(summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL){
 
-  ages <- as.numeric(names(summary_networks))
+  ages <- names(summary_networks) %>% as.numeric() %>% sort(decreasing = TRUE)
   # make list of tidy graphs
   list_tgraphs <- list()
   for(n in 1:length(summary_networks)){
