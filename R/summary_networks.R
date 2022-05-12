@@ -34,6 +34,10 @@ get_summary_network <- function(pp_at_ages, pt, ages = NULL, weighted = TRUE){
 
   # find ages if not provided
   if (is.null(ages)) ages <- as.numeric(names(pp_at_ages))
+
+  # force ages to be in decreasing order (important in downstream functions)
+  ages <- sort(ages, decreasing = TRUE)
+
   net_list <- list()
 
   for (m in seq_along(ages)) {

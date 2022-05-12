@@ -423,7 +423,12 @@ plot_module_matrix2 <- function(
 #' }
 plot_ancestral_networks <- function(summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL){
 
+  # ages has to be in decreasing order - '0' is the last element
   ages <- names(summary_networks) %>% as.numeric() %>% sort(decreasing = TRUE)
+
+  # check that summary_networks is also in decreasing order
+  # stop('`summary_networks` has to be in decreasing order of ages. Are you sure you used `get_summary_network`?'
+
   # make list of tidy graphs
   list_tgraphs <- list()
   for(n in 1:length(summary_networks)){
