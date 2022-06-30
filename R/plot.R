@@ -26,14 +26,14 @@
 #' @examples
 #' \dontrun{
 #'   # The slow portion of this function is the calculation of the modules.
-#'   plot_module_matrix(extant_net)
+#'   plot_extant_matrix(extant_net)
 #'
 #'   # Change our network to a weighted one:
 #'   extant_net_weighted <- extant_net
 #'   extant_net_weighted[extant_net == 1] <- runif(sum(extant_net))
-#'   plot_module_matrix(extant_net_weighted)
+#'   plot_extant_matrix(extant_net_weighted)
 #' }
-plot_module_matrix <- function(
+plot_extant_matrix <- function(
     net, modules = NULL, module_order = NULL, parasite_order = NULL,
     host_order = NULL, state_alpha = c(0.3, 1)
 ) {
@@ -351,11 +351,11 @@ plot_ancestral_states <- function(
 #' @examples
 #' \dontrun{
 #'   san <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
-#'   plot_module_matrix2(extant_net, san, tree, host_tree)
+#'   plot_matrix_phylo(extant_net, san, tree, host_tree)
 #'   # manual_colors
-#'   plot_module_matrix2(extant_net, san, tree, host_tree, colors = rainbow(20))
+#'   plot_matrix_phylo(extant_net, san, tree, host_tree, colors = rainbow(20))
 #' }
-plot_module_matrix2 <- function(
+plot_matrix_phylo <- function(
   net, samples_at_nodes, tree, host_tree, type = "states", state = 2, repertoire = 'fundamental',
   modules = NULL, module_order = NULL,
   threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
