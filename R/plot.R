@@ -1,19 +1,23 @@
 #' Plot a network with modules as an adjacency matrix
 #'
-#' @param net An adjacency matrix for a bipartite network. Parasites should be the rows, hosts
-#'   should be columns. If all values are 0 or 1 an unweighted network is represented, otherwise
-#'   a weighted network is assumed.
-#' @param modules A `moduleWeb` or a `data.frame` object defining the models in the network. If left `NULL` the
-#'   modules are automatically calculated. If a `data.frame` is passed, it must contain three columns:
-#'   $name with taxon names,
-#'   $module with the module the taxon was assigned to, and
-#'   $type which defines if the taxon is a "host" or a "symbiont".
-#' @param parasite_order A character vector giving the order the parasite should be listed in.
-#'   Should contain each parasite only once, and include the row names of `net`.
-#' @param host_order A character vector giving the order the hosts should be listed in. Should
-#'   contain each host only once, and include the column names of `net`.
-#' @param module_order A character vector giving the order that modules should be plotted. Should contain
-#'   each module only once.
+#' @param net An adjacency matrix for a bipartite network. Parasites should be
+#'   the rows, hosts should be columns. If all values are 0 or 1 an unweighted
+#'   network is represented, otherwise a weighted network is assumed.
+#' @param modules A `moduleWeb` or a `data.frame` object defining the models in
+#'   the network. If left `NULL` the modules are automatically calculated. If a
+#'   `data.frame` is passed, it must contain three columns: $name with taxon
+#'   names, $module with the module the taxon was assigned to, and $type which
+#'   defines if the taxon is a "host" or a "symbiont".
+#' @param parasite_order A character vector giving the order the parasite should
+#'   be listed in. Should contain each parasite only once, and include the row
+#'   names of `net`.
+#' @param host_order A character vector giving the order the hosts should be
+#'   listed in. Should contain each host only once, and include the column names
+#'   of `net`.
+#' @param module_order A character vector giving the order that modules should
+#'   be plotted. Should contain each module only once.
+#' @param state_alpha A numeric vector of length 2. Gives the alpha
+#'   (transparency) values for the interaction type in the three-state model
 #'
 #' @return A `ggplot` object.
 #' @export
@@ -29,7 +33,10 @@
 #'   extant_net_weighted[extant_net == 1] <- runif(sum(extant_net))
 #'   plot_module_matrix(extant_net_weighted)
 #' }
-plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasite_order = NULL, host_order = NULL) {
+plot_module_matrix <- function(
+    net, modules = NULL, module_order = NULL, parasite_order = NULL,
+    host_order = NULL, state_alpha = c(0.3, 1)
+) {
   # Check inputs.
   if (!is.matrix(net)) stop('`net` should be a matrix.')
   if (!is.null(modules) && (
@@ -48,6 +55,9 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
     !is.character(host_order) || any(duplicated(host_order))
   )) {
     stop('`host_order` should be a character vector without duplicates.')
+  }
+  if (!is.numeric(state_alpha) || length(state_alpha) != 2) {
+    stop('`state_alpha` should be a numeric vector of length 2.')
   }
 
   # If no modules are given, calculate them
@@ -118,7 +128,12 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
   module_mat$host <- factor(module_mat$host, levels = host_order)
 
   if (length(unique(module_mat$weight)) > 1) {
-    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~weight))
+    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~factor(weight))) +
+      ggplot2::scale_alpha_ordinal(
+        limits = factor(1:2), range = state_alpha, name = 'Interaction type',
+        labels = c('1' = 'Potential', '2' = 'Actual'),
+        guide = ggplot2::guide_legend(ncol = 1)
+      )
   } else {
     p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
   }
