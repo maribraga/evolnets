@@ -1,19 +1,23 @@
 #' Plot a network with modules as an adjacency matrix
 #'
-#' @param net An adjacency matrix for a bipartite network. Parasites should be the rows, hosts
-#'   should be columns. If all values are 0 or 1 an unweighted network is represented, otherwise
-#'   a weighted network is assumed.
-#' @param modules A `moduleWeb` or a `data.frame` object defining the models in the network. If left `NULL` the
-#'   modules are automatically calculated. If a `data.frame` is passed, it must contain three columns:
-#'   $name with taxon names,
-#'   $module with the module the taxon was assigned to, and
-#'   $type which defines if the taxon is a "host" or a "symbiont".
-#' @param parasite_order A character vector giving the order the parasite should be listed in.
-#'   Should contain each parasite only once, and include the row names of `net`.
-#' @param host_order A character vector giving the order the hosts should be listed in. Should
-#'   contain each host only once, and include the column names of `net`.
-#' @param module_order A character vector giving the order that modules should be plotted. Should contain
-#'   each module only once.
+#' @param net An adjacency matrix for a bipartite network. Parasites should be
+#'   the rows, hosts should be columns. If all values are 0 or 1 an unweighted
+#'   network is represented, otherwise a weighted network is assumed.
+#' @param modules A `moduleWeb` or a `data.frame` object defining the models in
+#'   the network. If left `NULL` the modules are automatically calculated. If a
+#'   `data.frame` is passed, it must contain three columns: $name with taxon
+#'   names, $module with the module the taxon was assigned to, and $type which
+#'   defines if the taxon is a "host" or a "symbiont".
+#' @param parasite_order A character vector giving the order the parasite should
+#'   be listed in. Should contain each parasite only once, and include the row
+#'   names of `net`.
+#' @param host_order A character vector giving the order the hosts should be
+#'   listed in. Should contain each host only once, and include the column names
+#'   of `net`.
+#' @param module_order A character vector giving the order that modules should
+#'   be plotted. Should contain each module only once.
+#' @param state_alpha A numeric vector of length 2. Gives the alpha
+#'   (transparency) values for the interaction type in the three-state model
 #'
 #' @return A `ggplot` object.
 #' @export
@@ -22,14 +26,17 @@
 #' @examples
 #' \dontrun{
 #'   # The slow portion of this function is the calculation of the modules.
-#'   plot_module_matrix(extant_net)
+#'   plot_extant_matrix(extant_net)
 #'
 #'   # Change our network to a weighted one:
 #'   extant_net_weighted <- extant_net
 #'   extant_net_weighted[extant_net == 1] <- runif(sum(extant_net))
-#'   plot_module_matrix(extant_net_weighted)
+#'   plot_extant_matrix(extant_net_weighted)
 #' }
-plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasite_order = NULL, host_order = NULL) {
+plot_extant_matrix <- function(
+    net, modules = NULL, module_order = NULL, parasite_order = NULL,
+    host_order = NULL, state_alpha = c(0.3, 1)
+) {
   # Check inputs.
   if (!is.matrix(net)) stop('`net` should be a matrix.')
   if (!is.null(modules) && (
@@ -48,6 +55,9 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
     !is.character(host_order) || any(duplicated(host_order))
   )) {
     stop('`host_order` should be a character vector without duplicates.')
+  }
+  if (!is.numeric(state_alpha) || length(state_alpha) != 2) {
+    stop('`state_alpha` should be a numeric vector of length 2.')
   }
 
   # If no modules are given, calculate them
@@ -118,7 +128,12 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
   module_mat$host <- factor(module_mat$host, levels = host_order)
 
   if (length(unique(module_mat$weight)) > 1) {
-    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~weight))
+    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~factor(weight))) +
+      ggplot2::scale_alpha_ordinal(
+        limits = factor(1:2), range = state_alpha, name = 'Interaction type',
+        labels = c('1' = 'Potential', '2' = 'Actual'),
+        guide = ggplot2::guide_legend(ncol = 1)
+      )
   } else {
     p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
   }
@@ -176,6 +191,8 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 #' @param legend Whether to display a legend for the colors. Logical vector of length 1.
 #' @param colors Override the default colors. Should be a character vector with as many color values
 #'  as there are modules.
+#' @param state_alpha A numeric vector of length 2. Gives the alpha
+#'   (transparency) values for the interaction type in the three-state model
 #' @param ladderize Logical. Whether to ladderize the tree. Default to FALSE.
 #'
 #' The ancestral states are automatically colored by module. To change what colors are used, you
@@ -197,7 +214,8 @@ plot_module_matrix <- function(net, modules = NULL, module_order = NULL, parasit
 plot_ancestral_states <- function(
   tree, samples_at_nodes, modules, module_order = NULL, type = "states", state = 2,
   repertoire = 'fundamental', layout = "rectangular", threshold = 0.9, point_size = 3,
-  point_shape = NULL, dodge_width = 0.025, legend = TRUE, colors = NULL, ladderize = FALSE
+  point_shape = NULL, dodge_width = 0.025, legend = TRUE, colors = NULL,
+  state_alpha = c(0.3, 1), ladderize = FALSE
 ) {
   if (!requireNamespace('ggtree')) {
     stop('Please install the ggtree package to use this function. Use `BiocManager::install("ggtree")`')
@@ -211,8 +229,8 @@ plot_ancestral_states <- function(
   if (!(type %in% c('states', 'repertoires') & length(type) == 1)) {
     stop("`type` should be either 'states' or 'repertoires'.")
   }
-  if (!(as.character(state) %in% dimnames(samples_at_nodes[['post_states']])[[3]] & length(state) == 1)) {
-    stop("`state` should be a vector of length 1, and a valid state occuring in `samples_at_nodes`")
+  if (!all(as.character(state) %in% dimnames(samples_at_nodes[['post_states']])[[3]])) {
+    stop("`state` should be a vector and have valid states occuring in `samples_at_nodes`")
   }
   if (!(repertoire %in% c('fundamental', 'realized') & length(repertoire) == 1)) {
     stop("`repertoire` should be either 'fundamental' or 'realized'.")
@@ -239,17 +257,26 @@ plot_ancestral_states <- function(
     }
   }
 
-  # Get the ancestral states, reformat to plot on the parasite tree
-  if (type == 'states') {
-    node_df <- as.data.frame(samples_at_nodes[['post_states']][, , as.character(state)])
-  } else {
-    node_df <- as.data.frame(samples_at_nodes[['post_repertoires']][, , repertoire])
+  prepare_table <- function(m, s = NULL) {
+    df <- as.data.frame(m)
+    df$node <- rownames(df)
+    df <- tidyr::pivot_longer(df, -.data$node, names_to = 'host')
+    df <- df[df$value >= threshold, ]
+    df$value <- NULL
+    if (!is.null(s)) df$state <- s
+    return(df)
   }
 
-  node_df$node <- rownames(node_df)
-  node_df <- tidyr::pivot_longer(node_df, -.data$node, names_to = 'host')
-  node_df <- node_df[node_df$value >= threshold, ]
-  node_df$value <- NULL
+  # Get the ancestral states, reformat to plot on the parasite tree
+  if (type == 'states') {
+    l <- lapply(state, function(s) {
+      prepare_table(samples_at_nodes[['post_states']][, , as.character(s)], s)
+    })
+    node_df <- data.table::rbindlist(l)
+  } else {
+    node_df <- prepare_table(samples_at_nodes[['post_repertoires']][, , repertoire])
+  }
+
   node_df <- dplyr::left_join(node_df, host_mods, by = "host")
 
   # Match the ancestral states with the right plotting coordinates
@@ -280,7 +307,7 @@ plot_ancestral_states <- function(
   }
 
   # Make the parasite tree
-  suppressMessages(
+  suppressMessages( #suppress "scale for `y` is already present message
     p <- ggtree::ggtree(tree, layout = layout, ladderize = ladderize) +
       ggplot2::scale_x_continuous(name = NULL, labels = abs, expand = ggplot2::expansion(c(0.05, 0))) +
       ggplot2::scale_y_continuous(expand = c(0, 0.5)) +
@@ -309,11 +336,22 @@ plot_ancestral_states <- function(
     if (is.null(point_shape)) point_shape <- 16
   }
 
-  p <- p + ggplot2::geom_point(
-    ggplot2::aes_(~x, ~y, color = ~module),
-    node_df2, shape = point_shape, size = point_size
-  )
-
+  if (type == "states" & length(state) > 1) {
+    p <- p + ggplot2::geom_point(
+      ggplot2::aes_(~x, ~y, color = ~module, alpha = ~factor(.data$state, levels = .env$state)),
+      node_df2, shape = point_shape, size = point_size
+    ) +
+      ggplot2::scale_alpha_ordinal(
+        limits = factor(1:2), range = state_alpha, name = 'Interaction type',
+        labels = c('1' = 'Potential', '2' = 'Actual'),
+        guide = guide
+      )
+  } else {
+    p <- p + ggplot2::geom_point(
+      ggplot2::aes_(~x, ~y, color = ~module),
+      node_df2, shape = point_shape, size = point_size
+    )
+  }
   return(p)
 }
 
@@ -336,11 +374,11 @@ plot_ancestral_states <- function(
 #' @examples
 #' \dontrun{
 #'   san <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
-#'   plot_module_matrix2(extant_net, san, tree, host_tree)
+#'   plot_matrix_phylo(extant_net, san, tree, host_tree)
 #'   # manual_colors
-#'   plot_module_matrix2(extant_net, san, tree, host_tree, colors = rainbow(20))
+#'   plot_matrix_phylo(extant_net, san, tree, host_tree, colors = rainbow(20))
 #' }
-plot_module_matrix2 <- function(
+plot_matrix_phylo <- function(
   net, samples_at_nodes, tree, host_tree, type = "states", state = 2, repertoire = 'fundamental',
   modules = NULL, module_order = NULL,
   threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
@@ -384,7 +422,7 @@ plot_module_matrix2 <- function(
   host_coords <- host_coords[order(host_coords$y), ]
 
   # Make the matrix
-  module_plot <- plot_module_matrix(net, modules, module_order, parasite_coords$label, host_coords$label)
+  module_plot <- plot_extant_matrix(net, modules, module_order, parasite_coords$label, host_coords$label)
   if (is.null(colors)) {
     module_plot <- module_plot + ggplot2::scale_fill_discrete(limits = factor(mods, levels = mods))
   } else {
