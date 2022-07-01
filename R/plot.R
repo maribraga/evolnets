@@ -229,7 +229,7 @@ plot_ancestral_states <- function(
   if (!(type %in% c('states', 'repertoires') & length(type) == 1)) {
     stop("`type` should be either 'states' or 'repertoires'.")
   }
-  if (!(as.character(state) %in% dimnames(samples_at_nodes[['post_states']])[[3]])) {
+  if (!all(as.character(state) %in% dimnames(samples_at_nodes[['post_states']])[[3]])) {
     stop("`state` should be a vector and have valid states occuring in `samples_at_nodes`")
   }
   if (!(repertoire %in% c('fundamental', 'realized') & length(repertoire) == 1)) {
@@ -344,7 +344,7 @@ plot_ancestral_states <- function(
       ggplot2::scale_alpha_ordinal(
         limits = factor(1:2), range = state_alpha, name = 'Interaction type',
         labels = c('1' = 'Potential', '2' = 'Actual'),
-        guide = ggplot2::guide_legend(ncol = 1)
+        guide = guide
       )
   } else {
     p <- p + ggplot2::geom_point(
@@ -422,7 +422,7 @@ plot_matrix_phylo <- function(
   host_coords <- host_coords[order(host_coords$y), ]
 
   # Make the matrix
-  module_plot <- plot_module_matrix(net, modules, module_order, parasite_coords$label, host_coords$label)
+  module_plot <- plot_extant_matrix(net, modules, module_order, parasite_coords$label, host_coords$label)
   if (is.null(colors)) {
     module_plot <- module_plot + ggplot2::scale_fill_discrete(limits = factor(mods, levels = mods))
   } else {
