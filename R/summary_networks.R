@@ -84,8 +84,8 @@ get_summary_network <- function(
     if (length(state) > 1) {
       mat <- apply(mat * slice.index(mat, 3), 1:2, sum)
     }
-    mat <- mat[rowSums(mat) != 0, ]
-    mat <- mat[, colSums(mat) != 0]
+    mat <- mat[rowSums(mat) != 0, , drop = FALSE]
+    mat <- mat[, colSums(mat) != 0, drop = FALSE]
     net_list[[m]] <- mat
   }
 
