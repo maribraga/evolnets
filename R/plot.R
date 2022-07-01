@@ -162,7 +162,7 @@ plot_extant_matrix <- function(
 #'
 #' @param tree The phylogeny, a `phylo` object.
 #' @param samples_at_nodes A list of length 2, output from `posterior_at_nodes()`.
-#' @param modules A `moduleWeb` or a `data.frame` object defining the models in the network.
+#' @param modules A `moduleWeb` or a `data.frame` object defining the modules in the network.
 #' If a `data.frame` is passed, it must contain three columns:
 #'   $name with taxon names,
 #'   $module with the module the taxon was assigned to, and
@@ -170,7 +170,7 @@ plot_extant_matrix <- function(
 #' @param module_order A character vector giving the order that modules should be plotted. Should contain
 #'   each module only once.
 #' @param type One of `'states'` or `'repertoires'`. If `'states'`, will plot the presence of a
-#'   state when its posterior probablity is higher than `threshold`. If `'repertoires'`, will plot
+#'   state when its posterior probability is higher than `threshold`. If `'repertoires'`, will plot
 #'   the same but for the given `repertoire`.
 #' @param state Which state? Default is 2. For analyses using the 3-state model, choose `1` or `2`
 #'    (where 1 is a potential host and 2 an actual host). Only used if `type` is `'states'`.
