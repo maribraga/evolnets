@@ -212,10 +212,10 @@ plot_extant_matrix <- function(
 #'   plot_ancestral_states(tree, san, mods, colors = rainbow(20))
 #' }
 plot_ancestral_states <- function(
-  tree, samples_at_nodes, modules, module_order = NULL, type = "states", state = 2,
-  repertoire = 'fundamental', layout = "rectangular", threshold = 0.9, point_size = 3,
-  point_shape = NULL, dodge_width = 0.025, legend = TRUE, colors = NULL,
-  state_alpha = c(0.3, 1), ladderize = FALSE
+    tree, samples_at_nodes, modules, module_order = NULL, type = "states", state = 2,
+    repertoire = 'fundamental', layout = "rectangular", threshold = 0.9, point_size = 3,
+    point_shape = NULL, dodge_width = 0.025, legend = TRUE, colors = NULL,
+    state_alpha = c(0.3, 1), ladderize = FALSE
 ) {
   if (!requireNamespace('ggtree')) {
     stop('Please install the ggtree package to use this function. Use `BiocManager::install("ggtree")`')
@@ -379,9 +379,9 @@ plot_ancestral_states <- function(
 #'   plot_matrix_phylo(extant_net, san, tree, host_tree, colors = rainbow(20))
 #' }
 plot_matrix_phylo <- function(
-  net, samples_at_nodes, tree, host_tree, type = "states", state = 2, repertoire = 'fundamental',
-  modules = NULL, module_order = NULL,
-  threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
+    net, samples_at_nodes, tree, host_tree, type = "states", state = 2, repertoire = 'fundamental',
+    modules = NULL, module_order = NULL,
+    threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
 ) {
   # Check inputs
   if (!is.matrix(net)) stop('`net` should be a matrix.')
@@ -443,23 +443,30 @@ plot_matrix_phylo <- function(
 
 #' Plot ancestral networks with module information
 #'
-#' @param summary_networks A list of incidence matrices (summary network) for each time slice in `ages`. Output of `get_summary_network()`
-#' @param matched_modules A data frame containing the module information for each node at each
-#' network. Output of `modules_across_ages()[[1]][[1]]`.
-#' @param tree The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class `phylo`.
-#' @param module_levels Order in which the modules should be organized. Affects which color each module will be assigned.
-#' If NULL, takes the order of appearance in `matched_modules$module`.
+#' @param summary_networks A list of incidence matrices (summary network) for each time slice in
+#'   `ages`. Output of `get_summary_network()`
+#' @param matched_modules A list of lists containing the module information for each node at each
+#'   network. Output of `modules_across_ages()`.
+#' @param tree The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class
+#'   `phylo`.
+#' @param module_levels Order in which the modules should be organized. Affects which color each
+#'   module will be assigned. If NULL, takes the order of appearance in `matched_modules$module`.
 #' @param palette Color palette used to plot module information.
 #'
-#' @return A list of plots of class `patchwork`. Each element contains the tree and network at a given time slice.
+#' @return A list of plots of class `patchwork`. Each element contains the tree and network at a
+#'   given time slice.
 #' @export
 #' @importFrom rlang .data
 #'
 #' @examples
 #' \dontrun{
-
+#'
 #' }
-plot_ancestral_networks <- function(summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL){
+plot_ancestral_networks <- function(
+    summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL
+){
+  # extract the data.frame from match_modules that we need
+  matched_modules <- matched_modules[['matched_modules']][['nodes_and_modules_per_age']]
 
   # ages has to be in decreasing order - '0' is the last element
   ages <- names(summary_networks) %>% as.numeric() %>% sort(decreasing = TRUE)
@@ -470,11 +477,28 @@ plot_ancestral_networks <- function(summary_networks, matched_modules, tree, mod
   # check that all summary networks contain at least 3 rows (symbionts)
   # stop('all matrices in `summary_networks` have to contains at least 3 rows to produce a network')
 
+  # auto-detect the network type
+  net_vals <- sort(unique(unlist(summary_networks)))
+  if (identical(net_vals, c(0, 1))) {
+    weighted <- FALSE
+    two_state <- FALSE
+    weight_range <- c(0, 1)
+  } else {
+    if (identical(net_vals, c(0, 1, 2))) {
+      weighted <- FALSE
+      two_state <- TRUE
+      weight_range <- c(0, 1)
+    } else {
+      weighted <- TRUE
+      two_state <- FALSE
+      weight_range <- range(net_vals[-1])
+    }
+  }
   # make list of tidy graphs
   list_tgraphs <- list()
-  for(n in 1:length(summary_networks)){
+  for(n in seq_along(summary_networks)){
 
-    wnet <- as.matrix(summary_networks[[n]])
+    wnet <- summary_networks[[n]]
 
     graph <- tidygraph::as_tbl_graph(t(wnet), directed = F) %>%
       dplyr::left_join(dplyr::filter(dplyr::select(matched_modules, .data$age, .data$name, .data$module),
@@ -497,12 +521,14 @@ plot_ancestral_networks <- function(summary_networks, matched_modules, tree, mod
     list_subtrees[[i]] <- subtree
 
     graph <- list_tgraphs[[i]]
-    mod_from_graph <- tibble::tibble(module = tidygraph::activate(graph,nodes) %>%
-                                       dplyr::filter(.data$type == TRUE) %>%
-                                       dplyr::pull(.data$module),
-                                     label = tidygraph::activate(graph,nodes) %>%
-                                       dplyr::filter(.data$type == TRUE) %>%
-                                       dplyr::pull(.data$name))
+    mod_from_graph <- tibble::tibble(
+      module = tidygraph::activate(graph,nodes) %>%
+        dplyr::filter(.data$type == TRUE) %>%
+        dplyr::pull(.data$module),
+      label = tidygraph::activate(graph,nodes) %>%
+        dplyr::filter(.data$type == TRUE) %>%
+        dplyr::pull(.data$name)
+    )
     # extra step just to check that tip labels and graph node names match
     tip_data <- tibble::tibble(label = subtree$tip.label) %>%
       dplyr::inner_join(mod_from_graph, by = "label")
@@ -518,19 +544,19 @@ plot_ancestral_networks <- function(summary_networks, matched_modules, tree, mod
 
   # plot
   if(is.null(module_levels)) module_levels <- unique(matched_modules$module)
-  if(is.null(palette)) palette <- scales::hue_pal()(length(module_levels))
 
   plot_list <- list()
 
   for(t in 1:length(ages)){
-    plot_age <- plot_network_at_age(list_subtrees[[t]], list_tip_data[[t]], list_tgraphs[[t]], module_levels, palette, tree, age = ages[t])
+    plot_age <- plot_network_at_age(
+      list_subtrees[[t]], list_tip_data[[t]], list_tgraphs[[t]],
+      module_levels, palette, tree, age = ages[t], weighted = weighted, two_state = two_state,
+      weight_range = weight_range
+    )
     plot_list[[t]] <- plot_age
   }
 
-  full_list <- list(plot_list, list_subtrees, list_tip_data, list_tgraphs)
-  names(full_list) <- c("plot", "subtrees", "tip_data", "graphs")
-
-  return(full_list)
+  return(plot_list)
 
 }
 
@@ -538,11 +564,18 @@ plot_ancestral_networks <- function(summary_networks, matched_modules, tree, mod
 #'
 #' @param subtree a `phylo` object of the original tree sliced at a given time in the past.
 #' @param tip_data a `data.frame` containing the module information for each tip in the subtree.
-#' @param tgraph a `tbl_graph` containing the nodes and edges of the ancestral network and the module information for each node.
-#' @param module_levels Order in which the modules should be organized. Affects which color each module will be assigned.
+#' @param tgraph a `tbl_graph` containing the nodes and edges of the ancestral network and the
+#'   module information for each node.
+#' @param module_levels Order in which the modules should be organized. Affects which color each
+#'   module will be assigned.
 #' @param palette Color palette used to plot module information.
-#' @param tree The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class `phylo`.
+#' @param tree The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class
+#'   `phylo`.
 #' @param age Age of the ancestral network to be plotted as the tittle.
+#' @param weighted Whether the network should have weighted edges.
+#' @param weight_range The range of weights conscidered for the width of the edges.
+#' @param two_state Whether the width of the edges should reflect the state (instead of the
+#'   posterior probability).
 #'
 #' @return An assembly of plots, of class `patchwork`.
 #' @export
@@ -553,7 +586,12 @@ plot_ancestral_networks <- function(summary_networks, matched_modules, tree, mod
 #' \dontrun{
 #' plot_network_at_age(subtree, tip_data, tgraph, module_levels, palette, tree, age)
 #' }
-plot_network_at_age <- function(subtree, tip_data, tgraph, module_levels, palette, tree, age){
+plot_network_at_age <- function(
+    subtree, tip_data, tgraph, module_levels, palette = NULL, tree, age, weighted = TRUE,
+    weight_range = c(0, 1), two_state = FALSE
+) {
+
+  if(is.null(palette)) palette <- scales::hue_pal()(length(module_levels))
 
   ggt <- ggtree::ggtree(subtree, ladderize = T, root.position = -tree$root.time) %<+% tip_data +
     ggtree::geom_tippoint(ggplot2::aes(color = factor(.data$module, levels = module_levels))) +
@@ -564,14 +602,34 @@ plot_network_at_age <- function(subtree, tip_data, tgraph, module_levels, palett
     ggplot2::xlim(c(-tree$root.time,0)) +
     ggplot2::labs(title = paste0(age, " Ma"))
 
+  if (weighted) {
+    edge_scale <- ggraph::scale_edge_width_continuous(limits = weight_range, range = c(0.2, 1))
+    edge_aes <- ggplot2::aes(width = .data$weight)
+  } else {
+    if (two_state) {
+      edge_scale <- ggraph::scale_edge_width_manual(
+        name = 'State', guide = ggplot2::guide_legend(), values = c('1' = 0.2, '2' = 1),
+        limits = c('1', '2')
+      )
+      edge_aes <- ggplot2::aes(width = as.character(.data$weight))
+    } else {
+      edge_scale <- NULL
+      edge_aes <- NULL
+    }
+  }
+
   ggn <- ggraph::ggraph(tgraph, layout = 'stress') +
-    ggraph::geom_edge_link(ggplot2::aes(width = .data$weight), color = "grey50") +
-    ggraph::geom_node_point(ggplot2::aes(shape = .data$type, color = factor(.data$module, levels = module_levels))) +
-    ggplot2::scale_size_binned(range = c(0.3,1)) +
-    ggplot2::scale_shape_manual(values = c("square","circle")) +
-    ggplot2::scale_color_manual(values = palette, na.value = "grey70", drop = F) +
-    ggraph::scale_edge_width("Probability", range = c(0.3,1)) +
-    ggplot2::labs(shape = "", color = "Module") +
+    ggraph::geom_edge_link(edge_aes, color = "grey50") +
+    ggraph::geom_node_point(
+      ggplot2::aes(shape = .data$type, color = factor(.data$module, levels = module_levels))
+    ) +
+    ggplot2::scale_shape_manual(
+      values = c("square", "circle"), labels = c("Host", "Symbiont"), name = NULL
+    ) +
+    ggplot2::scale_color_manual(
+      values = palette, na.value = "grey70", drop = F, name = "Module"#, limits = c(module_levels, NA)
+    ) +
+    edge_scale +
     ggplot2::theme_void()
 
   plot_age <- ggt + ggn + patchwork::plot_layout(widths = c(2,3))

@@ -10,13 +10,14 @@
 #' @param weighted Logical. Use posterior probabilities as interaction weights?
 #' @param type One of `'states'` or `'repertoires'`. If `'states'`, will plot the presence of a
 #'   state when its posterior probablity is higher than `threshold`. If `'repertoires'`, will plot
-#'   the same but for the given `repertoire`.
+#'   the same but for the given `repertoire`. Note that this is also applied to the extant network.
 #' @param state Which state? Default is 2. For analyses using the 3-state model, choose `1`, `2` or
 #'   both using `c(1, 2)` (where 1 is a potential host and 2 an actual host). Only used if `type` is
-#'   `'states'`.
+#'   `'states'`. Note that this is also applied to the extant network.
 #' @param repertoire Either the `'realized'` repertoire which is defined as state 2, or the
 #'   `'fundamental'` repertoire (default) which is defined as having any state (usually 1 or 2), and
-#'   in the 3-state model includes both actual and potential hosts.
+#'   in the 3-state model includes both actual and potential hosts. Note that this is also applied
+#'   to the extant network.
 #'
 #' @return A list of incidence matrices (summary network) for each time slice in `ages`.
 #' @export
@@ -56,7 +57,7 @@ get_summary_network <- function(
 
   # pick the right states or repertoires
   if (type == 'states') {
-    if (weighted & (length(state) > 1)) stop('Multiple states are not supported for binary networks.')
+    if (weighted & (length(state) > 1)) stop('Multiple states are only supported for binary networks.')
     age_list <- at_ages$post_states
     age_list <- lapply(age_list, function(a) a[, , as.character(state)])
   } else {
@@ -64,7 +65,7 @@ get_summary_network <- function(
     age_list <- lapply(age_list, function(a) a[, , as.character(repertoire)])
   }
 
-  if (!is.null(ages) && (length(at_ages) != length(age_list))) {
+  if (!is.null(ages) && (length(ages) != length(age_list))) {
     stop('`at_ages` must contain the same time slices as `ages`.')
   }
   # find ages if not provided
