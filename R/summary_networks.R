@@ -87,6 +87,7 @@ get_summary_network <- function(
     mat <- mat[rowSums(mat) != 0, , drop = FALSE]
     mat <- mat[, colSums(mat) != 0, drop = FALSE]
     net_list[[m]] <- mat
+
   }
 
   names(net_list) <- ages
