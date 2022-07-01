@@ -191,6 +191,8 @@ plot_extant_matrix <- function(
 #' @param legend Whether to display a legend for the colors. Logical vector of length 1.
 #' @param colors Override the default colors. Should be a character vector with as many color values
 #'  as there are modules.
+#' @param state_alpha A numeric vector of length 2. Gives the alpha
+#'   (transparency) values for the interaction type in the three-state model
 #' @param ladderize Logical. Whether to ladderize the tree. Default to FALSE.
 #'
 #' The ancestral states are automatically colored by module. To change what colors are used, you
@@ -212,7 +214,8 @@ plot_extant_matrix <- function(
 plot_ancestral_states <- function(
   tree, samples_at_nodes, modules, module_order = NULL, type = "states", state = 2,
   repertoire = 'fundamental', layout = "rectangular", threshold = 0.9, point_size = 3,
-  point_shape = NULL, dodge_width = 0.025, legend = TRUE, colors = NULL, ladderize = FALSE
+  point_shape = NULL, dodge_width = 0.025, legend = TRUE, colors = NULL,
+  state_alpha = c(0.3, 1), ladderize = FALSE
 ) {
   if (!requireNamespace('ggtree')) {
     stop('Please install the ggtree package to use this function. Use `BiocManager::install("ggtree")`')
@@ -226,8 +229,8 @@ plot_ancestral_states <- function(
   if (!(type %in% c('states', 'repertoires') & length(type) == 1)) {
     stop("`type` should be either 'states' or 'repertoires'.")
   }
-  if (!(as.character(state) %in% dimnames(samples_at_nodes[['post_states']])[[3]] & length(state) == 1)) {
-    stop("`state` should be a vector of length 1, and a valid state occuring in `samples_at_nodes`")
+  if (!(as.character(state) %in% dimnames(samples_at_nodes[['post_states']])[[3]])) {
+    stop("`state` should be a vector and have valid states occuring in `samples_at_nodes`")
   }
   if (!(repertoire %in% c('fundamental', 'realized') & length(repertoire) == 1)) {
     stop("`repertoire` should be either 'fundamental' or 'realized'.")
@@ -254,17 +257,26 @@ plot_ancestral_states <- function(
     }
   }
 
-  # Get the ancestral states, reformat to plot on the parasite tree
-  if (type == 'states') {
-    node_df <- as.data.frame(samples_at_nodes[['post_states']][, , as.character(state)])
-  } else {
-    node_df <- as.data.frame(samples_at_nodes[['post_repertoires']][, , repertoire])
+  prepare_table <- function(m, s = NULL) {
+    df <- as.data.frame(m)
+    df$node <- rownames(df)
+    df <- tidyr::pivot_longer(df, -.data$node, names_to = 'host')
+    df <- df[df$value >= threshold, ]
+    df$value <- NULL
+    if (!is.null(s)) df$state <- s
+    return(df)
   }
 
-  node_df$node <- rownames(node_df)
-  node_df <- tidyr::pivot_longer(node_df, -.data$node, names_to = 'host')
-  node_df <- node_df[node_df$value >= threshold, ]
-  node_df$value <- NULL
+  # Get the ancestral states, reformat to plot on the parasite tree
+  if (type == 'states') {
+    l <- lapply(state, function(s) {
+      prepare_table(samples_at_nodes[['post_states']][, , as.character(s)], s)
+    })
+    node_df <- data.table::rbindlist(l)
+  } else {
+    node_df <- prepare_table(samples_at_nodes[['post_repertoires']][, , repertoire])
+  }
+
   node_df <- dplyr::left_join(node_df, host_mods, by = "host")
 
   # Match the ancestral states with the right plotting coordinates
@@ -295,7 +307,7 @@ plot_ancestral_states <- function(
   }
 
   # Make the parasite tree
-  suppressMessages(
+  suppressMessages( #suppress "scale for `y` is already present message
     p <- ggtree::ggtree(tree, layout = layout, ladderize = ladderize) +
       ggplot2::scale_x_continuous(name = NULL, labels = abs, expand = ggplot2::expansion(c(0.05, 0))) +
       ggplot2::scale_y_continuous(expand = c(0, 0.5)) +
@@ -324,11 +336,22 @@ plot_ancestral_states <- function(
     if (is.null(point_shape)) point_shape <- 16
   }
 
-  p <- p + ggplot2::geom_point(
-    ggplot2::aes_(~x, ~y, color = ~module),
-    node_df2, shape = point_shape, size = point_size
-  )
-
+  if (type == "states" & length(state) > 1) {
+    p <- p + ggplot2::geom_point(
+      ggplot2::aes_(~x, ~y, color = ~module, alpha = ~factor(.data$state, levels = .env$state)),
+      node_df2, shape = point_shape, size = point_size
+    ) +
+      ggplot2::scale_alpha_ordinal(
+        limits = factor(1:2), range = state_alpha, name = 'Interaction type',
+        labels = c('1' = 'Potential', '2' = 'Actual'),
+        guide = ggplot2::guide_legend(ncol = 1)
+      )
+  } else {
+    p <- p + ggplot2::geom_point(
+      ggplot2::aes_(~x, ~y, color = ~module),
+      node_df2, shape = point_shape, size = point_size
+    )
+  }
   return(p)
 }
 
