@@ -48,8 +48,8 @@ get_summary_network <- function(pp_at_ages, pt, ages = NULL, weighted = TRUE){
     }
 
     df <- as.data.frame(mat)
-    df <- df[rowSums(df) != 0, ]
-    df <- df[, colSums(df) != 0]
+    df <- df[rowSums(df) != 0, , drop = FALSE]
+    df <- df[, colSums(df) != 0, drop = FALSE]
     net_list[[m]] <- df
   }
 
