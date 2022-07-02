@@ -13,25 +13,29 @@ plot_ancestral_networks(
 )
 }
 \arguments{
-\item{summary_networks}{A list of incidence matrices (summary network) for each time slice in \code{ages}. Output of \code{get_summary_network()}}
+\item{summary_networks}{A list of incidence matrices (summary network) for each time slice in
+\code{ages}. Output of \code{get_summary_network()}}
 
-\item{matched_modules}{A data frame containing the module information for each node at each
-network. Output of \code{modules_across_ages()[[1]][[1]]}.}
+\item{matched_modules}{A list of lists containing the module information for each node at each
+network. Output of \code{modules_across_ages()}.}
 
-\item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class \code{phylo}.}
+\item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class
+\code{phylo}.}
 
-\item{module_levels}{Order in which the modules should be organized. Affects which color each module will be assigned.
-If NULL, takes the order of appearance in \code{matched_modules$module}.}
+\item{module_levels}{Order in which the modules should be organized. Affects which color each
+module will be assigned. If NULL, takes the order of appearance in \code{matched_modules$module}.}
 
 \item{palette}{Color palette used to plot module information.}
 }
 \value{
-A list of plots of class \code{patchwork}. Each element contains the tree and network at a given time slice.
+A list of plots of class \code{patchwork}. Each element contains the tree and network at a
+given time slice.
 }
 \description{
 Plot ancestral networks with module information
 }
 \examples{
 \dontrun{
+
 }
 }

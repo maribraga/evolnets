@@ -4,12 +4,14 @@
 \alias{modules_across_ages}
 \title{Evolution of modules: find and match modules across time slices}
 \usage{
-modules_across_ages(summary_networks, tree)
+modules_across_ages(summary_networks, tree, extant_modules = NULL)
 }
 \arguments{
 \item{summary_networks}{List of reconstructed summary networks for each age (output from \code{get_summary_network()}).}
 
 \item{tree}{The phylogeny of the symbiont clade (e.g. parasite, herbivore), a \code{phylo} object.}
+
+\item{extant_modules}{A \code{moduleWeb} object defining the modules in the extant network.}
 }
 \value{
 A list with:

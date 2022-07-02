@@ -35,7 +35,7 @@ network is represented, otherwise a weighted network is assumed.}
 See the examples on how to change the color scale.}
 
 \item{type}{One of \code{'states'} or \code{'repertoires'}. If \code{'states'}, will plot the presence of a
-state when its posterior probablity is higher than \code{threshold}. If \code{'repertoires'}, will plot
+state when its posterior probability is higher than \code{threshold}. If \code{'repertoires'}, will plot
 the same but for the given \code{repertoire}.}
 
 \item{state}{Which state? Default is 2. For analyses using the 3-state model, choose \code{1} or \code{2}
@@ -45,7 +45,7 @@ the same but for the given \code{repertoire}.}
 \code{'fundamental'} repertoire (default) which is defined as having any state (usually 1 or 2), and
 in the 3-state model includes both actual and potential hosts.}
 
-\item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the models in the network.
+\item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the modules in the network.
 If a \code{data.frame} is passed, it must contain three columns:
 $name with taxon names,
 $module with the module the taxon was assigned to, and

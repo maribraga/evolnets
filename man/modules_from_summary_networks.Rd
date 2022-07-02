@@ -4,10 +4,12 @@
 \alias{modules_from_summary_networks}
 \title{Identify modules for each summary network at each age}
 \usage{
-modules_from_summary_networks(summary_networks)
+modules_from_summary_networks(summary_networks, extant_modules = NULL)
 }
 \arguments{
 \item{summary_networks}{List of reconstructed summary networks for each age (output from \code{get_summary_network()}).}
+
+\item{extant_modules}{A \code{moduleWeb} object defining the modules in the extant network.}
 }
 \value{
 A list of 2 elements: 1) a data frame containing the module membership
