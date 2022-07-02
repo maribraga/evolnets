@@ -19,6 +19,7 @@ plot_ancestral_states(
   dodge_width = 0.025,
   legend = TRUE,
   colors = NULL,
+  state_alpha = c(0.3, 1),
   ladderize = FALSE
 )
 }
@@ -27,7 +28,7 @@ plot_ancestral_states(
 
 \item{samples_at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
 
-\item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the models in the network.
+\item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the modules in the network.
 If a \code{data.frame} is passed, it must contain three columns:
 $name with taxon names,
 $module with the module the taxon was assigned to, and
@@ -37,7 +38,7 @@ $type which defines if the taxon is a "host" or a "symbiont".}
 each module only once.}
 
 \item{type}{One of \code{'states'} or \code{'repertoires'}. If \code{'states'}, will plot the presence of a
-state when its posterior probablity is higher than \code{threshold}. If \code{'repertoires'}, will plot
+state when its posterior probability is higher than \code{threshold}. If \code{'repertoires'}, will plot
 the same but for the given \code{repertoire}.}
 
 \item{state}{Which state? Default is 2. For analyses using the 3-state model, choose \code{1} or \code{2}
@@ -67,6 +68,9 @@ Numeric vector of length 1.}
 
 \item{colors}{Override the default colors. Should be a character vector with as many color values
 as there are modules.}
+
+\item{state_alpha}{A numeric vector of length 2. Gives the alpha
+(transparency) values for the interaction type in the three-state model}
 
 \item{ladderize}{Logical. Whether to ladderize the tree. Default to FALSE.
 

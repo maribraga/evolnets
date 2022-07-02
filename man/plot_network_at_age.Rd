@@ -9,9 +9,12 @@ plot_network_at_age(
   tip_data,
   tgraph,
   module_levels,
-  palette,
+  palette = NULL,
   tree,
-  age
+  age,
+  weighted = TRUE,
+  weight_range = c(0, 1),
+  two_state = FALSE
 )
 }
 \arguments{
@@ -19,15 +22,25 @@ plot_network_at_age(
 
 \item{tip_data}{a \code{data.frame} containing the module information for each tip in the subtree.}
 
-\item{tgraph}{a \code{tbl_graph} containing the nodes and edges of the ancestral network and the module information for each node.}
+\item{tgraph}{a \code{tbl_graph} containing the nodes and edges of the ancestral network and the
+module information for each node.}
 
-\item{module_levels}{Order in which the modules should be organized. Affects which color each module will be assigned.}
+\item{module_levels}{Order in which the modules should be organized. Affects which color each
+module will be assigned.}
 
 \item{palette}{Color palette used to plot module information.}
 
-\item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class \code{phylo}.}
+\item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class
+\code{phylo}.}
 
 \item{age}{Age of the ancestral network to be plotted as the tittle.}
+
+\item{weighted}{Whether the network should have weighted edges.}
+
+\item{weight_range}{The range of weights conscidered for the width of the edges.}
+
+\item{two_state}{Whether the width of the edges should reflect the state (instead of the
+posterior probability).}
 }
 \value{
 An assembly of plots, of class \code{patchwork}.

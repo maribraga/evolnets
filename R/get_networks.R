@@ -107,7 +107,7 @@ get_summary_networks <- function(
 #' @param ages Vector of ages (time points in the past) at which samples were retrieved. By default,
 #'   uses all ages present in `pp_at_ages`.
 #'
-#' @return
+#' @return A list of arrays, one for each age. Arrays contain sampled networks.
 #' @export
 #'
 #' @examples
