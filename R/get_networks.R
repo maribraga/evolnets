@@ -29,16 +29,16 @@
 #'
 #' ages <- c(60, 50, 40, 0)
 #' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-#' weighted_net_50 <- get_summary_network(at_ages, threshold = 0.5, weighted = TRUE)
-#' binary_net_90 <- get_summary_network(at_ages, threshold = 0.9, weighted = FALSE)
-get_summary_network <- function(
+#' weighted_net_50 <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
+#' binary_net_90 <- get_summary_networks(at_ages, threshold = 0.9, weighted = FALSE)
+get_summary_networks <- function(
     at_ages, threshold, ages = NULL, weighted = TRUE, type = "states", state = 2,
     repertoire = 'fundamental'
 ){
 
-  if (!is.list(at_ages)) stop('`pp_at_ages` should be a list.')
+  if (!is.list(at_ages)) stop('`at_ages` should be a list.')
   if (!is.numeric(threshold) || !(threshold > 0 & threshold <= 1)) {
-    stop('`pt` should be a numeric value between 0 and 1.')
+    stop('`threshold` should be a numeric value between 0 and 1.')
   }
   if (!is.null(ages) && !is.numeric(ages)) stop('`ages` should be a numeric vector or NULL.')
   if (!is.logical(weighted)) stop('`logical` should be a logical value (TRUE/FALSE).')
@@ -94,4 +94,54 @@ get_summary_network <- function(
   names(net_list) <- ages
 
   return(net_list)
+}
+
+#' Get posterior samples of networks of interactions of extant lineages at given time points in the
+#' past
+#'
+#' @param at_ages List of lists, with samples and posterior probabilities for each interaction of
+#'   extant lineages at given ages. Usually calculated `posterior_at_ages`, see example.
+#' @param state Which state? Default is 2. For analyses using the 3-state model, choose `1`, `2` or
+#'   both using `c(1, 2)` (where 1 is a potential host and 2 an actual host). Note that this is also
+#'   applied to the extant network.
+#' @param ages Vector of ages (time points in the past) at which samples were retrieved. By default,
+#'   uses all ages present in `pp_at_ages`.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' data(tree)
+#' data(host_tree)
+#' data(history)
+#'
+#' ages <- c(60, 50, 40, 0)
+#' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+#' sampled_nets <- get_sampled_networks(at_ages)
+get_sampled_networks <- function(at_ages, state = 2, ages = NULL) {
+  if (!is.list(at_ages)) stop('`at_ages` should be a list.')
+  if (!is.null(ages) && !is.numeric(ages)) stop('`ages` should be a numeric vector or NULL.')
+  if (!all(as.character(state) %in% dimnames(at_ages[['post_states']][[1]])[[3]])) {
+    stop("`state` should be a vector and have valid states occuring in `at_ages`")
+  }
+
+  samples <- at_ages$samples
+
+  if (!is.null(ages) && !all(ages %in% names(age_list))) {
+    stop('`at_ages` must contain the ages given in `ages`.')
+  }
+  # find ages if not provided
+  if (is.null(ages)) ages <- as.numeric(names(samples))
+  # force ages to be in decreasing order (important in downstream functions)
+  ages <- sort(ages, decreasing = TRUE)
+
+  # remove unwated ages
+  samples <- samples[as.character(ages)]
+  # remove unwanted states
+  samples <- lapply(samples, function(a) {
+    a[!(a %in% state)] <- 0
+    return(a)
+  })
+
+  return(samples)
 }

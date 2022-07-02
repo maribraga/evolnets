@@ -653,14 +653,12 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #' \dontrun{
 #'   ages <- c(60, 50, 40, 0)
 #'   at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-#'   samples_at_ages <- at_ages$samples
-#'   pp_at_ages <- at_ages$posterior_probabilities
 #'
-#'   weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
+#'   weighted_net_50 <- get_summary_network(at_ages, pt = 0.5, weighted = TRUE)
 #'   all_mod <- modules_across_ages(weighted_net_50, tree)
 #'
 #'   # find modules for each sampled network
-#'   mod_samples <- modules_from_samples(samples_at_ages)
+#'   mod_samples <- modules_from_samples(at_ages)
 #'
 #'   # calculate support
 #'   support <- support_for_modules(mod_samples, all_mod)
@@ -844,30 +842,41 @@ module.y <- module.x <- freq <- name <- NULL
 
 #' Find modules in networks sampled across MCMC at specific time slices
 #'
-#' @param samples_at_ages List of sampled networks at time slices produces by calling posterior_at_ages().
+#' @param sampled_networks List of sampled networks at time slices produced by
+#'   `get_sampled_networks()`.
 #'
-#' @return Data frame with module membership information for each sampled network at each time slice.
-#' @importFrom dplyr mutate group_by distinct summarize left_join case_when select bind_rows tibble n
+#' @return Data frame with module membership information for each sampled network at each time
+#'   slice.
+#' @importFrom dplyr mutate group_by distinct summarize left_join case_when select bind_rows tibble
+#'   n
 #' @importFrom bipartite empty
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'   mod_samples <- modules_from_samples(samples_at_ages, ages)
+#'   data(tree)
+#'   data(host_tree)
+#'   data(history)
+#'
+#'   ages <- c(60,50,40,0)
+#'   samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+#'   sampled_networks <- get_sampled_networks(samples_at_ages)
+#
+#'   mod_samples <- modules_from_samples(sampled_networks)
 #' }
-modules_from_samples <- function(samples_at_ages) {
+modules_from_samples <- function(sampled_networks) {
 
-  ages <- as.numeric(names(samples_at_ages))
-  if (!(0 %in% ages)) stop('the last element in `samples_at_ages` has to be the present (age = 0).')
+  ages <- as.numeric(names(sampled_networks))
+  if (!(0 %in% ages)) stop('the last element in `sampled_networks` has to be the present (age = 0).')
 
   Qsamples <- tibble()
   mod_samples <- tibble()
 
-  nsamp <- dim(samples_at_ages[[1]])[1]
+  nsamp <- dim(sampled_networks[[1]])[1]
 
   for (a in seq_len(length(ages) - 1)) {
     for (i in seq_len(nsamp)) {
-      net <- samples_at_ages[[a]][i, , ]
+      net <- sampled_networks[[a]][i, , ]
 
       if (ncol(empty(net)) > 1) {
 
