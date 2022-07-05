@@ -155,10 +155,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
   # prepare for adding children module information
   mod_df_sym <- unmatched_modules %>%
     dplyr::filter(.data$age == 0, .data$type == "symbiont") %>%
-    dplyr::mutate(#child1_mod = '0',
-      #child2_mod = '0',
-      module_name = LETTERS[.data$original_module]
-    )
+    dplyr::mutate(module_name = paste0("M",.data$original_module))
 
   mod_df_host <- unmatched_modules %>%
     dplyr::filter(.data$type == "host")
@@ -183,8 +180,8 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
       unique()
 
     # ? need to update matches() ? #### can't remember why
-    all_submodules <- modules_age[tidyselect::matches("\\d", vars = modules_age)]
-    submod_letters <- unique(sub("\\d", "", all_submodules))
+    all_submodules <- modules_age[tidyselect::matches("*\\.[0-9]*", vars = modules_age)]
+    submod_letters <- unique(sub("\\.[0-9]*", "", all_submodules))
 
     modules_age <- sort(unique(c(modules_age, submod_letters)))
 
@@ -204,9 +201,6 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
     nodes_interval <- tree_t %>%
       dplyr::filter(.data$depth > age_min & .data$depth <= age_max) %>%
       dplyr::arrange(.data$depth) %>%
-      # dplyr::left_join(dplyr::select(filter(mod_df_sym, .data$age == ages[t]),
-      #                                c("name","original_module","module_name")),
-      #                  by = c("label" = "name")) %>%
       dplyr::mutate(child1_mod = '0',
                     child2_mod = '0',
                     module_name = '0',
@@ -274,12 +268,6 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
           } else{
             nodes_interval[which(nodes_interval$node == node_depth$node[n]),
                            'child1_mod'] <- mod_child1
-
-            # mod_idx_child1 <- mod_df_sym %>%
-            #   dplyr::filter(.data$age == age_min,
-            #                 .data$module_name  == mod_child1) %>%
-            #   dplyr::pull(.data$original_module) %>%
-            #   unique()
 
             mod_props_child1 <- sym_mod_el %>%
               dplyr::ungroup() %>%
@@ -368,7 +356,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
         children_strengths <- rbind(child1_strengths, child2_strengths)
 
         # Merge submodules of the same module (letter) when each children are in submodules of the same module
-        letter_mod_children <- c(substring(mod_child1, 1, 1), substring(mod_child2, 1, 1))
+        letter_mod_children <- c(str_extract(mod_child1, 'M[0-9]*'), str_extract(mod_child2, 'M[0-9]*'))
 
         if (!is.na(mod_child1) &
             !is.na(mod_child2) &
@@ -377,9 +365,10 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
             ) {
 
           submodules <- children_strengths %>%
-            dplyr::select(tidyselect::matches("\\d")) %>%
+            dplyr::select(tidyselect::matches("*\\.[0-9]*")) %>%
             colnames()
-          mod_letter <- sub("\\d","",submodules)[1]
+          mod_letter <- sub("\\.[0-9]*","",submodules)[1]
+
 
           children_strengths <- children_strengths %>%
             dplyr::mutate({{mod_letter}} := .data[[submodules[1]]] + .data[[submodules[2]]]) %>%
