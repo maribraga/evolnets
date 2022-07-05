@@ -1,4 +1,6 @@
-library(evolnets)
+
+
+#library(evolnets)
 library(bipartite)
 library(tidyr)
 library(dplyr)
@@ -10,9 +12,10 @@ library(gridExtra)
 library(gridBase)
 library(grid)
 library(restorepoint)
+library(patchwork)
 
-setwd("~/repos/evolnets/match-modules")
-#setwd("~/projects/evolnets/match-modules")
+#setwd("~/repos/evolnets/match-modules")
+setwd("~/projects/evolnets/match-modules")
 
 # read trees and character history ----
 
@@ -58,23 +61,30 @@ at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 samples <- at_ages[[1]]
 pps <- at_ages[[2]]
 
-summary_networks <- get_summary_network(pps, ages, 0.5)
+summary_networks <- get_summary_network(at_ages, 0.5, ages)
 #summary_nets_50_bin <- get_summary_network(pps, ages, 0.5, weighted = F)
 
 
 # find modules ----
+library(devtools)
+devtools::load_all()
 
 # at once
 all_mod <- modules_across_ages(summary_networks, tree)
 matched_mod <- all_mod[[2]]
 #write.csv(matched_mod,"./evolnets/match_mod_output.csv", row.names = F)
-unmatched_modwebs <- all_mod[[1]][[2]]
-unmatched_modules <- all_mod[[1]][[1]]
+unmatched_modwebs <- all_mod[[2]][[2]]
+unmatched_modules <- all_mod[[2]][[1]]
 
 par(mfrow=c(2,3))
 for (i in 1:length(ages)) {
-    plotModuleWeb(unmatched_mod[[i]], labsize=0.6)
+    plotModuleWeb(unmatched_modwebs[[i]], labsize=0.6)
 }
+
+# plot ancestral networks
+plot <- plot_ancestral_networks(summary_networks, all_mod, tree)
+wrap_plots(plot)
+
 
 # plot asr
 at_nodes <- posterior_at_nodes(history, nodes = (Ntip(tree)+1):(Nnode(tree)+Ntip(tree)), host_tree)
