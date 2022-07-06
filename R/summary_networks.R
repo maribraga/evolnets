@@ -29,9 +29,9 @@
 #'
 #' ages <- c(60, 50, 40, 0)
 #' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-#' weighted_net_50 <- get_summary_network(at_ages, threshold = 0.5, weighted = TRUE)
-#' binary_net_90 <- get_summary_network(at_ages, threshold = 0.9, weighted = FALSE)
-get_summary_network <- function(
+#' weighted_net_50 <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
+#' binary_net_90 <- get_summary_networks(at_ages, threshold = 0.9, weighted = FALSE)
+get_summary_networks <- function(
     at_ages, threshold, ages = NULL, weighted = TRUE, type = "states", state = 2,
     repertoire = 'fundamental'
 ){

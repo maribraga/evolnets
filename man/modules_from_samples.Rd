@@ -4,19 +4,28 @@
 \alias{modules_from_samples}
 \title{Find modules in networks sampled across MCMC at specific time slices}
 \usage{
-modules_from_samples(samples_at_ages)
+modules_from_samples(sampled_networks)
 }
 \arguments{
-\item{samples_at_ages}{List of sampled networks at time slices produces by calling posterior_at_ages().}
+\item{sampled_networks}{List of sampled networks at time slices produced by
+\code{get_sampled_networks()}.}
 }
 \value{
-Data frame with module membership information for each sampled network at each time slice.
+Data frame with module membership information for each sampled network at each time
+slice.
 }
 \description{
 Find modules in networks sampled across MCMC at specific time slices
 }
 \examples{
 \dontrun{
-  mod_samples <- modules_from_samples(samples_at_ages, ages)
+  data(tree)
+  data(host_tree)
+  data(history)
+
+  ages <- c(60,50,40,0)
+  samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+  sampled_networks <- get_sampled_networks(samples_at_ages)
+  mod_samples <- modules_from_samples(sampled_networks)
 }
 }

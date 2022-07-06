@@ -51,14 +51,12 @@ which pairs of nodes are placed in the same module in networks sampled across MC
 \dontrun{
   ages <- c(60, 50, 40, 0)
   at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-  samples_at_ages <- at_ages$samples
-  pp_at_ages <- at_ages$posterior_probabilities
 
-  weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
+  weighted_net_50 <- get_summary_network(at_ages, pt = 0.5, weighted = TRUE)
   all_mod <- modules_across_ages(weighted_net_50, tree)
 
   # find modules for each sampled network
-  mod_samples <- modules_from_samples(samples_at_ages)
+  mod_samples <- modules_from_samples(at_ages)
 
   # calculate support
   support <- support_for_modules(mod_samples, all_mod)
