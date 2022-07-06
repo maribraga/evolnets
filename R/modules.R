@@ -324,7 +324,7 @@ process_child_modules = function(mod_df_sym, age_min, children, nodes_interval, 
 
 
 # Corresponds to each iterated pass for Steps 3a through 3i
-match_modules_interval <- function(mod_df_sym, unmatched_modules, tree_t, age_min, age_max) {
+match_modules_interval <- function(summary_networks, mod_df_sym, unmatched_modules, tree_t, age_min, age_max) {
 
   # all modules present at min age (starting with the present)
   modules_age <- mod_df_sym %>%
@@ -564,7 +564,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
     age_min <- ages[t]
     age_max <- ages[t + 1]
 
-    mod_df_sym = match_modules_interval(mod_df_sym, unmatched_modules, tree_t, age_min, age_max)
+    mod_df_sym = match_modules_interval(summary_networks, mod_df_sym, unmatched_modules, tree_t, age_min, age_max)
   }
 
   # set modules for hosts
