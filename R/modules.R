@@ -747,7 +747,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_t
   nages <- length(pair_heatmaps)
   plot_list <- list()
 
-  for (a in seq_along(nages)) {
+  for (a in seq_len(nages)) {
     heatmap <- pair_heatmaps[[a]]
 
     p <- ggplot2::ggplot(
@@ -782,7 +782,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_t
 
   }
 
-  plot <- patchwork::wrap_plots(plot_list)
+  return(plot_list)
 
 }
 
