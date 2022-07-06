@@ -1,5 +1,6 @@
 
-
+library(devtools)
+devtools::load_all()
 #library(evolnets)
 library(bipartite)
 library(tidyr)
@@ -69,7 +70,7 @@ summary_networks <- get_summary_network(at_ages, 0.5, ages)
 library(devtools)
 devtools::load_all()
 
-# at once
+# match all modules at once
 all_mod <- modules_across_ages(summary_networks, tree)
 matched_mod <- all_mod[[2]]
 #write.csv(matched_mod,"./evolnets/match_mod_output.csv", row.names = F)

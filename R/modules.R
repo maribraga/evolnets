@@ -627,6 +627,7 @@ process_child_modules = function(mod_df_sym, age_min, children, nodes_interval, 
 
     }
   } else if (children[child_idx] %in% nodes_interval$label) {
+
     child_strengths <- nodes_interval %>%
       dplyr::filter(.data$label == children[child_idx]) %>%
       dplyr::select(dplyr::contains("strength_"))
@@ -644,7 +645,6 @@ process_child_modules = function(mod_df_sym, age_min, children, nodes_interval, 
     # let that child node contribute zero information to any possible
     # module, which effectively dilutes the summed children module
     # strength values (performed later)
-
     child_strengths <- NULL
     mod_child <- NA
   }
@@ -732,6 +732,7 @@ match_modules_interval <- function(mod_df_sym, unmatched_modules, tree_t, age_mi
 
       # get the TreeIO index for the target node
       node_treeio <- node_depth$node[n]
+      node_name_treeio <- node_depth$node_name[n]
 
       # get its children and their names (labels)
       children <- tree_t %>%
@@ -803,16 +804,16 @@ match_modules_interval <- function(mod_df_sym, unmatched_modules, tree_t, age_mi
                        'strength'] <- mean_strengths[strongest_mod_idx]
 
         # Write strengths for nodes in the network at max age
-        if (node_treeio %in% mod_df_sym_age$name) {
+        if (node_name_treeio %in% mod_df_sym_age$name) {
           for (c in seq_along(mean_strengths)) {
-            mod_df_sym_age[which(mod_df_sym_age$name == node_treeio),
+            mod_df_sym_age[which(mod_df_sym_age$name == node_name_treeio),
                            names(mean_strengths)[c]] <- mean_strengths[names(mean_strengths)[c]]
           }
 
           # also write the strongest module
-          mod_df_sym_age[which(mod_df_sym_age$name == node_treeio),
+          mod_df_sym_age[which(mod_df_sym_age$name == node_name_treeio),
                          'strength'] <- mean_strengths[strongest_mod_idx]
-          mod_df_sym_age[which(mod_df_sym_age$name == node_treeio),
+          mod_df_sym_age[which(mod_df_sym_age$name == node_name_treeio),
                          'module_name'] <- sub("strength_","",names(mean_strengths)[strongest_mod_idx])
         }
       }
@@ -1018,7 +1019,6 @@ match_modules_new <- function(summary_networks, unmatched_modules, tree){
   )
 
   print("Step 3")
-  print(colnames(unmatched_modules))
   # Step 3: Reverse inherit modules
   # Find all nodes between this time slice and the previous one
   for (t in seq_len(length(ages) - 1)) {
