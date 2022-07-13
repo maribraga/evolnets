@@ -369,7 +369,7 @@ plot_ancestral_states <- function(
 #' @export
 #'
 #' @inheritParams plot_ancestral_states
-#' @inheritParams plot_module_matrix
+#' @inheritParams plot_extant_matrix
 #'
 #' @examples
 #' \dontrun{
@@ -543,7 +543,7 @@ plot_ancestral_networks <- function(
     dplyr::select(.data$label, .data$module)
 
   # plot
-  if(is.null(module_levels)) module_levels <- unique(matched_modules$module)
+  if(is.null(module_levels)) module_levels <- sort(unique(matched_modules$module))
 
   plot_list <- list()
 

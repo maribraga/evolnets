@@ -11,6 +11,7 @@ support_for_modules(
   edge_list = TRUE,
   include_all = FALSE,
   palette = NULL,
+  module_levels = NULL,
   axis_text = FALSE
 )
 }
@@ -20,12 +21,12 @@ of each node for each sampled network at each time slice before the present.}
 
 \item{modules_across_ages}{Data frame containing the module information for the summary network.
 A \code{list} object returned from \code{modules_across_ages()} or a \code{data.frame} object defining the
-models in the network. If a \code{data.frame} is passed, it must contain three columns:
+modules in the networks. If a \code{data.frame} is passed, it must contain three columns:
 \verb{$age} - the age of the network,
 \verb{$name} - taxon names,
 \verb{$module} - the module the taxon was assigned to.}
 
-\item{threshold}{Minimum frequency with which two nodes are placed in the same module to consider it supported.}
+\item{threshold}{Minimum frequency with which two nodes are placed in the same module to consider it supported. Only pairs with frequency higher than this threshold are plotted with the color of the module from the summary network.}
 
 \item{edge_list}{Logical. Whether to return a list of edge lists or a list of matrices of pairwise frequency.}
 
@@ -38,7 +39,7 @@ models in the network. If a \code{data.frame} is passed, it must contain three c
 \value{
 A list containing:
 \enumerate{
-\item \code{plot}: A plot of pairwise frequency with which the two nodes are placed in the same module at each time slice in \code{ages};
+\item \code{plot}: A plot of pairwise frequency with which the two nodes are placed in the same module in the ancestral network for each time slice in \code{ages}. Cells in the diagonal show how often a host is sampled in a network (symbionts are always present);
 \item \code{pairwise_membership}: A list of edge lists or matrices with the pairwise frequencies at each time slice;
 \item \code{mean_support}: A list of mean and geometric mean pairwise frequency for each module at each time slice.
 }

@@ -19,8 +19,8 @@
 #' ages <- c(60, 50, 40, 0)
 #' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 #' pp_at_ages <- at_ages$posterior_probabilities
-#' weighted_net_50 <- get_summary_network(pp_at_ages, pt = 0.5, weighted = TRUE)
-#' all_mod <- modules_across_ages(weighted_net_50, tree)
+#' summary_networks <- get_summary_network(at_ages, threshold = 0.5, weighted = TRUE)
+#' all_mod <- modules_across_ages(summary_networks, tree)
 modules_across_ages <- function(summary_networks, tree, extant_modules = NULL){
 
   # input checking
@@ -625,18 +625,18 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #'   of each node for each sampled network at each time slice before the present.
 #' @param modules_across_ages Data frame containing the module information for the summary network.
 #'   A `list` object returned from `modules_across_ages()` or a `data.frame` object defining the
-#'   models in the network. If a `data.frame` is passed, it must contain three columns:
+#'   modules in the networks. If a `data.frame` is passed, it must contain three columns:
 #'   `$age` - the age of the network,
 #'   `$name` - taxon names,
 #'   `$module` - the module the taxon was assigned to.
-#' @param threshold Minimum frequency with which two nodes are placed in the same module to consider it supported.
+#' @param threshold Minimum frequency with which two nodes are placed in the same module to consider it supported. Only pairs with frequency higher than this threshold are plotted with the color of the module from the summary network.
 #' @param edge_list Logical. Whether to return a list of edge lists or a list of matrices of pairwise frequency.
 #' @param include_all Logical. Include all nodes or only those present at the time slice?
 #' @param palette Optional. Color palette for module colors in the plot.
 #' @param axis_text Logical. Plot taxon names?
 #'
 #' @return A list containing:
-#' 1) `plot`: A plot of pairwise frequency with which the two nodes are placed in the same module at each time slice in `ages`;
+#' 1) `plot`: A plot of pairwise frequency with which the two nodes are placed in the same module in the ancestral network for each time slice in `ages`. Cells in the diagonal show how often a host is sampled in a network (symbionts are always present);
 #' 2) `pairwise_membership`: A list of edge lists or matrices with the pairwise frequencies at each time slice;
 #' 3) `mean_support`: A list of mean and geometric mean pairwise frequency for each module at each time slice.
 #' @importFrom dplyr mutate case_when arrange pull arrange bind_rows distinct filter left_join inner_join select summarize tibble desc
@@ -663,7 +663,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 #' }
 support_for_modules <- function(
   mod_samples, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE,
-  palette = NULL, axis_text = FALSE
+  palette = NULL, module_levels = NULL, axis_text = FALSE
 ) {
 
   if (!is.null(modules_across_ages) && (
@@ -707,7 +707,7 @@ support_for_modules <- function(
       col = factor(col, levels = order)
     )
 
-    pair_heatmaps[[i]] <- for_heatmap
+    pair_heatmaps[[i]] <- data.frame(for_heatmap)
   }
 
   names(pair_heatmaps) <- ages
@@ -727,12 +727,20 @@ support_for_modules <- function(
       means_age <- bind_rows(means_age, data.frame(module = m, mean = mean, geo_mean = gmean))
     }
 
-    means[[i]] <- means_age
+    means[[i]] <- data.frame(means_age)
   }
 
   names(means) <- ages
 
-  plot <- plot_pairwise_membership(pair_heatmaps, ages, palette = palette, axis_text = axis_text)
+  if(is.null(module_levels)) {
+    module_levels <- modules_across_ages %>%
+      dplyr::pull(module) %>%
+      unique() %>%
+      sort()
+  }
+  if(is.null(palette)) palette <- scales::hue_pal()(length(module_levels))
+
+  plot <- plot_pairwise_membership(pair_heatmaps, ages, palette = palette, module_levels = module_levels, axis_text = axis_text)
 
   support_list <- list(plot, pair_heatmaps, means)
   names(support_list) <- c("plot", "pairwise_membership", "mean_support")
@@ -742,7 +750,7 @@ support_for_modules <- function(
 }
 
 
-plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_text){
+plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, module_levels = NULL, axis_text){
 
   nages <- length(pair_heatmaps)
   plot_list <- list()
@@ -752,7 +760,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_t
 
     p <- ggplot2::ggplot(
       heatmap,
-      ggplot2::aes(x = row, y = reorder(col,desc(col)),fill = .data$supported_mod, alpha = freq)
+      ggplot2::aes(x = row, y = reorder(col,desc(col)),fill = factor(.data$supported_mod, levels = module_levels), alpha = freq)
     ) +
       ggplot2::geom_tile() +
       ggplot2::theme_bw() +
@@ -774,9 +782,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, axis_t
       )
     }
 
-    if (!is.null(palette)) {
-      p <- p + ggplot2::scale_fill_manual(values = palette, na.value = "grey20", drop = F)
-    }
+    p <- p + ggplot2::scale_fill_manual(values = palette, na.value = "grey40", drop = F)
 
     plot_list[[a]] <- p
 
