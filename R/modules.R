@@ -934,8 +934,6 @@ remove_duplicate_modules <- function(mod_samples) {
 n <- name <- NULL
 
 
-## Code to replace?
-
 
 
 #' Match modules of different ancestral networks across time.
@@ -1415,4 +1413,3 @@ match_modules_old <- function(summary_networks, unmatched_modules, tree){
   return(list)
 
 }
-

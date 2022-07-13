@@ -3,6 +3,7 @@
 export(count_events)
 export(count_gl)
 export(effective_rate)
+export(get_sampled_networks)
 export(get_summary_networks)
 export(index_at_ages_samples)
 export(index_at_ages_summary)
