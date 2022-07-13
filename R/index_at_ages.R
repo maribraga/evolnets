@@ -79,26 +79,12 @@ index_at_ages_summary <- function(summary_networks, index, ages = NULL, nnull = 
 # calculate z-score for nestedness of a given extant or ancestral network
 get_z_nodf <- function(network, nnull = 100){
 
-  if(is_weighted_net(network)){
+  values <- mapply(unique, network) %>%
+    unique() %>%
+    sort()
 
-    # calculate NODF for observed network
-    Nobs <- bipartite::networklevel(network, index="weighted NODF")
-
-    # generate null networks
-    count <- round(network*100)            # transform the probabilities into counts
-                                           # to use the null model 'r00_both'
-    null_model <- vegan::nullmodel(count, "r00_both")
-    null_nets <- simulate(null_model, nsim=nnull)
-
-    # calculate NODF for null networks
-    Nnull <- tibble::tibble()
-
-    for(j in 1:nnull){
-      Nrandom <- bipartite::networklevel(null_nets[,,j], index="weighted NODF")
-      Nnull <- dplyr::bind_rows(Nnull, tibble(null_idx = j, NODF = Nrandom))
-    }
-
-  } else{
+  # if network is weighted or has both 1s and 2s, use weighted NODF
+  if(identical(values, c(0,1))) {
 
     # calculate NODf for observed network
     Nobs <- bipartite::networklevel(network, index="NODF")
@@ -115,6 +101,25 @@ get_z_nodf <- function(network, nnull = 100){
       Nrandom <- bipartite::networklevel(null_nets[,,j], index="NODF")
       Nnull <- dplyr::bind_rows(Nnull, tibble(null_idx = j, NODF = Nrandom))
     }
+
+  } else{
+    # calculate NODF for observed network
+    Nobs <- bipartite::networklevel(network, index="weighted NODF")
+
+    # generate null networks
+    count <- round(network*100)            # transform the probabilities into counts
+    # to use the null model 'r00_both'
+    null_model <- vegan::nullmodel(count, "r00_both")
+    null_nets <- simulate(null_model, nsim=nnull)
+
+    # calculate NODF for null networks
+    Nnull <- tibble::tibble()
+
+    for(j in 1:nnull){
+      Nrandom <- bipartite::networklevel(null_nets[,,j], index="weighted NODF")
+      Nnull <- dplyr::bind_rows(Nnull, tibble(null_idx = j, NODF = Nrandom))
+    }
+
   }
 
   Nz <- Nnull %>%
@@ -132,14 +137,19 @@ get_z_nodf <- function(network, nnull = 100){
 # calculate z-score for modularity of a given extant or ancestral network
 get_z_mod <- function(network, nnull = 100){
 
+  values <- mapply(unique, network) %>%
+    unique() %>%
+    sort()
+
   # generate null networks
-  if(is_weighted_net(network)){
+  # if network is weighted or has both 1s and 2s, use r00_both
+  if(identical(values, c(0,1))) {
+    null_model <- vegan::nullmodel(network, "r00")
+    null_nets <- simulate(null_model, nsim=nnull)
+  } else{
     count <- round(network*100)            # transform the probabilities into counts
                                            # to use the null model 'r00_both'
     null_model <- vegan::nullmodel(count, "r00_both")
-    null_nets <- simulate(null_model, nsim=nnull)
-  } else{
-    null_model <- vegan::nullmodel(network, "r00")
     null_nets <- simulate(null_model, nsim=nnull)
   }
 
@@ -163,18 +173,6 @@ get_z_mod <- function(network, nnull = 100){
 
   return(Qz)
 
-}
-
-
-# Check if network is weighted or binary
-is_weighted_net <- function(network){
-  any(mapply(is_decimal, network))
-}
-
-is_decimal <- function(x){
-  if(x > 0 & x < 1){
-    return(TRUE)
-  } else return(FALSE)
 }
 
 

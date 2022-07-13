@@ -766,7 +766,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, module
       ggplot2::theme_bw() +
       ggplot2::scale_x_discrete(drop = FALSE) +
       ggplot2::scale_y_discrete(drop = FALSE) +
-      ggplot2::scale_alpha(ggplot2::aes(range = range(freq))) +
+      ggplot2::scale_alpha(limits = c(0,1), range = c(0.1,1)) +
       ggplot2::theme(
         axis.title.x = ggplot2::element_blank(),
         axis.title.y = ggplot2::element_blank(),
