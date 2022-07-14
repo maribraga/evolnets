@@ -208,7 +208,7 @@ get_z_mod <- function(network, nnull = 100){
 #' Nz <- index_at_ages(sampled_networks, index = "NODF")
 #'
 #' #  calculate posterior distribution of modularity (SLOW!)
-#' # Qz <- index_at_ages(samples_at_ages, index = "Q")
+#' # Qz <- index_at_ages(sampled_networks, index = "Q")
 index_at_ages_samples <- function(samples_at_ages, index, ages = NULL, nnull = 100){
 
   # Input checking

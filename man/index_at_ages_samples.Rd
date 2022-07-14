@@ -7,9 +7,6 @@
 index_at_ages_samples(samples_at_ages, index, ages = NULL, nnull = 100)
 }
 \arguments{
-\item{sampled_networks}{List of ancestral networks sampled across MCMC at given ages. Usually from
-the output of \code{get_sampled_networks}, see example.}
-
 \item{index}{Index to be calculated for each ancestral network. "NODF" to calculate nestedness or
 "Q" to calculate modularity.}
 
@@ -17,6 +14,9 @@ the output of \code{get_sampled_networks}, see example.}
 ages present in \code{sampled_networks}.}
 
 \item{nnull}{Number of null networks to generate to calculate the z-score. Default is 100.}
+
+\item{sampled_networks}{List of ancestral networks sampled across MCMC at given ages. Usually from
+the output of \code{get_sampled_networks}, see example.}
 }
 \value{
 A data.frame of z-scores and p-values across samples and ages.

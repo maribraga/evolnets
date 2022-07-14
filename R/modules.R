@@ -236,16 +236,16 @@ reconcile_module_names = function(mod_df_sym_age, all_submodules, submod_letters
         # if splitting a submodule, don't do nested splits
         if(mods_left[m] %in% sub_mod_left_updated){
 
-          sub_let <- sub("\\d","",mods_left[m])
+          sub_let <- sub("\\.[0-9]*","",mods_left[m])
           nsubs <- tidyselect::contains(sub_let, vars = sub_mod_left_updated) %>% length()
 
           mod_df_sym_age[which(mod_df_sym_age$module_name == mods_left[m] &
                                  mod_df_sym_age$original_module == originals[o]),
-                         'module_name'] <- paste0(sub_let, which(originals == originals[o]) + nsubs)
+                         'module_name'] <- paste0(sub_let,".", which(originals == originals[o]) + nsubs)
         } else{
           mod_df_sym_age[which(mod_df_sym_age$module_name == mods_left[m] &
                                  mod_df_sym_age$original_module == originals[o]),
-                         'module_name'] <- paste0(mods_left[m], which(originals == originals[o]))
+                         'module_name'] <- paste0(mods_left[m],".", which(originals == originals[o]))
         }
       }
     }
@@ -333,8 +333,8 @@ match_modules_interval <- function(summary_networks, mod_df_sym, unmatched_modul
     unique()
 
   # ? need to update matches() ? #### can't remember why
-  all_submodules <- modules_age[tidyselect::matches("\\d", vars = modules_age)]
-  submod_letters <- unique(sub("\\d", "", all_submodules))
+  all_submodules <- modules_age[tidyselect::matches("\\.[0-9]*", vars = modules_age)]
+  submod_letters <- unique(sub("\\.[0-9]*", "", all_submodules))
   modules_age    <- sort(unique(c(modules_age, submod_letters)))
 
   # data frame with all nodes at the network at max age
@@ -352,9 +352,9 @@ match_modules_interval <- function(summary_networks, mod_df_sym, unmatched_modul
     dplyr::filter(.data$depth > age_min & .data$depth <= age_max) %>%
     dplyr::arrange(.data$depth) %>%
     dplyr::mutate(child1_mod = '0', child2_mod = '0', module_name = '0', strength = 0)
-    mods_strength_interval <- matrix(data = 0, nrow = nrow(nodes_interval), ncol = length(modules_age))
-    colnames(mods_strength_interval) <- paste0("strength_",modules_age)
-    nodes_interval <- cbind(nodes_interval, mods_strength_interval)
+  mods_strength_interval <- matrix(data = 0, nrow = nrow(nodes_interval), ncol = length(modules_age))
+  colnames(mods_strength_interval) <- paste0("strength_",modules_age)
+  nodes_interval <- cbind(nodes_interval, mods_strength_interval)
 
   # get node depths (nodes reverse-sorted by age within interval)
   node_depth <- nodes_interval %>%
@@ -420,20 +420,20 @@ match_modules_interval <- function(summary_networks, mod_df_sym, unmatched_modul
       children_strengths <- rbind(child1_strengths, child2_strengths)
 
       # Merge submodules of the same module (letter) when each children are in submodules of the same module
-      letter_mod_children <- c(substring(mod_child1, 1, 1), substring(mod_child2, 1, 1))
+      letter_mod_children <- c(sub("\\.[0-9]*","",mod_child1), sub("\\.[0-9]*","",mod_child2))
 
       if (!is.na(mod_child1) & !is.na(mod_child2) & mod_child1 != mod_child2 &
           letter_mod_children[1] == letter_mod_children[2]) {
 
         submodules <- children_strengths %>%
-          dplyr::select(tidyselect::matches("\\d")) %>%
+          dplyr::select(tidyselect::matches("\\.[0-9]*")) %>%
           colnames()
 
-        mod_letter <- sub("\\d","",submodules)[1]
+        mod_letter <- sub("\\.[0-9]*","",submodules)[1]
 
         children_strengths <- children_strengths %>%
           dplyr::mutate({{mod_letter}} := .data[[submodules[1]]] + .data[[submodules[2]]]) %>%
-          dplyr::select(-tidyselect::matches("\\d"))
+          dplyr::select(-tidyselect::matches("\\.[0-9]*"))
       }
 
       if(!is.null(children_strengths)){
@@ -543,9 +543,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
   # Step 2: prepare for adding children module information
   mod_df_sym <- unmatched_modules %>%
     dplyr::filter(.data$age == 0, .data$type == "symbiont") %>%
-    dplyr::mutate(#child1_mod = '0',
-      #child2_mod = '0',
-      module_name = LETTERS[.data$original_module]
+    dplyr::mutate(module_name = paste0("M",.data$original_module)
     )
 
   mod_df_host <- unmatched_modules %>%
@@ -586,33 +584,96 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
 }
 
 
-# # Calculate how strongly each child is connected to it's module
-# hosts_mod_child1 <- mod_df_host %>%
-#   dplyr::filter(.data$age == age_min,
-#                 .data$original_module == mod_idx_child1) %>%
-#   dplyr::pull(name)
-#
-# net_age_min <- summary_networks[[as.character(age_min)]]
-#
-# within_mod_child1 <- as.matrix(net_age_min[children[1],hosts_mod_child1])
-#
-# if(module_strength == "size"){
-#   # get the number of within-module interactions
-#   strength_child1 <- rowSums(within_mod_child1 != 0)
-# }
-# if(module_strength == "sum"){
-#   # get the sum of all within-module interactions
-#   strength_child1 <- sum(within_mod_child1)
-# }
-# if(module_strength == "mean"){
-#   # get the mean of all within-module interactions
-#   strength_child1 <- sum(within_mod_child1)/ncol(within_mod_child1)
-# }
-# if(module_strength == "geometric"){
-#   # get the geometric mean of within-module interactions
-#   strength_child1 <- exp(mean(log(as.numeric(within_mod_child1))))
-# }
 
+#' Find modules in networks sampled across MCMC at specific time slices
+#'
+#' @param sampled_networks List of sampled networks at time slices produced by
+#'   `get_sampled_networks()`.
+#'
+#' @return Data frame with module membership information for each sampled network at each time
+#'   slice.
+#' @importFrom dplyr mutate group_by distinct summarize left_join case_when select bind_rows tibble
+#'   n
+#' @importFrom bipartite empty
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'   data(tree)
+#'   data(host_tree)
+#'   data(history)
+#'
+#'   ages <- c(60,50,40,0)
+#'   samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+#'   sampled_networks <- get_sampled_networks(samples_at_ages)
+#
+#'   mod_samples <- modules_from_samples(sampled_networks)
+#' }
+modules_from_samples <- function(sampled_networks) {
+
+  ages <- as.numeric(names(sampled_networks))
+  if (!(0 %in% ages)) stop('the last element in `sampled_networks` has to be the present (age = 0).')
+
+  Qsamples <- tibble()
+  mod_samples <- tibble()
+
+  nsamp <- dim(sampled_networks[[1]])[1]
+
+  for (a in seq_len(length(ages) - 1)) {
+    for (i in seq_len(nsamp)) {
+      net <- sampled_networks[[a]][i, , ]
+
+      if (ncol(empty(net)) > 1) {
+
+        mod <- mycomputeModules(net)
+
+        q <- mod@likelihood
+        Qsamples <- bind_rows(Qsamples, tibble(age = ages[a], sample = i, Q = q))
+
+        mod_list <- bipartite::listModuleInformation(mod)[[2]]
+        nmod <- length(mod_list)
+        for (m in seq_len(nmod)) {
+          members <- unlist(mod_list[[m]])
+          mtbl <- tibble(
+            name = members,
+            age = rep(ages[a], length(members)),
+            sample = rep(i, length(members)),
+            original_module = rep(m, length(members))
+          )
+
+          mod_samples <- bind_rows(mod_samples, mtbl)
+        }
+      }
+    }
+  }
+
+  # remove replicate modules in fully connected networks with identical modules
+  duplicates_removed <- remove_duplicate_modules(mod_samples)
+
+  duplicates_removed
+
+}
+
+
+remove_duplicate_modules <- function(mod_samples) {
+
+  duplicates_removed <- mod_samples %>%
+    group_by(age, sample) %>%
+    distinct(name) %>%
+    summarize(u = n()) %>%
+    left_join(mod_samples %>% group_by(age, sample) %>% summarize(n = n())) %>%
+    mutate(problem = case_when(u != .data$n ~ "YES", u == .data$n ~ "NO")) %>%
+    left_join(mod_samples) %>%
+    mutate(original_module = case_when(problem == "YES" ~ 1,
+                                       problem == "NO" ~ as.numeric(.data$original_module))) %>%
+    distinct() %>%
+    select(.data$name, .data$age, .data$sample, .data$original_module)
+
+  duplicates_removed
+
+}
+
+n <- name <- NULL
 
 
 
@@ -750,7 +811,7 @@ support_for_modules <- function(
 }
 
 
-plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, module_levels = NULL, axis_text){
+plot_pairwise_membership <- function(pair_heatmaps, ages, palette, module_levels, axis_text){
 
   nages <- length(pair_heatmaps)
   plot_list <- list()
@@ -758,20 +819,21 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette = NULL, module
   for (a in seq_len(nages)) {
     heatmap <- pair_heatmaps[[a]]
 
-    p <- ggplot2::ggplot(
-      heatmap,
-      ggplot2::aes(x = row, y = reorder(col,desc(col)),fill = factor(.data$supported_mod, levels = module_levels), alpha = freq)
-    ) +
+    p <- ggplot2::ggplot(heatmap,
+      ggplot2::aes(x = row,
+                   y = reorder(col,desc(col)),
+                   fill = factor(.data$supported_mod, levels = module_levels),
+                   alpha = freq)) +
       ggplot2::geom_tile() +
       ggplot2::theme_bw() +
       ggplot2::scale_x_discrete(drop = FALSE) +
       ggplot2::scale_y_discrete(drop = FALSE) +
-      ggplot2::scale_alpha(limits = c(0,1), range = c(0.1,1)) +
+      ggplot2::scale_alpha(limits = c(0,1), range = c(0.1,1), name = "Frequency") +
+      ggplot2::labs(fill = "Module") +
       ggplot2::theme(
         axis.title.x = ggplot2::element_blank(),
         axis.title.y = ggplot2::element_blank(),
-        axis.text.x = ggplot2::element_text(angle = 270),
-        legend.title = ggplot2::element_blank()) +
+        axis.text.x = ggplot2::element_text(angle = 270)) +
       ggplot2::ggtitle(paste0(ages[a]," Ma"))
 
     if (!axis_text) {
@@ -841,97 +903,6 @@ pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
 }
 
 module.y <- module.x <- freq <- name <- NULL
-
-
-#' Find modules in networks sampled across MCMC at specific time slices
-#'
-#' @param sampled_networks List of sampled networks at time slices produced by
-#'   `get_sampled_networks()`.
-#'
-#' @return Data frame with module membership information for each sampled network at each time
-#'   slice.
-#' @importFrom dplyr mutate group_by distinct summarize left_join case_when select bind_rows tibble
-#'   n
-#' @importFrom bipartite empty
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#'   data(tree)
-#'   data(host_tree)
-#'   data(history)
-#'
-#'   ages <- c(60,50,40,0)
-#'   samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-#'   sampled_networks <- get_sampled_networks(samples_at_ages)
-#
-#'   mod_samples <- modules_from_samples(sampled_networks)
-#' }
-modules_from_samples <- function(sampled_networks) {
-
-  ages <- as.numeric(names(sampled_networks))
-  if (!(0 %in% ages)) stop('the last element in `sampled_networks` has to be the present (age = 0).')
-
-  Qsamples <- tibble()
-  mod_samples <- tibble()
-
-  nsamp <- dim(sampled_networks[[1]])[1]
-
-  for (a in seq_len(length(ages) - 1)) {
-    for (i in seq_len(nsamp)) {
-      net <- sampled_networks[[a]][i, , ]
-
-      if (ncol(empty(net)) > 1) {
-
-        mod <- mycomputeModules(net)
-
-        q <- mod@likelihood
-        Qsamples <- bind_rows(Qsamples, tibble(age = ages[a], sample = i, Q = q))
-
-        mod_list <- bipartite::listModuleInformation(mod)[[2]]
-        nmod <- length(mod_list)
-        for (m in seq_len(nmod)) {
-          members <- unlist(mod_list[[m]])
-          mtbl <- tibble(
-            name = members,
-            age = rep(ages[a], length(members)),
-            sample = rep(i, length(members)),
-            original_module = rep(m, length(members))
-          )
-
-          mod_samples <- bind_rows(mod_samples, mtbl)
-        }
-      }
-    }
-  }
-
-  # remove replicate modules in fully connected networks with identical modules
-  duplicates_removed <- remove_duplicate_modules(mod_samples)
-
-  duplicates_removed
-
-}
-
-
-remove_duplicate_modules <- function(mod_samples) {
-
-  duplicates_removed <- mod_samples %>%
-    group_by(age, sample) %>%
-    distinct(name) %>%
-    summarize(u = n()) %>%
-    left_join(mod_samples %>% group_by(age, sample) %>% summarize(n = n())) %>%
-    mutate(problem = case_when(u != .data$n ~ "YES", u == .data$n ~ "NO")) %>%
-    left_join(mod_samples) %>%
-    mutate(original_module = case_when(problem == "YES" ~ 1,
-                                       problem == "NO" ~ as.numeric(.data$original_module))) %>%
-    distinct() %>%
-    select(.data$name, .data$age, .data$sample, .data$original_module)
-
-  duplicates_removed
-
-}
-
-n <- name <- NULL
 
 
 
