@@ -1,3 +1,107 @@
+#' Plot network structure indices across ancestral summary, sampled and extant networks
+#'
+#' Plot z-scores for nestedness (NODF) and/or modularity (Q) for sampled and summary networks at time points in
+#' the past, calculated by `index_at_ages_samples` and `index_at_ages_summary`.
+#'
+#' @param nodf_sampled Output of `index_at_ages_samples` when index = "NODF".
+#' @param nodf_summary Output of `index_at_ages_summary` when index = "NODF".
+#' @param q_sampled Output of `index_at_ages_samples` when index = "Q".
+#' @param q_summary Output of `index_at_ages_summary` when index = "Q".
+#' @param col_sampled Color used to represent values from sampled networks.
+#' @param col_summary Color used to represent values from summary networks.
+#'
+#' @return A plot of z-scores over time. Violins show the posterior distribution of z-scores of sampled networks, with dots and lines showing the mean values. Z-scores of summary networks and extant network are shown as dots and line. Use different colors to differentiate values from sampled and summary networks.
+#' @importFrom magrittr %>%
+#' @export
+#'
+#' @examples
+#' data(tree)
+#' data(host_tree)
+#' data(history)
+#'
+#' ages <- c(60, 50, 40, 0)
+#' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+#'
+#' # summary networks
+#' summary_networks <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
+#' Nz_sum <- index_at_ages_summary(summary_networks, index = "NODF", nnull = 10)
+#'
+#' # sampled networks
+#' sampled_networks <- get_sampled_networks(at_ages)
+#' Nz_sam <- index_at_ages_samples(sampled_networks, index = "NODF", nnull = 10)
+#'
+#' #plot
+#' plot_index_at_ages(nodf_sampled = Nz_sam, nodf_summary = Nz_sum)
+plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NULL, q_summary = NULL, col_sampled = "grey40", col_summary = "black"){
+
+  # Input checking
+  # arguments must be data frames with columns `age`, `z` and `p` (only for samples)
+
+  # Nestedness
+  if(is.null(nodf_summary)) {
+    max_z_n <- max(nodf_sampled$z, na.rm = TRUE)
+  } else{
+    max_z_n <- max(c(nodf_sampled$z, nodf_summary$z), na.rm = TRUE)
+  }
+
+  ppN <- nodf_sampled %>%
+    group_by(age) %>%
+    filter(p <= 0.05) %>%
+    summarise(pp = round(n()/max(sample), digits = 2)) %>%
+    mutate(y = floor(max_z_n) + 3) # just for placement in the plot
+
+  plotN <- ggplot(nodf_sampled) +
+    geom_violin(aes(age, z, group = age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
+    stat_summary(aes(age, z), fun = "mean", geom = "line", col = col_sampled) +
+    stat_summary(aes(age, z), fun = "mean", geom = "point", col = col_sampled) +
+    geom_text(aes(age, y, label = pp), data = ppN) +
+    scale_x_reverse() +
+    labs(title = "Nestedness, N", y = "Z-score", x = "Millions of years ago, Ma") +
+    theme_bw()
+
+  if(!is.null(nodf_summary)) {
+    plotN <- plotN +
+      geom_point(aes(age,z), col = col_summary, data = nodf_summary) +
+      geom_line(aes(age,z), col = col_summary, data = nodf_summary)
+  }
+
+  # Modularity
+  if(!is.null(q_sampled)) {
+
+    if(is.null(q_summary)) {
+      max_z_q <- max(q_sampled, na.rm = TRUE)
+    } else{
+      max_z_q <- max(c(q_summary$z, q_sampled$z), na.rm = TRUE)
+    }
+
+    ppQ <- q_sampled %>%
+      group_by(age) %>%
+      filter(p <= 0.05) %>%
+      summarise(pp = round(n()/max(sample), digits = 2))  %>%
+      mutate(y = floor(max_z_q) + 3)
+
+    plotQ <- ggplot(q_sampled) +
+      geom_violin(aes(age, z, group = age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
+      stat_summary(aes(age, z), fun = "mean", geom = "line", col = col_sampled) +
+      stat_summary(aes(age, z), fun = "mean", geom = "point", col = col_sampled) +
+      geom_text(aes(age, y, label = pp), data = ppQ) +
+      scale_x_reverse() +
+      labs(title = "Modularity, Q", y = "Z-score", x = "Millions of years ago, Ma") +
+      theme_bw()
+
+    if(!is.null(q_summary)) {
+      plotQ <- plotQ +
+        geom_point(aes(age,z), col = col_summary, data = q_summary) +
+        geom_line(aes(age,z), col = col_summary, data = q_summary)
+    }
+
+    return(patchwork::wrap_plots(plotN, plotQ, nrow = 2))
+  } else {
+    return(plotN)
+  }
+}
+
+
 #' Network structure indices across ancestral summary networks and extant network
 #'
 #' Calculate z-scores for nestedness (NODF) or modularity (Q) for each ancestral network at time points in
@@ -53,9 +157,15 @@ index_at_ages_summary <- function(summary_networks, index, ages = NULL, nnull = 
 
     for(a in seq_along(ages)){
       network <- summary_networks[[a]]
-      NODF_age <- get_z_nodf(network, nnull) %>%
-        dplyr::mutate(age = ages[a])
-      NODF <- dplyr::bind_rows(NODF, NODF_age)
+
+      # Skip networks with less than 2 hosts or 2 symbionts
+      if(ncol(network) < 2 || nrow(network) < 2 || is.vector(network)) {
+        warning(paste0("Skipping network at age ",ages[a]," because it has less than 2 hosts or symbionts"))
+      } else {
+        NODF_age <- get_z_nodf(network, nnull) %>%
+          dplyr::mutate(age = ages[a])
+        NODF <- dplyr::bind_rows(NODF, NODF_age)
+      }
     }
     ret <- data.frame(NODF)
   }
@@ -66,12 +176,19 @@ index_at_ages_summary <- function(summary_networks, index, ages = NULL, nnull = 
 
     for(a in seq_along(ages)){
       network <- summary_networks[[a]]
-      Q_age <- get_z_mod(network, nnull)  %>%
-        dplyr::mutate(age = ages[a])
-      Q <- dplyr::bind_rows(Q, Q_age)
+
+      # Skip networks with less than 2 hosts or 2 symbionts
+      if(ncol(network) < 2 || nrow(network) < 2 || is.vector(network)) {
+        warning(paste0("Skipping network at age ",ages[a],"because it has less than 2 hosts or symbionts"))
+      } else {
+        Q_age <- get_z_mod(network, nnull)  %>%
+          dplyr::mutate(age = ages[a])
+        Q <- dplyr::bind_rows(Q, Q_age)
+      }
     }
     ret <- data.frame(Q)
   }
+
   return(ret)
 }
 
@@ -205,19 +322,18 @@ get_z_mod <- function(network, nnull = 100){
 #' sampled_networks <- get_sampled_networks(samples_at_ages)
 #'
 #' # calculate posterior distribution of nestedness
-#' Nz <- index_at_ages(sampled_networks, index = "NODF")
+#' Nz <- index_at_ages_samples(sampled_networks, index = "NODF")
 #'
 #' #  calculate posterior distribution of modularity (SLOW!)
-#' # Qz <- index_at_ages(sampled_networks, index = "Q")
-index_at_ages_samples <- function(samples_at_ages, index, ages = NULL, nnull = 100){
+#' # Qz <- index_at_ages_samples(sampled_networks, index = "Q")
+index_at_ages_samples <- function(sampled_networks, index, ages = NULL, nnull = 100){
 
   # Input checking
   if (!is.list(sampled_networks)) {
-    stop('`sampled_networks` should be a list, usually generated by `posterior_at_ages`.')
+    stop('`sampled_networks` should be a list, usually generated by `get_sampled_networks`.')
   }
   if (!(all(vapply(sampled_networks, is.array, TRUE)))) {
-    stop('All list entries of `sampled_networks` should be arrays. Make sure you are only passing ',
-         'the `samples` part of the `posterior_at_ages` output.')
+    stop('All list entries of `sampled_networks` should be arrays.')
   }
   index <- match.arg(index, c('NODF', 'Q'), several.ok = FALSE)
   if (!is.null(ages) & !is.numeric(ages)) stop('`ages` should be numeric.')
@@ -239,7 +355,7 @@ index_at_ages_samples <- function(samples_at_ages, index, ages = NULL, nnull = 1
 
     NODF_pvals <- NODF_null %>%
       dplyr::filter(!is.na(NODFnull)) %>%
-      dplyr::left_join(NODF_obs, by = c("age", "sample")) %>%
+      dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
       dplyr::group_by(.data$age, .data$sample) %>%
       dplyr::summarise(p = sum(.data$NODFnull >= .data$obs_NODF) / nnull, .groups = 'drop')
 
@@ -250,7 +366,7 @@ index_at_ages_samples <- function(samples_at_ages, index, ages = NULL, nnull = 1
         sd_NODF = stats::sd(.data$NODFnull),
         .groups = 'drop'
       ) %>%
-      dplyr::left_join(NODF_obs, by = c("age", "sample")) %>%
+      dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
       dplyr::mutate(z = (.data$obs_NODF - .data$mean_NODF) / .data$sd_NODF) %>%
       dplyr::left_join(NODF_pvals, by = c("age", "sample"))
 
@@ -281,6 +397,8 @@ index_at_ages_samples <- function(samples_at_ages, index, ages = NULL, nnull = 1
 
     ret <- as.data.frame(Q_zsamples)
   }
+
+  ret <- ret[!is.na(ret[,1]),]
   return(ret)
 }
 
@@ -305,7 +423,10 @@ NODF_samples_null <- function(sampled_networks, ages, nnull, weighted = FALSE){
       nullm <- vegan::nullmodel(net, null_type)
       sim <- stats::simulate(nullm, nsim = nnull)
 
-      if(!is.vector(net)) {
+      # Skip networks with less than 2 hosts or 2 symbionts
+      if(ncol(net) < 2 || nrow(net) < 2 || is.vector(net)) {
+        warning(paste0("Skipping network at age ",ages[a]," because it has less than 2 hosts or symbionts"))
+      } else {
         for (j in seq_len(nnull)) {
         Nrandom <- bipartite::networklevel(sim[, , j], index = index)
         NODF_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Nrandom)
@@ -334,7 +455,10 @@ NODF_samples_at_ages <- function(sampled_networks, ages, weighted = FALSE){
       net <- net[rowSums(net) != 0, ]
       net <- net[, colSums(net) != 0]
 
-      if(!is.vector(net)) {
+      # Skip networks with less than 2 hosts or 2 symbionts
+      if(ncol(net) < 2 || nrow(net) < 2 || is.vector(net)) {
+        warning(paste0("Skipping network at age ",ages[a]," because it has less than 2 hosts or symbionts"))
+      } else {
         nodf <- bipartite::networklevel(net, index = index)
         NODF_samples[(a - 1) * nsamp + i, ] <- c(ages[a], i, nodf)
       }
@@ -362,7 +486,10 @@ Q_samples_null <- function(sampled_networks, ages, nnull){
       nullm <- vegan::nullmodel(net, "r00")
       sim <- stats::simulate(nullm, nsim = nnull)
 
-      if(!is.vector(net)) {
+      # Skip networks with less than 2 hosts or 2 symbionts
+      if(ncol(net) < 2 || nrow(net) < 2 || is.vector(net)) {
+        warning(paste0("Skipping network at age ",ages[a]," because it has less than 2 hosts or symbionts"))
+      } else {
         for (j in 1:nnull) {
           mod <- mycomputeModules(sim[, , j])
           Qrandom <- mod@likelihood
@@ -391,7 +518,10 @@ Q_samples_at_ages <- function(sampled_networks, ages){
       net <- net[rowSums(net) != 0, ]
       net <- net[, colSums(net) != 0]
 
-      if(!is.vector(net)) {
+      # Skip networks with less than 2 hosts or 2 symbionts
+      if(ncol(net) < 2 || nrow(net) < 2 || is.vector(net)) {
+        warning(paste0("Skipping network at age ",ages[a]," because it has less than 2 hosts or symbionts"))
+      } else {
         mod <- mycomputeModules(net)
         Q <- mod@likelihood
         Q_samples[(a - 1) * nsamp + i, ] <- c(ages[a], i, Q)

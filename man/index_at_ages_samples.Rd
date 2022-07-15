@@ -4,9 +4,12 @@
 \alias{index_at_ages_samples}
 \title{Posterior distribution of network structure indices across ancestral networks}
 \usage{
-index_at_ages_samples(samples_at_ages, index, ages = NULL, nnull = 100)
+index_at_ages_samples(sampled_networks, index, ages = NULL, nnull = 100)
 }
 \arguments{
+\item{sampled_networks}{List of ancestral networks sampled across MCMC at given ages. Usually from
+the output of \code{get_sampled_networks}, see example.}
+
 \item{index}{Index to be calculated for each ancestral network. "NODF" to calculate nestedness or
 "Q" to calculate modularity.}
 
@@ -14,9 +17,6 @@ index_at_ages_samples(samples_at_ages, index, ages = NULL, nnull = 100)
 ages present in \code{sampled_networks}.}
 
 \item{nnull}{Number of null networks to generate to calculate the z-score. Default is 100.}
-
-\item{sampled_networks}{List of ancestral networks sampled across MCMC at given ages. Usually from
-the output of \code{get_sampled_networks}, see example.}
 }
 \value{
 A data.frame of z-scores and p-values across samples and ages.
@@ -36,8 +36,8 @@ samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 sampled_networks <- get_sampled_networks(samples_at_ages)
 
 # calculate posterior distribution of nestedness
-Nz <- index_at_ages(sampled_networks, index = "NODF")
+Nz <- index_at_ages_samples(sampled_networks, index = "NODF")
 
 #  calculate posterior distribution of modularity (SLOW!)
-# Qz <- index_at_ages(sampled_networks, index = "Q")
+# Qz <- index_at_ages_samples(sampled_networks, index = "Q")
 }
