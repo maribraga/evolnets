@@ -567,7 +567,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
   # set modules for hosts
   mod_idx_name <- mod_df_sym %>%
     dplyr::select(.data$age, .data$original_module, .data$module_name) %>%
-    distinct()
+    dplyr::distinct()
 
   mod_df_host <- dplyr::left_join(mod_df_host, mod_idx_name, by = c("age","original_module"))
 
@@ -657,22 +657,20 @@ modules_from_samples <- function(sampled_networks) {
 remove_duplicate_modules <- function(mod_samples) {
 
   duplicates_removed <- mod_samples %>%
-    group_by(age, sample) %>%
-    distinct(name) %>%
-    summarize(u = n()) %>%
-    left_join(mod_samples %>% group_by(age, sample) %>% summarize(n = n())) %>%
-    mutate(problem = case_when(u != .data$n ~ "YES", u == .data$n ~ "NO")) %>%
-    left_join(mod_samples) %>%
-    mutate(original_module = case_when(problem == "YES" ~ 1,
-                                       problem == "NO" ~ as.numeric(.data$original_module))) %>%
-    distinct() %>%
-    select(.data$name, .data$age, .data$sample, .data$original_module)
+    dplyr::group_by(.data$age, .data$sample) %>%
+    dplyr::distinct(.data$name) %>%
+    dplyr::summarize(u = dplyr::n()) %>%
+    dplyr::left_join(mod_samples %>% dplyr::group_by(.data$age, .data$sample) %>% dplyr::summarize(n = dplyr::n())) %>%
+    dplyr::mutate(problem = dplyr::case_when(u != .data$n ~ "YES", u == .data$n ~ "NO")) %>%
+    dplyr::left_join(mod_samples) %>%
+    dplyr::mutate(original_module = dplyr::case_when(.data$problem == "YES" ~ 1,
+                                       .data$problem == "NO" ~ as.numeric(.data$original_module))) %>%
+    dplyr::distinct() %>%
+    dplyr::select(.data$name, .data$age, .data$sample, .data$original_module)
 
   duplicates_removed
 
 }
-
-n <- name <- NULL
 
 
 

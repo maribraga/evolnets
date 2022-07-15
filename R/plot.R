@@ -532,10 +532,10 @@ plot_ancestral_networks <- function(
 
     graph <- list_tgraphs[[i]]
     mod_from_graph <- tibble::tibble(
-      module = tidygraph::activate(graph,nodes) %>%
+      module = tidygraph::activate(graph, what = nodes) %>%
         dplyr::filter(.data$type == TRUE) %>%
         dplyr::pull(.data$module),
-      label = tidygraph::activate(graph,nodes) %>%
+      label = tidygraph::activate(graph, what = nodes) %>%
         dplyr::filter(.data$type == TRUE) %>%
         dplyr::pull(.data$name)
     )
@@ -569,6 +569,9 @@ plot_ancestral_networks <- function(
   return(plot_list)
 
 }
+
+nodes <- NULL
+
 
 #' Plot one ancestral network with module information at a given time
 #'

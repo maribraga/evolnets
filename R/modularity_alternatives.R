@@ -25,7 +25,7 @@ my_convert2moduleWeb <- function (MATRIX, MODINFO)
   modules <- cbind(Col1, Col2, store)
   rownames(modules) <- NULL
   colnames(modules) <- NULL
-  ModwebObj <- new("moduleWeb")
+  ModwebObj <- methods::new("moduleWeb")
   ModwebObj@originalWeb <- MATRIX
   ModwebObj@moduleWeb <- MATRIX[ROW_IX, COL_IX, drop = FALSE]
   ModwebObj@orderA <- ROW_IX

@@ -51,18 +51,18 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
     dplyr::mutate(y = floor(max_z_n) + 3) # just for placement in the plot
 
   plotN <- ggplot2::ggplot(nodf_sampled) +
-    ggplot2::geom_violin(aes(.data$age, .data$z, group = .data$age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
-    ggplot2::stat_summary(aes(.data$age, .data$z), fun = "mean", geom = "line", col = col_sampled) +
-    ggplot2::stat_summary(aes(.data$age, .data$z), fun = "mean", geom = "point", col = col_sampled) +
-    ggplot2::geom_text(aes(.data$age, .data$y, label = .data$pp), data = ppN) +
+    ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
+    ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z), fun = "mean", geom = "line", col = col_sampled) +
+    ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z), fun = "mean", geom = "point", col = col_sampled) +
+    ggplot2::geom_text(ggplot2::aes(.data$age, .data$y, label = .data$pp), data = ppN) +
     ggplot2::scale_x_reverse() +
     ggplot2::labs(title = "Nestedness, N", y = "Z-score", x = "Millions of years ago, Ma") +
     ggplot2::theme_bw()
 
   if(!is.null(nodf_summary)) {
     plotN <- plotN +
-      ggplot2::geom_point(aes(.data$age,.data$z), col = col_summary, data = nodf_summary) +
-      ggplot2::geom_line(aes(.data$age,.data$z), col = col_summary, data = nodf_summary)
+      ggplot2::geom_point(ggplot2::aes(.data$age,.data$z), col = col_summary, data = nodf_summary) +
+      ggplot2::geom_line(ggplot2::aes(.data$age,.data$z), col = col_summary, data = nodf_summary)
   }
 
   # Modularity
@@ -81,18 +81,18 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
       dplyr::mutate(y = floor(max_z_q) + 3)
 
     plotQ <- ggplot2::ggplot(q_sampled) +
-      ggplot2::geom_violin(aes(.data$age, .data$z, group = .data$age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
-      ggplot2::stat_summary(aes(.data$age, .data$z), fun = "mean", geom = "line", col = col_sampled) +
-      ggplot2::stat_summary(aes(.data$age, .data$z), fun = "mean", geom = "point", col = col_sampled) +
-      ggplot2::geom_text(aes(.data$age, .data$y, label = .data$pp), data = ppQ) +
+      ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
+      ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z), fun = "mean", geom = "line", col = col_sampled) +
+      ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z), fun = "mean", geom = "point", col = col_sampled) +
+      ggplot2::geom_text(ggplot2::aes(.data$age, .data$y, label = .data$pp), data = ppQ) +
       ggplot2::scale_x_reverse() +
       ggplot2::labs(title = "Modularity, Q", y = "Z-score", x = "Millions of years ago, Ma") +
       ggplot2::theme_bw()
 
     if(!is.null(q_summary)) {
       plotQ <- plotQ +
-        ggplot2::geom_point(aes(age,z), col = col_summary, data = q_summary) +
-        ggplot2::geom_line(aes(age,z), col = col_summary, data = q_summary)
+        ggplot2::geom_point(ggplot2::aes(.data$age,.data$z), col = col_summary, data = q_summary) +
+        ggplot2::geom_line(ggplot2::aes(.data$age,.data$z), col = col_summary, data = q_summary)
     }
 
     return(patchwork::wrap_plots(plotN, plotQ, nrow = 2))
@@ -354,7 +354,7 @@ index_at_ages_samples <- function(sampled_networks, index, ages = NULL, nnull = 
     NODF_samples <- NODF_samples_at_ages(sampled_networks, ages, weighted = three_state)
 
     NODF_pvals <- NODF_null %>%
-      dplyr::filter(!is.na(NODFnull)) %>%
+      dplyr::filter(!is.na(.data$NODFnull)) %>%
       dplyr::left_join(NODF_samples, by = c("age", "sample")) %>%
       dplyr::group_by(.data$age, .data$sample) %>%
       dplyr::summarise(p = sum(.data$NODFnull >= .data$obs_NODF) / nnull, .groups = 'drop')
@@ -379,7 +379,7 @@ index_at_ages_samples <- function(sampled_networks, index, ages = NULL, nnull = 
     Q_samples <- Q_samples_at_ages(sampled_networks, ages)
 
     Q_pvals <- Q_null %>%
-      dplyr::filter(!is.na(Qnull)) %>%
+      dplyr::filter(!is.na(.data$Qnull)) %>%
       dplyr::left_join(Q_samples, by = c("age", "sample")) %>%
       dplyr::group_by(.data$age, .data$sample) %>%
       dplyr::summarise(p = sum(.data$Qnull >= .data$obs_Q) / nnull, .groups = 'drop')
