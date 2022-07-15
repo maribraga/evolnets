@@ -24,8 +24,8 @@ Find modules in networks sampled across MCMC at specific time slices
   data(history)
 
   ages <- c(60,50,40,0)
-  samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-  sampled_networks <- get_sampled_networks(samples_at_ages)
+  at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+  sampled_networks <- get_sampled_networks(at_ages)
   mod_samples <- modules_from_samples(sampled_networks)
 }
 }

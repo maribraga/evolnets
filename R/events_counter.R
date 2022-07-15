@@ -37,7 +37,7 @@ count_events <- function(history){
   dist_events <- history %>%
   dplyr::filter(.data$node_index < root,
                 .data$transition_type == 'anagenetic') %>%
-  dplyr::group_by(iteration) %>%
+  dplyr::group_by(.data$iteration) %>%
     dplyr::summarise(n_events = n()) %>%
     dplyr::pull(.data$n_events)
 

@@ -209,7 +209,7 @@ make_dat_age <- function(dat, age) {
     # for missing iterations and nodes, find their parent node instead
     parents <- dplyr::left_join(
       missing,
-      dat %>% dplyr::select(iteration, node_index, parent_index) %>% dplyr::distinct(),
+      dat %>% dplyr::select(.data$iteration, .data$node_index, .data$parent_index) %>% dplyr::distinct(),
       c('iteration', 'node_index')
     )
     # now take those parents, get their data and rename their node_index back tot he child node

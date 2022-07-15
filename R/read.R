@@ -38,7 +38,7 @@ read_history <- function(path_to_hist, burnin = 0.1){
 #'
 #' @param path_to_tree String path to the .txt file exported from RevBayes
 #'
-#' @return A `phylo` object
+#' @return A `phylo` object with node names given by RevBayes, which are important to place the inferred ancestral states in the symbiont tree.
 #' @importFrom magrittr %>%
 #' @export
 #'
@@ -52,12 +52,12 @@ read_tree_from_revbayes <- function(path_to_tree){
   tree <- treeRev@phylo
 
   index_node <- treeRev@data %>%
-    dplyr::mutate(node = as.numeric(node)) %>%
-    dplyr::arrange(node)
+    dplyr::mutate(node = as.numeric(.data$node)) %>%
+    dplyr::arrange(.data$node)
 
   indices <- index_node %>%
-    dplyr::filter(node > treeio::Ntip(tree)) %>%
-    dplyr::pull(index)
+    dplyr::filter(.data$node > treeio::Ntip(tree)) %>%
+    dplyr::pull(.data$index)
 
   names(indices) <- NULL
 

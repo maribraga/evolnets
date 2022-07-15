@@ -31,7 +31,6 @@ data(history)
 
 ages <- c(60, 50, 40, 0)
 at_ages <- posterior_at_ages(history, ages, tree, host_tree)
-pp_at_ages <- at_ages$posterior_probabilities
-summary_networks <- get_summary_network(at_ages, threshold = 0.5, weighted = TRUE)
+summary_networks <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
 all_mod <- modules_across_ages(summary_networks, tree)
 }

@@ -45,24 +45,24 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
   }
 
   ppN <- nodf_sampled %>%
-    group_by(age) %>%
-    filter(p <= 0.05) %>%
-    summarise(pp = round(n()/max(sample), digits = 2)) %>%
-    mutate(y = floor(max_z_n) + 3) # just for placement in the plot
+    dplyr::group_by(.data$age) %>%
+    dplyr::filter(.data$p <= 0.05) %>%
+    dplyr::summarise(pp = round(n()/max(.data$sample), digits = 2)) %>%
+    dplyr::mutate(y = floor(max_z_n) + 3) # just for placement in the plot
 
-  plotN <- ggplot(nodf_sampled) +
-    geom_violin(aes(age, z, group = age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
-    stat_summary(aes(age, z), fun = "mean", geom = "line", col = col_sampled) +
-    stat_summary(aes(age, z), fun = "mean", geom = "point", col = col_sampled) +
-    geom_text(aes(age, y, label = pp), data = ppN) +
-    scale_x_reverse() +
-    labs(title = "Nestedness, N", y = "Z-score", x = "Millions of years ago, Ma") +
-    theme_bw()
+  plotN <- ggplot2::ggplot(nodf_sampled) +
+    ggplot2::geom_violin(aes(.data$age, .data$z, group = .data$age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
+    ggplot2::stat_summary(aes(.data$age, .data$z), fun = "mean", geom = "line", col = col_sampled) +
+    ggplot2::stat_summary(aes(.data$age, .data$z), fun = "mean", geom = "point", col = col_sampled) +
+    ggplot2::geom_text(aes(.data$age, .data$y, label = .data$pp), data = ppN) +
+    ggplot2::scale_x_reverse() +
+    ggplot2::labs(title = "Nestedness, N", y = "Z-score", x = "Millions of years ago, Ma") +
+    ggplot2::theme_bw()
 
   if(!is.null(nodf_summary)) {
     plotN <- plotN +
-      geom_point(aes(age,z), col = col_summary, data = nodf_summary) +
-      geom_line(aes(age,z), col = col_summary, data = nodf_summary)
+      ggplot2::geom_point(aes(.data$age,.data$z), col = col_summary, data = nodf_summary) +
+      ggplot2::geom_line(aes(.data$age,.data$z), col = col_summary, data = nodf_summary)
   }
 
   # Modularity
@@ -75,24 +75,24 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
     }
 
     ppQ <- q_sampled %>%
-      group_by(age) %>%
-      filter(p <= 0.05) %>%
-      summarise(pp = round(n()/max(sample), digits = 2))  %>%
-      mutate(y = floor(max_z_q) + 3)
+      dplyr::group_by(.data$age) %>%
+      dplyr::filter(.data$p <= 0.05) %>%
+      dplyr::summarise(pp = round(n()/max(.data$sample), digits = 2))  %>%
+      dplyr::mutate(y = floor(max_z_q) + 3)
 
-    plotQ <- ggplot(q_sampled) +
-      geom_violin(aes(age, z, group = age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
-      stat_summary(aes(age, z), fun = "mean", geom = "line", col = col_sampled) +
-      stat_summary(aes(age, z), fun = "mean", geom = "point", col = col_sampled) +
-      geom_text(aes(age, y, label = pp), data = ppQ) +
-      scale_x_reverse() +
-      labs(title = "Modularity, Q", y = "Z-score", x = "Millions of years ago, Ma") +
-      theme_bw()
+    plotQ <- ggplot2::ggplot(q_sampled) +
+      ggplot2::geom_violin(aes(.data$age, .data$z, group = .data$age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
+      ggplot2::stat_summary(aes(.data$age, .data$z), fun = "mean", geom = "line", col = col_sampled) +
+      ggplot2::stat_summary(aes(.data$age, .data$z), fun = "mean", geom = "point", col = col_sampled) +
+      ggplot2::geom_text(aes(.data$age, .data$y, label = .data$pp), data = ppQ) +
+      ggplot2::scale_x_reverse() +
+      ggplot2::labs(title = "Modularity, Q", y = "Z-score", x = "Millions of years ago, Ma") +
+      ggplot2::theme_bw()
 
     if(!is.null(q_summary)) {
       plotQ <- plotQ +
-        geom_point(aes(age,z), col = col_summary, data = q_summary) +
-        geom_line(aes(age,z), col = col_summary, data = q_summary)
+        ggplot2::geom_point(aes(age,z), col = col_summary, data = q_summary) +
+        ggplot2::geom_line(aes(age,z), col = col_summary, data = q_summary)
     }
 
     return(patchwork::wrap_plots(plotN, plotQ, nrow = 2))
@@ -181,7 +181,7 @@ index_at_ages_summary <- function(summary_networks, index, ages = NULL, nnull = 
       if(ncol(network) < 2 || nrow(network) < 2 || is.vector(network)) {
         warning(paste0("Skipping network at age ",ages[a],"because it has less than 2 hosts or symbionts"))
       } else {
-        Q_age <- get_z_mod(network, nnull)  %>%
+        Q_age <- get_z_q(network, nnull)  %>%
           dplyr::mutate(age = ages[a])
         Q <- dplyr::bind_rows(Q, Q_age)
       }
@@ -208,7 +208,7 @@ get_z_nodf <- function(network, nnull = 100){
 
     # generate null networks
     null_model <- vegan::nullmodel(network, "r00")
-    null_nets <- simulate(null_model, nsim=nnull)
+    null_nets <- stats::simulate(null_model, nsim=nnull)
 
     # calculate NODF
 
@@ -227,7 +227,7 @@ get_z_nodf <- function(network, nnull = 100){
     count <- round(network*100)            # transform the probabilities into counts
     # to use the null model 'r00_both'
     null_model <- vegan::nullmodel(count, "r00_both")
-    null_nets <- simulate(null_model, nsim=nnull)
+    null_nets <- stats::simulate(null_model, nsim=nnull)
 
     # calculate NODF for null networks
     Nnull <- tibble::tibble()
@@ -240,11 +240,11 @@ get_z_nodf <- function(network, nnull = 100){
   }
 
   Nz <- Nnull %>%
-    summarize(mean = mean(NODF),
-              sd = sd(NODF)) %>%
-    mutate(z = (Nobs - mean)/sd,
+    summarize(mean = mean(.data$NODF),
+              sd = stats::sd(.data$NODF)) %>%
+    mutate(z = (Nobs - .data$mean)/.data$sd,
            N_obs = Nobs) %>%
-    dplyr::select(N_obs, mean, sd, z)
+    dplyr::select(.data$N_obs, .data$mean, .data$sd, .data$z)
 
   return(data.frame(Nz))
 
@@ -252,7 +252,7 @@ get_z_nodf <- function(network, nnull = 100){
 
 
 # calculate z-score for modularity of a given extant or ancestral network
-get_z_mod <- function(network, nnull = 100){
+get_z_q <- function(network, nnull = 100){
 
   values <- mapply(unique, network) %>%
     unique() %>%
@@ -262,12 +262,12 @@ get_z_mod <- function(network, nnull = 100){
   # if network is weighted or has both 1s and 2s, use r00_both
   if(identical(values, c(0,1))) {
     null_model <- vegan::nullmodel(network, "r00")
-    null_nets <- simulate(null_model, nsim=nnull)
+    null_nets <- stats::simulate(null_model, nsim=nnull)
   } else{
     count <- round(network*100)            # transform the probabilities into counts
                                            # to use the null model 'r00_both'
     null_model <- vegan::nullmodel(count, "r00_both")
-    null_nets <- simulate(null_model, nsim=nnull)
+    null_nets <- stats::simulate(null_model, nsim=nnull)
   }
 
   # calculate Q
@@ -282,11 +282,11 @@ get_z_mod <- function(network, nnull = 100){
   Qobs <- mycomputeModules(network)@likelihood
 
   Qz <- Qnull %>%
-    summarize(mean = mean(Q),
-              sd = sd(Q)) %>%
-    mutate(z = (Qobs - mean)/sd,
+    summarize(mean = mean(.data$Q),
+              sd = stats::sd(.data$Q)) %>%
+    mutate(z = (Qobs - .data$mean)/.data$sd,
            Q_obs = Qobs) %>%
-    dplyr::select(Q_obs, mean, sd, z)
+    dplyr::select(.data$Q_obs, .data$mean, .data$sd, .data$z)
 
   return(Qz)
 

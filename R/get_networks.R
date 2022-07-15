@@ -127,7 +127,7 @@ get_sampled_networks <- function(at_ages, state = 2, ages = NULL) {
 
   samples <- at_ages$samples
 
-  if (!is.null(ages) && !all(ages %in% names(age_list))) {
+  if (!is.null(ages) && !all(ages %in% names(at_ages))) {
     stop('`at_ages` must contain the ages given in `ages`.')
   }
   # find ages if not provided

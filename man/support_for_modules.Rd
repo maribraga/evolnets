@@ -34,6 +34,8 @@ modules in the networks. If a \code{data.frame} is passed, it must contain three
 
 \item{palette}{Optional. Color palette for module colors in the plot.}
 
+\item{module_levels}{Optional. Order of modules in the color palette.}
+
 \item{axis_text}{Logical. Plot taxon names?}
 }
 \value{
@@ -62,5 +64,6 @@ which pairs of nodes are placed in the same module in networks sampled across MC
   # calculate support
   support <- support_for_modules(mod_samples, all_mod)
   support$plot
+  support$means
 }
 }

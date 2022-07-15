@@ -10,7 +10,7 @@ read_tree_from_revbayes(path_to_tree)
 \item{path_to_tree}{String path to the .txt file exported from RevBayes}
 }
 \value{
-A \code{phylo} object
+A \code{phylo} object with node names given by RevBayes, which are important to place the inferred ancestral states in the symbiont tree.
 }
 \description{
 Read symbiont tree file produced by RevBayes containing node indices

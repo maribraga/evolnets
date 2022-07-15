@@ -79,11 +79,11 @@ plot_extant_matrix <- function(
       stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
     }
     host_mods <- modules %>%
-      dplyr::filter(type == "host") %>%
+      dplyr::filter(.data$type == "host") %>%
       dplyr::select(.data$name, .data$module) %>%
       dplyr::rename(host = .data$name, host_module = .data$module)
     para_mods <- modules %>%
-      dplyr::filter(type == "symbiont") %>%
+      dplyr::filter(.data$type == "symbiont") %>%
       dplyr::select(.data$name, .data$module) %>%
       dplyr::rename(parasite = .data$name, parasite_module = .data$module)
   }
@@ -460,7 +460,17 @@ plot_matrix_phylo <- function(
 #'
 #' @examples
 #' \dontrun{
+#'   data(tree)
+#'   data(host_tree)
+#'   data(history)
 #'
+#'   ages <- c(60, 50, 40, 0)
+#'   at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+#'   summary_networks <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
+#'   all_mod <- modules_across_ages(summary_networks, tree)
+#'
+#'   plot <- plot_ancestral_networks(summary_networks, all_mod, tree)
+#'   patchwork::wrap_plots(plot, guides = "collect")
 #' }
 plot_ancestral_networks <- function(
     summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL
@@ -502,7 +512,7 @@ plot_ancestral_networks <- function(
 
     graph <- tidygraph::as_tbl_graph(t(wnet), directed = F) %>%
       dplyr::left_join(dplyr::filter(dplyr::select(matched_modules, .data$age, .data$name, .data$module),
-                                     age == ages[n]), by = "name") %>%
+                                     .data$age == ages[n]), by = "name") %>%
       dplyr::select(.data$type, .data$name, .data$module)
 
     list_tgraphs[[n]] <- graph

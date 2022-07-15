@@ -36,6 +36,16 @@ Plot ancestral networks with module information
 }
 \examples{
 \dontrun{
+  data(tree)
+  data(host_tree)
+  data(history)
 
+  ages <- c(60, 50, 40, 0)
+  at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+  summary_networks <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
+  all_mod <- modules_across_ages(summary_networks, tree)
+
+  plot <- plot_ancestral_networks(summary_networks, all_mod, tree)
+  patchwork::wrap_plots(plot, guides = "collect")
 }
 }
