@@ -6,7 +6,7 @@
 \usage{
 plot_ancestral_states(
   tree,
-  samples_at_nodes,
+  at_nodes,
   modules,
   module_order = NULL,
   type = "states",
@@ -19,14 +19,12 @@ plot_ancestral_states(
   dodge_width = 0.025,
   legend = TRUE,
   colors = NULL,
-  state_alpha = c(0.3, 1),
+  state_alpha = c(0.5, 1),
   ladderize = FALSE
 )
 }
 \arguments{
 \item{tree}{The phylogeny, a \code{phylo} object.}
-
-\item{samples_at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
 
 \item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the modules in the network.
 If a \code{data.frame} is passed, it must contain three columns:
@@ -76,6 +74,8 @@ as there are modules.}
 
 The ancestral states are automatically colored by module. To change what colors are used, you
 can add color scales to the resulting \code{ggplot}, e.g. \code{ggplot2::scale_color_manual()}.}
+
+\item{samples_at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
 }
 \value{
 A \code{ggplot} object.
@@ -85,10 +85,10 @@ Plot ancestral states on the phylogeny.
 }
 \examples{
 \dontrun{
-  san <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
+  at_nodes <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
   mods <- mycomputeModules(extant_net)
-  plot_ancestral_states(tree, san, mods)
+  plot_ancestral_states(tree, at_nodes, mods)
   # Manual colors
-  plot_ancestral_states(tree, san, mods, colors = rainbow(20))
+  plot_ancestral_states(tree, at_nodes, mods, colors = rainbow(20))
 }
 }

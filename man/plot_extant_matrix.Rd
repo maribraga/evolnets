@@ -10,7 +10,7 @@ plot_extant_matrix(
   module_order = NULL,
   parasite_order = NULL,
   host_order = NULL,
-  state_alpha = c(0.3, 1)
+  state_alpha = c(0.5, 1)
 )
 }
 \arguments{
