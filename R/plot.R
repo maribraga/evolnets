@@ -455,6 +455,7 @@ plot_matrix_phylo <- function(
 #' @param module_levels Order in which the modules should be organized. Affects which color each
 #'   module will be assigned. If NULL, takes the order of appearance in `matched_modules$module`.
 #' @param palette Color palette used to plot module information.
+#' @param node_size Size of the nodes in every network. If NULL, the default size is plotted.
 #'
 #' @return A list of plots of class `patchwork`. Each element contains the tree and network at a
 #'   given time slice.
@@ -476,7 +477,7 @@ plot_matrix_phylo <- function(
 #'   patchwork::wrap_plots(plot, guides = "collect")
 #' }
 plot_ancestral_networks <- function(
-    summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL
+    summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL, node_size = NULL
 ){
 
   # Input checking
@@ -583,7 +584,7 @@ plot_ancestral_networks <- function(
     plot_age <- plot_network_at_age(
       list_subtrees[[t]], list_tip_data[[t]], list_tgraphs[[t]],
       module_levels, palette, tree, age = ages[t], weighted = weighted, two_state = two_state,
-      weight_range = weight_range
+      weight_range = weight_range, node_size = node_size
     )
     plot_list[[t]] <- plot_age
   }
@@ -623,7 +624,7 @@ nodes <- NULL
 #' }
 plot_network_at_age <- function(
     subtree, tip_data, tgraph, module_levels, palette = NULL, tree, age, weighted = TRUE,
-    weight_range = c(0, 1), two_state = FALSE
+    weight_range = c(0, 1), two_state = FALSE, node_size = NULL
 ) {
 
   if(is.null(palette)) palette <- scales::hue_pal()(length(module_levels))
@@ -653,11 +654,20 @@ plot_network_at_age <- function(
     }
   }
 
+  if(is.null(node_size)){
+    geom_node_point <- ggraph::geom_node_point(
+      ggplot2::aes(shape = .data$type, color = factor(.data$module, levels = module_levels))
+    )
+  } else {
+    geom_node_point <- ggraph::geom_node_point(
+      ggplot2::aes(shape = .data$type, color = factor(.data$module, levels = module_levels)),
+      size = node_size
+    )
+  }
+
   ggn <- ggraph::ggraph(tgraph, layout = 'stress') +
     ggraph::geom_edge_link(edge_aes, color = "grey50") +
-    ggraph::geom_node_point(
-      ggplot2::aes(shape = .data$type, color = factor(.data$module, levels = module_levels))
-    ) +
+    geom_node_point +
     ggplot2::scale_shape_manual(
       values = c("square", "circle"), labels = c("Host", "Symbiont"), name = NULL
     ) +
