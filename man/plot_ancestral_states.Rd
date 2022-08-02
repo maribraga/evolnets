@@ -26,6 +26,8 @@ plot_ancestral_states(
 \arguments{
 \item{tree}{The phylogeny, a \code{phylo} object.}
 
+\item{at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
+
 \item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the modules in the network.
 If a \code{data.frame} is passed, it must contain three columns:
 $name with taxon names,
@@ -74,8 +76,6 @@ as there are modules.}
 
 The ancestral states are automatically colored by module. To change what colors are used, you
 can add color scales to the resulting \code{ggplot}, e.g. \code{ggplot2::scale_color_manual()}.}
-
-\item{samples_at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
 }
 \value{
 A \code{ggplot} object.

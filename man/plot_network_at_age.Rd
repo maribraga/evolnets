@@ -14,7 +14,8 @@ plot_network_at_age(
   age,
   weighted = TRUE,
   weight_range = c(0, 1),
-  two_state = FALSE
+  two_state = FALSE,
+  node_size = NULL
 )
 }
 \arguments{

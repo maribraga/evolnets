@@ -9,7 +9,8 @@ plot_ancestral_networks(
   matched_modules,
   tree,
   module_levels = NULL,
-  palette = NULL
+  palette = NULL,
+  node_size = NULL
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ network. Output of \code{modules_across_ages()}.}
 module will be assigned. If NULL, takes the order of appearance in \code{matched_modules$module}.}
 
 \item{palette}{Color palette used to plot module information.}
+
+\item{node_size}{Size of the nodes in every network. If NULL, the default size is plotted.}
 }
 \value{
 A list of plots of class \code{patchwork}. Each element contains the tree and network at a

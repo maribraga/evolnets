@@ -6,7 +6,7 @@
 \usage{
 plot_matrix_phylo(
   net,
-  samples_at_nodes,
+  at_nodes,
   tree,
   host_tree,
   type = "states",
@@ -26,7 +26,7 @@ plot_matrix_phylo(
 Parasites should be the rows, hosts should be columns. If all values are 0 or 1 an binary
 network is represented, otherwise a weighted network is assumed.}
 
-\item{samples_at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
+\item{at_nodes}{A list of length 2, output from \code{posterior_at_nodes()}.}
 
 \item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class \code{phylo}.}
 

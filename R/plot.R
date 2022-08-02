@@ -161,7 +161,7 @@ plot_extant_matrix <- function(
 #' Plot ancestral states on the phylogeny.
 #'
 #' @param tree The phylogeny, a `phylo` object.
-#' @param samples_at_nodes A list of length 2, output from `posterior_at_nodes()`.
+#' @param at_nodes A list of length 2, output from `posterior_at_nodes()`.
 #' @param modules A `moduleWeb` or a `data.frame` object defining the modules in the network.
 #' If a `data.frame` is passed, it must contain three columns:
 #'   $name with taxon names,
@@ -382,7 +382,7 @@ plot_ancestral_states <- function(
 #'   plot_matrix_phylo(extant_net, at_nodes, tree, host_tree, colors = rainbow(20))
 #' }
 plot_matrix_phylo <- function(
-    net, samples_at_nodes, tree, host_tree, type = "states", state = 2, repertoire = 'fundamental',
+    net, at_nodes, tree, host_tree, type = "states", state = 2, repertoire = 'fundamental',
     modules = NULL, module_order = NULL,
     threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
 ) {
@@ -397,11 +397,17 @@ plot_matrix_phylo <- function(
   }
 
   # Make the parasite tree plot
-  parasite_plot <- plot_ancestral_states(
-    tree, samples_at_nodes, modules, module_order, type = type, state = state,
-    repertoire = repertoire, threshold = threshold, point_size = point_size,
-    dodge_width = dodge_width, legend = FALSE, colors = colors, ladderize = ladderize
-  )
+  if (is.null(at_nodes)){
+    p <- ggtree::ggtree(tree, ladderize = ladderize)
+    parasite_plot <- ggtree::revts(p + ggtree::theme_tree2())
+  } else {
+    parasite_plot <- plot_ancestral_states(
+      tree, at_nodes, modules, module_order, type = type, state = state,
+      repertoire = repertoire, threshold = threshold, point_size = point_size,
+      dodge_width = dodge_width, legend = FALSE, colors = colors, ladderize = ladderize
+    )
+  }
+
   parasite_coords <- parasite_plot$data[parasite_plot$data$isTip, c('x', 'y', 'label', 'isTip')]
   parasite_coords <- parasite_coords[order(parasite_coords$y), ]
 

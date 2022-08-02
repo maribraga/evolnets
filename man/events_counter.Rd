@@ -28,16 +28,16 @@ effective rate of host repertoire evolution.
 }
 \section{Functions}{
 \itemize{
-\item \code{count_events}: Get the average number of events along the symbiont tree and the highest posterior density interval with 95\% probability (HPD95), based on all MCMC iterations in \code{history}.
+\item \code{count_events()}: Get the average number of events along the symbiont tree and the highest posterior density interval with 95\% probability (HPD95), based on all MCMC iterations in \code{history}.
 
-\item \code{effective_rate}: Get the effective rate of evolution, i.e. number
+\item \code{effective_rate()}: Get the effective rate of evolution, i.e. number
 of events per branch unit, along each tree branch. Mean and HP95 are outputted.
 
-\item \code{count_gl}: Get the average number of host gains and host losses
+\item \code{count_gl()}: Get the average number of host gains and host losses
 
-\item \code{rate_gl}: Get the average effective rate of host gain and host loss
+\item \code{rate_gl()}: Get the average effective rate of host gain and host loss
+
 }}
-
 \examples{
 data(tree)
 data(history)
