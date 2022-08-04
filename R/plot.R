@@ -70,8 +70,10 @@ plot_extant_matrix <- function(
     mod_list <- bipartite::listModuleInformation(modules)[[2]]
     host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
     host_mods <- dplyr::bind_rows(host_mods, .id = 'host_module')
+    host_mods$host_module <- as.numeric(host_mods$host_module)
     para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
     para_mods <- dplyr::bind_rows(para_mods, .id = 'parasite_module')
+    para_mods$parasite_module <- as.numeric(para_mods$parasite_module)
   } else {
     if (inherits(modules, 'data.frame') && !all(
       c('name', 'module', 'type') %in% names(modules)
@@ -103,9 +105,10 @@ plot_extant_matrix <- function(
     NA
   )
   # Set order of modules
-  if (!is.null(module_order)) {
-    module_mat$module <- factor(module_mat$module, levels = module_order)
+  if (is.null(module_order)) {
+    module_order <- sort(unique(module_mat$parasite_module))
   }
+  module_mat$module <- factor(module_mat$module, levels = module_order)
 
   # Then join with the order of tips from the trees to ensure correct alignment
   if (is.null(parasite_order)) {
@@ -113,7 +116,7 @@ plot_extant_matrix <- function(
       dplyr::group_by(.data$parasite, .data$parasite_module) %>%
       dplyr::summarise(degree = dplyr::n()) %>%
       dplyr::mutate(parasite_module = factor(.data$parasite_module, levels = module_order)) %>%
-      dplyr::arrange(.data$parasite_module, .data$degree) %>%
+      dplyr::arrange(.data$parasite_module,.data$degree) %>%
       dplyr::pull(.data$parasite)
   }
   if (is.null(host_order)) {
@@ -127,15 +130,19 @@ plot_extant_matrix <- function(
   module_mat$parasite <- factor(module_mat$parasite, levels = parasite_order)
   module_mat$host <- factor(module_mat$host, levels = host_order)
 
-  if (length(unique(module_mat$weight)) > 1) {
+  net_vals <- sort(unique(as.numeric(net)))
+
+  if (identical(net_vals, c(0, 1, 2))) {
     p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~factor(weight))) +
       ggplot2::scale_alpha_ordinal(
         limits = factor(1:2), range = state_alpha, name = 'Interaction type',
         labels = c('1' = 'Potential', '2' = 'Actual'),
         guide = ggplot2::guide_legend(ncol = 1)
       )
-  } else {
+  } else if (identical(net_vals, c(0, 1))) {
     p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
+  } else {
+    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~weight))
   }
 
   p +
