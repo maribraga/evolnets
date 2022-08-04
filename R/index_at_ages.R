@@ -252,7 +252,7 @@ get_z_nodf <- function(network, nnull = 100){
 
 
 # calculate z-score for modularity of a given extant or ancestral network
-get_z_q <- function(network, nnull = 100){
+get_z_q <- function(network, nnull = 100, use_future=FALSE){
 
   values <- mapply(unique, network) %>%
     unique() %>%
@@ -273,9 +273,18 @@ get_z_q <- function(network, nnull = 100){
   # calculate Q
   Qnull <- tibble::tibble()
 
-  for(j in 1:nnull){
-    Qrandom <- mycomputeModules(null_nets[,,j])@likelihood
-    Qnull <- dplyr::bind_rows(Qnull, tibble(null_idx = j, Q = Qrandom))
+  # use future
+  if (use_future) {
+    Qrandom <- do.call(c, future_lapply(1:nnull, function(x) { mycomputeModules(null_nets[,,x])@likelihood }, future.seed=T))
+    Qnull <- tibble::tibble(null_idx = 1:nnull, Q = Qrandom)
+
+  }
+  # use base/serial
+  else {
+    for(j in 1:nnull){
+      Qrandom <- mycomputeModules(null_nets[,,j])@likelihood
+      Qnull <- dplyr::bind_rows(Qnull, tibble(null_idx = j, Q = Qrandom))
+    }
   }
 
   # calculate Q for observed network
@@ -470,7 +479,7 @@ NODF_samples_at_ages <- function(sampled_networks, ages, weighted = FALSE){
 }
 
 # Simulate null networks and calculate Q
-Q_samples_null <- function(sampled_networks, ages, nnull){
+Q_samples_null <- function(sampled_networks, ages, nnull, use_future=FALSE){
 
   nsamp <- dim(sampled_networks[[1]])[1]
   Q_null <- data.frame(
@@ -490,10 +499,17 @@ Q_samples_null <- function(sampled_networks, ages, nnull){
       if(ncol(net) < 2 || nrow(net) < 2 || is.vector(net)) {
         warning(paste0("Skipping network at age ",ages[a]," because it has less than 2 hosts or symbionts"))
       } else {
-        for (j in 1:nnull) {
-          mod <- mycomputeModules(sim[, , j])
-          Qrandom <- mod@likelihood
-          Q_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Qrandom)
+        if (use_future) {
+          Qrandom <- do.call(c, future_lapply(1:nnull, function(x) { mycomputeModules(sim[,,x])@likelihood }, future.seed=T))
+          for (j in 1:nnull) {
+            Q_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Qrandom[j])
+          }
+        } else {
+          for (j in 1:nnull) {
+            mod <- mycomputeModules(sim[, , j])
+            Qrandom <- mod@likelihood
+            Q_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Qrandom)
+          }
         }
       }
     }
