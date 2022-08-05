@@ -331,7 +331,7 @@ match_modules_interval <- function(summary_networks, mod_df_sym, unmatched_modul
     dplyr::pull(.data$module_name) %>%
     unique()
 
-  # ? need to update matches() ? #### can't remember why
+  # find submodules
   all_submodules <- modules_age[tidyselect::matches("\\.[0-9]*", vars = modules_age)]
   submod_letters <- unique(sub("\\.[0-9]*", "", all_submodules))
   modules_age    <- sort(unique(c(modules_age, submod_letters)))
@@ -387,7 +387,7 @@ match_modules_interval <- function(summary_networks, mod_df_sym, unmatched_modul
       by = "original_module"
     )
 
-  # Step 3d (this could be one function betw. L726-L821
+  # Step 3d
   # match modules if nodes occur within the (age_min, age_max) interval
   if (nrow(node_depth) > 0) {
 
@@ -418,20 +418,20 @@ match_modules_interval <- function(summary_networks, mod_df_sym, unmatched_modul
       # Combine children strengths
       children_strengths <- rbind(child1_strengths, child2_strengths)
 
-      # Merge submodules of the same module (letter) when each children are in submodules of the same module
+      # Merge submodules of the same module (letter) when each children are in submodules of the same module - or merge a submodule into the main module
       letter_mod_children <- c(sub("\\.[0-9]*","",mod_child1), sub("\\.[0-9]*","",mod_child2))
 
       if (!is.na(mod_child1) & !is.na(mod_child2) & mod_child1 != mod_child2 &
           letter_mod_children[1] == letter_mod_children[2]) {
 
-        submodules <- children_strengths %>%
-          dplyr::select(tidyselect::matches("\\.[0-9]*")) %>%
+        mods_to_merge <- children_strengths %>%
+          dplyr::select(tidyselect::ends_with(c(mod_child1, mod_child2))) %>%
           colnames()
 
-        mod_letter <- sub("\\.[0-9]*","",submodules)[1]
+        mod_letter <- sub("\\.[0-9]*","",mods_to_merge)[1]
 
         children_strengths <- children_strengths %>%
-          dplyr::mutate({{mod_letter}} := .data[[submodules[1]]] + .data[[submodules[2]]]) %>%
+          dplyr::mutate({{mod_letter}} := .data[[mods_to_merge[1]]] + .data[[mods_to_merge[2]]]) %>%
           dplyr::select(-tidyselect::matches("\\.[0-9]*"))
       }
 
@@ -574,7 +574,7 @@ match_modules <- function(summary_networks, unmatched_modules, tree){
   mod_df <- bind_rows(mod_df_sym, mod_df_host) %>%
     dplyr::rename(module = .data$module_name)
 
-  # TODO: replace with user given names
+  # TODO: replace with user given module names
   list <- list(mod_df, mod_idx_name)
   names(list) <- c("nodes_and_modules_per_age", "original_and_matched_module_names")
 
