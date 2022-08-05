@@ -1,8 +1,9 @@
 #' Plot a network with modules as an adjacency matrix
 #'
 #' @param net An adjacency matrix for a bipartite network. Parasites should be
-#'   the rows, hosts should be columns. If all values are 0 or 1 an unweighted
-#'   network is represented, otherwise a weighted network is assumed.
+#'   the rows, hosts should be columns. If all values are 0/1 (or 0/2), a binary
+#'   network is represented; if all values are 0/1/2, a network with potential
+#'   and actual interactions is represented; otherwise a weighted network is assumed.
 #' @param modules A `moduleWeb` or a `data.frame` object defining the models in
 #'   the network. If left `NULL` the modules are automatically calculated. If a
 #'   `data.frame` is passed, it must contain three columns: $name with taxon
@@ -139,7 +140,7 @@ plot_extant_matrix <- function(
         labels = c('1' = 'Potential', '2' = 'Actual'),
         guide = ggplot2::guide_legend(ncol = 1)
       )
-  } else if (identical(net_vals, c(0, 1))) {
+  } else if (identical(net_vals, c(0, 1)) | identical(net_vals, c(0, 2))) {
     p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
   } else {
     p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~weight))

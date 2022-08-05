@@ -15,8 +15,9 @@ plot_extant_matrix(
 }
 \arguments{
 \item{net}{An adjacency matrix for a bipartite network. Parasites should be
-the rows, hosts should be columns. If all values are 0 or 1 an unweighted
-network is represented, otherwise a weighted network is assumed.}
+the rows, hosts should be columns. If all values are 0/1 (or 0/2), a binary
+network is represented; if all values are 0/1/2, a network with potential
+and actual interactions is represented; otherwise a weighted network is assumed.}
 
 \item{modules}{A \code{moduleWeb} or a \code{data.frame} object defining the models in
 the network. If left \code{NULL} the modules are automatically calculated. If a
