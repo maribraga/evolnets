@@ -470,6 +470,8 @@ plot_matrix_phylo <- function(
 #'   module will be assigned. If NULL, takes the order of appearance in `matched_modules$module`.
 #' @param palette Color palette used to plot module information.
 #' @param node_size Size of the nodes in every network. If NULL, the default size is plotted.
+#' @param level_names Optional string vector with two elements used by legend: name of the clade
+#' modeled as "host" and the name of the clade modeled as "symbiont".
 #'
 #' @return A list of plots of class `patchwork`. Each element contains the tree and network at a
 #'   given time slice.
@@ -491,7 +493,8 @@ plot_matrix_phylo <- function(
 #'   patchwork::wrap_plots(plot, guides = "collect")
 #' }
 plot_ancestral_networks <- function(
-    summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL, node_size = NULL
+    summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL, node_size = NULL,
+    level_names = c("Host", "Symbiont")
 ){
 
   # Input checking
@@ -598,7 +601,8 @@ plot_ancestral_networks <- function(
     plot_age <- plot_network_at_age(
       list_subtrees[[t]], list_tip_data[[t]], list_tgraphs[[t]],
       module_levels, palette, tree, age = ages[t], weighted = weighted, two_state = two_state,
-      weight_range = weight_range, node_size = node_size
+      weight_range = weight_range, node_size = node_size,
+      level_names = level_names
     )
     plot_list[[t]] <- plot_age
   }
@@ -626,6 +630,9 @@ nodes <- NULL
 #' @param weight_range The range of weights conscidered for the width of the edges.
 #' @param two_state Whether the width of the edges should reflect the state (instead of the
 #'   posterior probability).
+#' @param node_size Size of the nodes in every network. If NULL, the default size is plotted.
+#' @param level_names Optional string vector with two elements used by legend: name of the clade
+#' modeled as "host" and the name of the clade modeled as "symbiont".
 #'
 #' @return An assembly of plots, of class `patchwork`.
 #' @export
@@ -638,7 +645,7 @@ nodes <- NULL
 #' }
 plot_network_at_age <- function(
     subtree, tip_data, tgraph, module_levels, palette = NULL, tree, age, weighted = TRUE,
-    weight_range = c(0, 1), two_state = FALSE, node_size = NULL
+    weight_range = c(0, 1), two_state = FALSE, node_size = NULL, level_names = c("Host", "Symbiont")
 ) {
 
   if(is.null(palette)) palette <- scales::hue_pal()(length(module_levels))
@@ -683,7 +690,7 @@ plot_network_at_age <- function(
     ggraph::geom_edge_link(edge_aes, color = "grey50") +
     geom_node_point +
     ggplot2::scale_shape_manual(
-      values = c("square", "circle"), labels = c("Host", "Symbiont"), name = NULL
+      values = c("square", "circle"), labels = level_names, name = NULL
     ) +
     ggplot2::scale_color_manual(
       values = palette, na.value = "grey70", drop = F, name = "Module"#, limits = c(module_levels, NA)

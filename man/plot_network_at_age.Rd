@@ -15,7 +15,8 @@ plot_network_at_age(
   weighted = TRUE,
   weight_range = c(0, 1),
   two_state = FALSE,
-  node_size = NULL
+  node_size = NULL,
+  level_names = c("Host", "Symbiont")
 )
 }
 \arguments{
@@ -42,6 +43,11 @@ module will be assigned.}
 
 \item{two_state}{Whether the width of the edges should reflect the state (instead of the
 posterior probability).}
+
+\item{node_size}{Size of the nodes in every network. If NULL, the default size is plotted.}
+
+\item{level_names}{Optional string vector with two elements used by legend: name of the clade
+modeled as "host" and the name of the clade modeled as "symbiont".}
 }
 \value{
 An assembly of plots, of class \code{patchwork}.

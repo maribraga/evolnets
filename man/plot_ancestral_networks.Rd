@@ -10,7 +10,8 @@ plot_ancestral_networks(
   tree,
   module_levels = NULL,
   palette = NULL,
-  node_size = NULL
+  node_size = NULL,
+  level_names = c("Host", "Symbiont")
 )
 }
 \arguments{
@@ -29,6 +30,9 @@ module will be assigned. If NULL, takes the order of appearance in \code{matched
 \item{palette}{Color palette used to plot module information.}
 
 \item{node_size}{Size of the nodes in every network. If NULL, the default size is plotted.}
+
+\item{level_names}{Optional string vector with two elements used by legend: name of the clade
+modeled as "host" and the name of the clade modeled as "symbiont".}
 }
 \value{
 A list of plots of class \code{patchwork}. Each element contains the tree and network at a
