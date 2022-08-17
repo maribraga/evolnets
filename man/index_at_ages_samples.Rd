@@ -4,7 +4,13 @@
 \alias{index_at_ages_samples}
 \title{Posterior distribution of network structure indices across ancestral networks}
 \usage{
-index_at_ages_samples(sampled_networks, index, ages = NULL, nnull = 100)
+index_at_ages_samples(
+  sampled_networks,
+  index,
+  ages = NULL,
+  nnull = 100,
+  use_future = FALSE
+)
 }
 \arguments{
 \item{sampled_networks}{List of ancestral networks sampled across MCMC at given ages. Usually from
@@ -17,6 +23,8 @@ the output of \code{get_sampled_networks}, see example.}
 ages present in \code{sampled_networks}.}
 
 \item{nnull}{Number of null networks to generate to calculate the z-score. Default is 100.}
+
+\item{use_future}{Parallelize with package \code{future}? Logical. Only applicable to modularity calculation.}
 }
 \value{
 A data.frame of z-scores and p-values across samples and ages.
@@ -27,9 +35,11 @@ the past based on null networks where all interactions have the same probability
 z-scores, we can compare ancestral networks at different ages.
 }
 \examples{
-data(tree)
-data(host_tree)
-data(history)
+# read data that comes with the package
+data_path <- system.file("extdata", package = "evolnets")
+tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 
 ages <- c(60,50,40,0)
 samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
@@ -38,6 +48,6 @@ sampled_networks <- get_sampled_networks(samples_at_ages)
 # calculate posterior distribution of nestedness
 Nz <- index_at_ages_samples(sampled_networks, index = "NODF")
 
-#  calculate posterior distribution of modularity (SLOW!)
-# Qz <- index_at_ages_samples(sampled_networks, index = "Q")
+#  calculate posterior distribution of modularity with parallelization (slower)
+# Qz <- index_at_ages_samples(sampled_networks, index = "Q", use_future = TRUE)
 }

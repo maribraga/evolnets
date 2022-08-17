@@ -115,6 +115,7 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
 #' @param ages Vector of ages (time points in the past) of ancestral networks. By default, uses all
 #'   ages present in `summary_networks`.
 #' @param nnull Number of null networks to generate to calculate the z-score. Default is 100.
+#' @param use_future Parallelize with package `future`? Logical. Only applicable to modularity calculation.
 #'
 #' @return A data.frame of z-scores and p-values across networks.
 #' @importFrom magrittr %>%
@@ -122,10 +123,13 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
 #' @export
 #'
 #' @examples
-#' data(tree)
-#' data(host_tree)
-#' data(history)
+#' # read data that comes with the package
+#' data_path <- system.file("extdata", package = "evolnets")
+#' tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+#' host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+#' history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"))
 #'
+#' # get ancestral networks at ages in the past
 #' ages <- c(60, 50, 40, 0)
 #' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 #' summary_networks <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
@@ -133,9 +137,9 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
 #' # calculate nestedness of ancestral and extant networks
 #' Nz <- index_at_ages_summary(summary_networks, index = "NODF")
 #'
-#' # calculate modularity of ancestral and extant networks (slow!)
-#' Qz <- index_at_ages_summary(summary_networks, index = "Q", nnull = 3)
-index_at_ages_summary <- function(summary_networks, index, ages = NULL, nnull = 100){
+#' # calculate modularity of ancestral and extant networks with parallelization (slower)
+#' # Qz <- index_at_ages_summary(summary_networks, index = "Q", use_future = TRUE)
+index_at_ages_summary <- function(summary_networks, index, ages = NULL, nnull = 100, use_future= FALSE){
 
   # Input checking
   if (!is.list(summary_networks) || !all(vapply(summary_networks, inherits, TRUE, 'matrix'))) {
@@ -181,7 +185,7 @@ index_at_ages_summary <- function(summary_networks, index, ages = NULL, nnull = 
       if(ncol(network) < 2 || nrow(network) < 2 || is.vector(network)) {
         warning(paste0("Skipping network at age ",ages[a],"because it has less than 2 hosts or symbionts"))
       } else {
-        Q_age <- get_z_q(network, nnull)  %>%
+        Q_age <- get_z_q(network, nnull, use_future = use_future)  %>%
           dplyr::mutate(age = ages[a])
         Q <- dplyr::bind_rows(Q, Q_age)
       }
@@ -275,7 +279,7 @@ get_z_q <- function(network, nnull = 100, use_future=FALSE){
 
   # use future
   if (use_future) {
-    Qrandom <- do.call(c, future_lapply(1:nnull, function(x) { mycomputeModules(null_nets[,,x])@likelihood }, future.seed=T))
+    Qrandom <- do.call(c, future.apply::future_lapply(1:nnull, function(x) { mycomputeModules(null_nets[,,x])@likelihood }, future.seed=T))
     Qnull <- tibble::tibble(null_idx = 1:nnull, Q = Qrandom)
 
   }
@@ -315,6 +319,7 @@ get_z_q <- function(network, nnull = 100, use_future=FALSE){
 #' @param ages Vector of ages (time points in the past) of ancestral networks. By default, uses all
 #'   ages present in `sampled_networks`.
 #' @param nnull Number of null networks to generate to calculate the z-score. Default is 100.
+#' @param use_future Parallelize with package `future`? Logical. Only applicable to modularity calculation.
 #'
 #' @return A data.frame of z-scores and p-values across samples and ages.
 #' @importFrom magrittr %>%
@@ -322,9 +327,11 @@ get_z_q <- function(network, nnull = 100, use_future=FALSE){
 #' @export
 #'
 #' @examples
-#' data(tree)
-#' data(host_tree)
-#' data(history)
+#' # read data that comes with the package
+#' data_path <- system.file("extdata", package = "evolnets")
+#' tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+#' host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+#' history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 #'
 #' ages <- c(60,50,40,0)
 #' samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
@@ -333,9 +340,9 @@ get_z_q <- function(network, nnull = 100, use_future=FALSE){
 #' # calculate posterior distribution of nestedness
 #' Nz <- index_at_ages_samples(sampled_networks, index = "NODF")
 #'
-#' #  calculate posterior distribution of modularity (SLOW!)
-#' # Qz <- index_at_ages_samples(sampled_networks, index = "Q")
-index_at_ages_samples <- function(sampled_networks, index, ages = NULL, nnull = 100){
+#' #  calculate posterior distribution of modularity with parallelization (slower)
+#' # Qz <- index_at_ages_samples(sampled_networks, index = "Q", use_future = TRUE)
+index_at_ages_samples <- function(sampled_networks, index, ages = NULL, nnull = 100, use_future = FALSE){
 
   # Input checking
   if (!is.list(sampled_networks)) {
@@ -384,7 +391,7 @@ index_at_ages_samples <- function(sampled_networks, index, ages = NULL, nnull = 
 
   if (index == "Q") {
 
-    Q_null <- Q_samples_null(sampled_networks, ages, nnull)
+    Q_null <- Q_samples_null(sampled_networks, ages, nnull, use_future = use_future)
     Q_samples <- Q_samples_at_ages(sampled_networks, ages)
 
     Q_pvals <- Q_null %>%
@@ -479,7 +486,7 @@ NODF_samples_at_ages <- function(sampled_networks, ages, weighted = FALSE){
 }
 
 # Simulate null networks and calculate Q
-Q_samples_null <- function(sampled_networks, ages, nnull, use_future=FALSE){
+Q_samples_null <- function(sampled_networks, ages, nnull, use_future = FALSE){
 
   nsamp <- dim(sampled_networks[[1]])[1]
   Q_null <- data.frame(
@@ -500,7 +507,7 @@ Q_samples_null <- function(sampled_networks, ages, nnull, use_future=FALSE){
         warning(paste0("Skipping network at age ",ages[a]," because it has less than 2 hosts or symbionts"))
       } else {
         if (use_future) {
-          Qrandom <- do.call(c, future_lapply(1:nnull, function(x) { mycomputeModules(sim[,,x])@likelihood }, future.seed=T))
+          Qrandom <- do.call(c, future.apply::future_lapply(1:nnull, function(x) { mycomputeModules(sim[,,x])@likelihood }, future.seed=T))
           for (j in 1:nnull) {
             Q_null[(a - 1) * nsamp * nnull + (i - 1) * nnull + j, ] <- c(ages[a], i, j, Qrandom[j])
           }
