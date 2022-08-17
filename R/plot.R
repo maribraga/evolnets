@@ -213,8 +213,20 @@ plot_extant_matrix <- function(
 #'
 #' @examples
 #' \dontrun{
+#'   # read data that comes with the package
+#'   data_path <- system.file("extdata", package = "evolnets")
+#'   tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+#'   host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+#'   history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
+#'   extant_net <- read.csv(paste0(data_path,"/interaction_matrix_pieridae.csv"), row.names = 1)
+#'
+#'   # calculate posterior probability of interactions at internal nodes
 #'   at_nodes <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
+#'
+#'   # find modules in the extant network
 #'   mods <- mycomputeModules(extant_net)
+#'
+#'   # plot ancestral states
 #'   plot_ancestral_states(tree, at_nodes, mods)
 #'   # Manual colors
 #'   plot_ancestral_states(tree, at_nodes, mods, colors = rainbow(20))
@@ -384,7 +396,17 @@ plot_ancestral_states <- function(
 #'
 #' @examples
 #' \dontrun{
+#'   # read data that comes with the package
+#'   data_path <- system.file("extdata", package = "evolnets")
+#'   tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+#'   host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+#'   history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
+#'   extant_net <- read.csv(paste0(data_path,"/interaction_matrix_pieridae.csv"), row.names = 1)
+#'
+#'   # calculate posterior probability of interactions at internal nodes
 #'   at_nodes <- posterior_at_nodes(history, tree, host_tree, 66 + 1:65)
+#'
+#'   # plot
 #'   plot_matrix_phylo(extant_net, at_nodes, tree, host_tree)
 #'   # manual_colors
 #'   plot_matrix_phylo(extant_net, at_nodes, tree, host_tree, colors = rainbow(20))
@@ -480,15 +502,19 @@ plot_matrix_phylo <- function(
 #'
 #' @examples
 #' \dontrun{
-#'   data(tree)
-#'   data(host_tree)
-#'   data(history)
+#'   # read data that comes with the package
+#'   data_path <- system.file("extdata", package = "evolnets")
+#'   tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+#'   host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+#'   history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 #'
+#'   # find and match modules of summary networks at ages
 #'   ages <- c(60, 50, 40, 0)
 #'   at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 #'   summary_networks <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
 #'   all_mod <- modules_across_ages(summary_networks, tree)
 #'
+#'   # plot
 #'   plot <- plot_ancestral_networks(summary_networks, all_mod, tree)
 #'   patchwork::wrap_plots(plot, guides = "collect")
 #' }

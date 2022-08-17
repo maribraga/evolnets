@@ -15,10 +15,13 @@
 #' @export
 #'
 #' @examples
-#' data(tree)
-#' data(host_tree)
-#' data(history)
+#' # read data that comes with the package
+#' data_path <- system.file("extdata", package = "evolnets")
+#' tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+#' host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+#' history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 #'
+#' # calculate posterior probabilities at ages
 #' ages <- c(60, 50, 40, 0)
 #' at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 #'
@@ -30,7 +33,7 @@
 #' sampled_networks <- get_sampled_networks(at_ages)
 #' Nz_sam <- index_at_ages_samples(sampled_networks, index = "NODF", nnull = 10)
 #'
-#' #plot
+#' # plot
 #' plot_index_at_ages(nodf_sampled = Nz_sam, nodf_summary = Nz_sum)
 plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NULL, q_summary = NULL, col_sampled = "grey40", col_summary = "black"){
 
@@ -333,6 +336,7 @@ get_z_q <- function(network, nnull = 100, use_future=FALSE){
 #' host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
 #' history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 #'
+#' # get sampled networks at ages in the past
 #' ages <- c(60,50,40,0)
 #' samples_at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 #' sampled_networks <- get_sampled_networks(samples_at_ages)

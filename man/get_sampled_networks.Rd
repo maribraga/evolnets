@@ -26,11 +26,18 @@ Get posterior samples of networks of interactions of extant lineages at given ti
 past
 }
 \examples{
-data(tree)
-data(host_tree)
-data(history)
+# read data that comes with the package
+data_path <- system.file("extdata", package = "evolnets")
+tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 
+# choose ages
 ages <- c(60, 50, 40, 0)
+
+# calculate posterior probability of interactions
 at_ages <- posterior_at_ages(history, ages, tree, host_tree)
+
+# get sampled networks
 sampled_nets <- get_sampled_networks(at_ages)
 }

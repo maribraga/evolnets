@@ -58,7 +58,9 @@ setClass(
 #'
 #' @examples
 #' \dontrun{
-#'   extant_net <- data(extant_net)
+#'   data_path <- system.file("extdata", package = "evolnets")
+#'   extant_net <- read.csv(paste0(data_path,"/interaction_matrix_pieridae.csv"), row.names = 1)
+#'
 #'   mod <- mycomputeModules(extant_net)
 #' }
 mycomputeModules <- function(

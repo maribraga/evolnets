@@ -51,17 +51,18 @@ Calculate the posterior probability of ancestral host repertoires at time points
 }
 \examples{
 # read symbiont and host tree
-data(tree)
-data(host_tree)
+data_path <- system.file("extdata", package = "evolnets")
+tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
 
 # read histories sampled during MCMC
-data(history)
+history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 
 # get samples at ages
 ages <- c(80,70,0)
 at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 samples_at_ages <- at_ages$samples
 
-# get posterior probabilities at ages
+# get posterior probabilities of states at ages
 pp_at_ages <- at_ages$post_states
 }

@@ -39,8 +39,10 @@ of events per branch unit, along each tree branch. Mean and HP95 are outputted.
 
 }}
 \examples{
-data(tree)
-data(history)
+# read data that comes with the package
+data_path <- system.file("extdata", package = "evolnets")
+tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 
 # all events
 n_events <- count_events(history)

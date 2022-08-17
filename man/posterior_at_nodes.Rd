@@ -38,11 +38,12 @@ ancestral host repertoires at internal nodes of the symbiont tree.
 }
 \examples{
 # read parasite and host tree
-data(tree)
-data(host_tree)
+data_path <- system.file("extdata", package = "evolnets")
+tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
 
 # read histories sampled during MCMC
-data(history)
+history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 
 # calculate the posterior probability of host repertoires
 # at chosen internal nodes of the parasite tree

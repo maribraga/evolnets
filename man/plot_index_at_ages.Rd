@@ -34,10 +34,13 @@ Plot z-scores for nestedness (NODF) and/or modularity (Q) for sampled and summar
 the past, calculated by \code{index_at_ages_samples} and \code{index_at_ages_summary}.
 }
 \examples{
-data(tree)
-data(host_tree)
-data(history)
+# read data that comes with the package
+data_path <- system.file("extdata", package = "evolnets")
+tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
+host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 
+# calculate posterior probabilities at ages
 ages <- c(60, 50, 40, 0)
 at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 
@@ -49,6 +52,6 @@ Nz_sum <- index_at_ages_summary(summary_networks, index = "NODF", nnull = 10)
 sampled_networks <- get_sampled_networks(at_ages)
 Nz_sam <- index_at_ages_samples(sampled_networks, index = "NODF", nnull = 10)
 
-#plot
+# plot
 plot_index_at_ages(nodf_sampled = Nz_sam, nodf_summary = Nz_sum)
 }
