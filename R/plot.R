@@ -554,7 +554,7 @@ plot_ancestral_networks <- function(
   # stop('all matrices in `summary_networks` have to contains at least 3 rows to produce a network')
 
   # auto-detect the network type
-  net_vals <- sort(unique(unlist(summary_networks)))
+  net_vals <- sort(unique(unlist(summary_networks))) %>% as.numeric()
   if (identical(net_vals, c(0, 1))) {
     weighted <- FALSE
     two_state <- FALSE

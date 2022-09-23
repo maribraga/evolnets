@@ -205,7 +205,8 @@ get_z_nodf <- function(network, nnull = 100){
 
   values <- mapply(unique, network) %>%
     unique() %>%
-    sort()
+    sort() %>%
+    as.numeric()
 
   # if network is weighted or has both 1s and 2s, use weighted NODF
   if(identical(values, c(0,1))) {
@@ -263,7 +264,8 @@ get_z_q <- function(network, nnull = 100, use_future=FALSE){
 
   values <- mapply(unique, network) %>%
     unique() %>%
-    sort()
+    sort() %>%
+    as.numeric()
 
   # generate null networks
   # if network is weighted or has both 1s and 2s, use r00_both
@@ -368,7 +370,7 @@ index_at_ages_samples <- function(sampled_networks, index, ages = NULL, nnull = 
   if (index == "NODF") {
     # find unique values, to check for three-state model.
     unique_vals <- Reduce(union, lapply(sampled_networks, function(x) unique(c(x))))
-    three_state <- identical(sort(unique_vals), 0:2)
+    three_state <- identical(sort(as.numeric(unique_vals)), 0:2)
 
     NODF_null <- NODF_samples_null(sampled_networks, ages, nnull, weighted = three_state)
     NODF_samples <- NODF_samples_at_ages(sampled_networks, ages, weighted = three_state)
