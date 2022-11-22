@@ -14,6 +14,7 @@ plot_matrix_phylo(
   repertoire = "fundamental",
   modules = NULL,
   module_order = NULL,
+  find_modules = TRUE,
   threshold = 0.9,
   point_size = 3,
   dodge_width = 0.025,
@@ -53,6 +54,8 @@ $type which defines if the taxon is a "host" or a "symbiont".}
 
 \item{module_order}{A character vector giving the order that modules should be plotted. Should contain
 each module only once.}
+
+\item{find_modules}{Logical. Search for modules if nothing is provided in \code{modules}?}
 
 \item{threshold}{The posterior probability above which the ancestral states should be shown.
 Defaults to 90\% (\code{0.9}). Numeric vector of length 1.}

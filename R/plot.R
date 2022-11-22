@@ -9,14 +9,15 @@
 #'   `data.frame` is passed, it must contain three columns: $name with taxon
 #'   names, $module with the module the taxon was assigned to, and $type which
 #'   defines if the taxon is a "host" or a "symbiont".
+#' @param module_order A character vector giving the order that modules should
+#'   be plotted. Should contain each module only once.
+#' @param find_modules Logical. Search for modules if nothing is provided in `modules`?
 #' @param parasite_order A character vector giving the order the parasite should
 #'   be listed in. Should contain each parasite only once, and include the row
 #'   names of `net`.
 #' @param host_order A character vector giving the order the hosts should be
 #'   listed in. Should contain each host only once, and include the column names
 #'   of `net`.
-#' @param module_order A character vector giving the order that modules should
-#'   be plotted. Should contain each module only once.
 #' @param state_alpha A numeric vector of length 2. Gives the alpha
 #'   (transparency) values for the interaction type in the three-state model
 #'
@@ -35,8 +36,8 @@
 #'   plot_extant_matrix(extant_net_weighted)
 #' }
 plot_extant_matrix <- function(
-    net, modules = NULL, module_order = NULL, parasite_order = NULL,
-    host_order = NULL, state_alpha = c(0.5, 1)
+    net, modules = NULL, module_order = NULL, find_modules = TRUE,
+    parasite_order = NULL, host_order = NULL, state_alpha = c(0.5, 1)
 ) {
   # Check inputs.
   if (!is.matrix(net)) stop('`net` should be a matrix.')
@@ -61,109 +62,172 @@ plot_extant_matrix <- function(
     stop('`state_alpha` should be a numeric vector of length 2.')
   }
 
-  # If no modules are given, calculate them
-  if (is.null(modules)) {
-    modules <- mycomputeModules(net)
-  }
+  if (!find_modules){
 
-  if (inherits(modules, 'moduleWeb')) {
-    # Take the modules, and put the host and symbiont modules in data.frames
-    mod_list <- bipartite::listModuleInformation(modules)[[2]]
-    host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
-    host_mods <- dplyr::bind_rows(host_mods, .id = 'host_module')
-    host_mods$host_module <- as.numeric(host_mods$host_module)
-    para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
-    para_mods <- dplyr::bind_rows(para_mods, .id = 'parasite_module')
-    para_mods$parasite_module <- as.numeric(para_mods$parasite_module)
-  } else {
-    if (inherits(modules, 'data.frame') && !all(
-      c('name', 'module', 'type') %in% names(modules)
-    )) {
-      stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
+    # Take the extant network (as an adjacency matrix), and create a plottable data.frame
+    net_df <- as.data.frame(net)
+    net_df$parasite <- rownames(net_df)
+    net_df <- tidyr::pivot_longer(net_df, -.data$parasite, names_to = 'host', values_to = 'weight')
+    net_df <- net_df[net_df$weight != 0, ]
+
+    # Then ensure that all taxa are included for correct alignment of plots
+    if (is.null(parasite_order)) {
+      parasite_order <- net_df %>%
+        dplyr::group_by(.data$parasite) %>%
+        dplyr::summarise(degree = dplyr::n()) %>%
+        dplyr::arrange(.data$degree) %>%
+        dplyr::pull(.data$parasite)
     }
-    host_mods <- modules %>%
-      dplyr::filter(.data$type == "host") %>%
-      dplyr::select(.data$name, .data$module) %>%
-      dplyr::rename(host = .data$name, host_module = .data$module)
-    para_mods <- modules %>%
-      dplyr::filter(.data$type == "symbiont") %>%
-      dplyr::select(.data$name, .data$module) %>%
-      dplyr::rename(parasite = .data$name, parasite_module = .data$module)
-  }
+    if (is.null(host_order)) {
+      host_order <- net_df %>%
+        dplyr::group_by(.data$host) %>%
+        dplyr::summarise(degree = dplyr::n()) %>%
+        dplyr::arrange(dplyr::desc(.data$degree)) %>%
+        dplyr::pull(.data$host)
+    }
+    net_df$parasite <- factor(net_df$parasite, levels = parasite_order)
+    net_df$host <- factor(net_df$host, levels = host_order)
 
-  # Take the extant network (as an adjacency matrix), and create a plottable data.frame
-  net_df <- as.data.frame(net)
-  net_df$parasite <- rownames(net_df)
-  net_df <- tidyr::pivot_longer(net_df, -.data$parasite, names_to = 'host', values_to = 'weight')
-  net_df <- net_df[net_df$weight != 0, ]
+    net_vals <- sort(unique(as.numeric(net)))
 
-  # Join the extant network with the module info
-  module_mat <- dplyr::left_join(net_df, host_mods, by = 'host')
-  module_mat <- dplyr::left_join(module_mat, para_mods, by = 'parasite')
-  module_mat$module <- ifelse(
-    module_mat$host_module == module_mat$parasite_module,
-    module_mat$host_module,
-    NA
-  )
-  # Set order of modules
-  if (is.null(module_order)) {
-    module_order <- sort(unique(module_mat$parasite_module))
-  }
-  module_mat$module <- factor(module_mat$module, levels = module_order)
+    if (identical(net_vals, c(0, 1, 2))) {
+      p <- ggplot2::ggplot(net_df, ggplot2::aes_(~host, ~parasite, alpha = ~factor(weight))) +
+        ggplot2::scale_alpha_ordinal(
+          limits = factor(1:2), range = state_alpha, name = 'Interaction type',
+          labels = c('1' = 'Potential', '2' = 'Actual'),
+          guide = ggplot2::guide_legend(ncol = 1)
+        )
+    } else if (identical(net_vals, c(0, 1)) | identical(net_vals, c(0, 2))) {
+      p <- ggplot2::ggplot(net_df, ggplot2::aes_(~host, ~parasite))
+    } else {
+      p <- ggplot2::ggplot(net_df, ggplot2::aes_(~host, ~parasite, alpha = ~weight))
+    }
 
-  # Then join with the order of tips from the trees to ensure correct alignment
-  if (is.null(parasite_order)) {
-    parasite_order <- module_mat %>%
-      dplyr::group_by(.data$parasite, .data$parasite_module) %>%
-      dplyr::summarise(degree = dplyr::n()) %>%
-      dplyr::mutate(parasite_module = factor(.data$parasite_module, levels = module_order)) %>%
-      dplyr::arrange(.data$parasite_module,.data$degree) %>%
-      dplyr::pull(.data$parasite)
-  }
-  if (is.null(host_order)) {
-    host_order <- module_mat %>%
-      dplyr::group_by(.data$host, .data$host_module) %>%
-      dplyr::summarise(degree = dplyr::n()) %>%
-      dplyr::mutate(host_module = factor(.data$host_module, levels = module_order)) %>%
-      dplyr::arrange(.data$host_module, dplyr::desc(.data$degree)) %>%
-      dplyr::pull(.data$host)
-  }
-  module_mat$parasite <- factor(module_mat$parasite, levels = parasite_order)
-  module_mat$host <- factor(module_mat$host, levels = host_order)
-
-  net_vals <- sort(unique(as.numeric(net)))
-
-  if (identical(net_vals, c(0, 1, 2))) {
-    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~factor(weight))) +
-      ggplot2::scale_alpha_ordinal(
-        limits = factor(1:2), range = state_alpha, name = 'Interaction type',
-        labels = c('1' = 'Potential', '2' = 'Actual'),
-        guide = ggplot2::guide_legend(ncol = 1)
+    p +
+      ggplot2::geom_hline(yintercept = 0.5 + 0:nrow(net_df), color = 'grey80', size = 0.1) +
+      ggplot2::geom_vline(xintercept = 0.5 + 0:nrow(net_df), color = 'grey80', size = 0.1) +
+      ggplot2::geom_tile() +
+      ggplot2::scale_x_discrete(drop = FALSE, expand = c(0, 0.5)) +
+      ggplot2::scale_y_discrete(drop = FALSE, expand = c(0, 0.5)) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(
+        panel.grid = ggplot2::element_blank(),
+        axis.text.x = ggplot2::element_text(angle = 270, hjust = 0, vjust = 0.5),
+        axis.ticks = ggplot2::element_blank(),
+        legend.position = 'top'
+      ) +
+      ggplot2::labs(
+        x = NULL,
+        y = NULL
       )
-  } else if (identical(net_vals, c(0, 1)) | identical(net_vals, c(0, 2))) {
-    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
-  } else {
-    p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~weight))
-  }
 
-  p +
-    ggplot2::geom_hline(yintercept = 0.5 + 0:nrow(module_mat), color = 'grey80', size = 0.1) +
-    ggplot2::geom_vline(xintercept = 0.5 + 0:nrow(module_mat), color = 'grey80', size = 0.1) +
-    ggplot2::geom_tile() +
-    ggplot2::scale_x_discrete(drop = FALSE, expand = c(0, 0.5)) +
-    ggplot2::scale_y_discrete(drop = FALSE, expand = c(0, 0.5)) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(
-      panel.grid = ggplot2::element_blank(),
-      axis.text.x = ggplot2::element_text(angle = 270, hjust = 0, vjust = 0.5),
-      axis.ticks = ggplot2::element_blank(),
-      legend.position = 'top'
-    ) +
-    ggplot2::labs(
-      x = NULL,
-      y = NULL,
-      fill = 'Module'
+  } else{
+
+
+    # If no modules are given, calculate them
+    if (is.null(modules)) {
+      modules <- mycomputeModules(net)
+    }
+
+    if (inherits(modules, 'moduleWeb')) {
+      # Take the modules, and put the host and symbiont modules in data.frames
+      mod_list <- bipartite::listModuleInformation(modules)[[2]]
+      host_mods <- lapply(mod_list, function(x) data.frame(host = x[[2]]))
+      host_mods <- dplyr::bind_rows(host_mods, .id = 'host_module')
+      host_mods$host_module <- as.numeric(host_mods$host_module)
+      para_mods <- lapply(mod_list, function(x) data.frame(parasite = x[[1]]))
+      para_mods <- dplyr::bind_rows(para_mods, .id = 'parasite_module')
+      para_mods$parasite_module <- as.numeric(para_mods$parasite_module)
+    } else {
+      if (inherits(modules, 'data.frame') && !all(
+        c('name', 'module', 'type') %in% names(modules)
+      )) {
+        stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
+      }
+      host_mods <- modules %>%
+        dplyr::filter(.data$type == "host") %>%
+        dplyr::select(.data$name, .data$module) %>%
+        dplyr::rename(host = .data$name, host_module = .data$module)
+      para_mods <- modules %>%
+        dplyr::filter(.data$type == "symbiont") %>%
+        dplyr::select(.data$name, .data$module) %>%
+        dplyr::rename(parasite = .data$name, parasite_module = .data$module)
+    }
+
+    # Take the extant network (as an adjacency matrix), and create a plottable data.frame
+    net_df <- as.data.frame(net)
+    net_df$parasite <- rownames(net_df)
+    net_df <- tidyr::pivot_longer(net_df, -.data$parasite, names_to = 'host', values_to = 'weight')
+    net_df <- net_df[net_df$weight != 0, ]
+
+    # Join the extant network with the module info
+    module_mat <- dplyr::left_join(net_df, host_mods, by = 'host')
+    module_mat <- dplyr::left_join(module_mat, para_mods, by = 'parasite')
+    module_mat$module <- ifelse(
+      module_mat$host_module == module_mat$parasite_module,
+      module_mat$host_module,
+      NA
     )
+    # Set order of modules
+    if (is.null(module_order)) {
+      module_order <- sort(unique(module_mat$parasite_module))
+    }
+    module_mat$module <- factor(module_mat$module, levels = module_order)
+
+    # Then join with the order of tips from the trees to ensure correct alignment
+    if (is.null(parasite_order)) {
+      parasite_order <- module_mat %>%
+        dplyr::group_by(.data$parasite, .data$parasite_module) %>%
+        dplyr::summarise(degree = dplyr::n()) %>%
+        dplyr::mutate(parasite_module = factor(.data$parasite_module, levels = module_order)) %>%
+        dplyr::arrange(.data$parasite_module,.data$degree) %>%
+        dplyr::pull(.data$parasite)
+    }
+    if (is.null(host_order)) {
+      host_order <- module_mat %>%
+        dplyr::group_by(.data$host, .data$host_module) %>%
+        dplyr::summarise(degree = dplyr::n()) %>%
+        dplyr::mutate(host_module = factor(.data$host_module, levels = module_order)) %>%
+        dplyr::arrange(.data$host_module, dplyr::desc(.data$degree)) %>%
+        dplyr::pull(.data$host)
+    }
+    module_mat$parasite <- factor(module_mat$parasite, levels = parasite_order)
+    module_mat$host <- factor(module_mat$host, levels = host_order)
+
+    net_vals <- sort(unique(as.numeric(net)))
+
+    if (identical(net_vals, c(0, 1, 2))) {
+      p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~factor(weight))) +
+        ggplot2::scale_alpha_ordinal(
+          limits = factor(1:2), range = state_alpha, name = 'Interaction type',
+          labels = c('1' = 'Potential', '2' = 'Actual'),
+          guide = ggplot2::guide_legend(ncol = 1)
+        )
+    } else if (identical(net_vals, c(0, 1)) | identical(net_vals, c(0, 2))) {
+      p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
+    } else {
+      p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~weight))
+    }
+
+    p +
+      ggplot2::geom_hline(yintercept = 0.5 + 0:nrow(module_mat), color = 'grey80', size = 0.1) +
+      ggplot2::geom_vline(xintercept = 0.5 + 0:nrow(module_mat), color = 'grey80', size = 0.1) +
+      ggplot2::geom_tile() +
+      ggplot2::scale_x_discrete(drop = FALSE, expand = c(0, 0.5)) +
+      ggplot2::scale_y_discrete(drop = FALSE, expand = c(0, 0.5)) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(
+        panel.grid = ggplot2::element_blank(),
+        axis.text.x = ggplot2::element_text(angle = 270, hjust = 0, vjust = 0.5),
+        axis.ticks = ggplot2::element_blank(),
+        legend.position = 'top'
+      ) +
+      ggplot2::labs(
+        x = NULL,
+        y = NULL,
+        fill = 'Module'
+      )
+  }
 }
 
 #' Plot ancestral states on the phylogeny.
@@ -413,7 +477,7 @@ plot_ancestral_states <- function(
 #' }
 plot_matrix_phylo <- function(
     net, at_nodes, tree, host_tree, type = "states", state = 2, repertoire = 'fundamental',
-    modules = NULL, module_order = NULL,
+    modules = NULL, module_order = NULL, find_modules = TRUE,
     threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
 ) {
   # Check inputs
@@ -461,7 +525,7 @@ plot_matrix_phylo <- function(
   host_coords <- host_coords[order(host_coords$y), ]
 
   # Make the matrix
-  module_plot <- plot_extant_matrix(net, modules, module_order, parasite_coords$label, host_coords$label)
+  module_plot <- plot_extant_matrix(net, modules, module_order, find_modules, parasite_coords$label, host_coords$label)
   if (is.null(colors)) {
     module_plot <- module_plot + ggplot2::scale_fill_discrete(limits = factor(mods, levels = mods))
   } else {

@@ -8,6 +8,7 @@ plot_extant_matrix(
   net,
   modules = NULL,
   module_order = NULL,
+  find_modules = TRUE,
   parasite_order = NULL,
   host_order = NULL,
   state_alpha = c(0.5, 1)
@@ -27,6 +28,8 @@ defines if the taxon is a "host" or a "symbiont".}
 
 \item{module_order}{A character vector giving the order that modules should
 be plotted. Should contain each module only once.}
+
+\item{find_modules}{Logical. Search for modules if nothing is provided in \code{modules}?}
 
 \item{parasite_order}{A character vector giving the order the parasite should
 be listed in. Should contain each parasite only once, and include the row
