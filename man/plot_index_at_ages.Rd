@@ -9,8 +9,8 @@ plot_index_at_ages(
   q_sampled = NULL,
   nodf_summary = NULL,
   q_summary = NULL,
-  col_sampled = "grey40",
-  col_summary = "black"
+  col_sampled = "#3B9AB2",
+  col_summary = "#E67D00"
 )
 }
 \arguments{
