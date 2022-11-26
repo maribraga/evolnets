@@ -35,7 +35,7 @@
 #'
 #' # plot
 #' plot_index_at_ages(nodf_sampled = Nz_sam, nodf_summary = Nz_sum)
-plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NULL, q_summary = NULL, col_sampled = "grey40", col_summary = "black"){
+plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NULL, q_summary = NULL, col_sampled = "#3B9AB2", col_summary = "#E67D00"){
 
   # Input checking
   # arguments must be data frames with columns `age`, `z` and `p` (only for samples)
@@ -54,18 +54,26 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
     dplyr::mutate(y = floor(max_z_n) + 3) # just for placement in the plot
 
   plotN <- ggplot2::ggplot(nodf_sampled) +
-    ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
-    ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z), fun = "mean", geom = "line", col = col_sampled) +
-    ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z), fun = "mean", geom = "point", col = col_sampled) +
+    ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age, col = "Sampled", fill = "Sampled"), alpha = 0.5) +
+    ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z, col = "Sampled"), fun = "mean", geom = "line") +
+    ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z, col = "Sampled"), fun = "mean", geom = "point") +
     ggplot2::geom_text(ggplot2::aes(.data$age, .data$y, label = .data$pp), data = ppN) +
+    ggplot2::scale_color_manual(name = "Network type",
+                     breaks = c("Sampled", "Summary"),
+                     values = c("Sampled" = col_sampled, "Summary" = col_summary)) +
+    ggplot2::scale_fill_manual(breaks = c("Sampled"),
+                     values = c("Sampled" = col_sampled)) +
     ggplot2::scale_x_reverse() +
-    ggplot2::labs(title = "Nestedness, N", y = "Z-score", x = "Millions of years ago, Ma") +
+    ggplot2::labs(title = "Nestedness, N", y = "Z-score", x = "Millions of years ago, Ma", fill = "") +
     ggplot2::theme_bw()
 
   if(!is.null(nodf_summary)) {
     plotN <- plotN +
-      ggplot2::geom_point(ggplot2::aes(.data$age,.data$z), col = col_summary, data = nodf_summary) +
-      ggplot2::geom_line(ggplot2::aes(.data$age,.data$z), col = col_summary, data = nodf_summary)
+      ggplot2::geom_point(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = nodf_summary) +
+      ggplot2::geom_line(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = nodf_summary) +
+      ggplot2::scale_color_manual(name = "Network type",
+                     breaks = c("Sampled", "Summary"),
+                     values = c("Sampled" = col_sampled, "Summary" = col_summary))
   }
 
   # Modularity
@@ -84,18 +92,26 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
       dplyr::mutate(y = floor(max_z_q) + 3)
 
     plotQ <- ggplot2::ggplot(q_sampled) +
-      ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age), col = col_sampled, fill = col_sampled, alpha = 0.5) +
-      ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z), fun = "mean", geom = "line", col = col_sampled) +
-      ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z), fun = "mean", geom = "point", col = col_sampled) +
+      ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age, col = "Sampled", fil = "Sampled"), alpha = 0.5) +
+      ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z, col = "Sampled"), fun = "mean", geom = "line") +
+      ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z, col = "Sampled"), fun = "mean", geom = "point") +
       ggplot2::geom_text(ggplot2::aes(.data$age, .data$y, label = .data$pp), data = ppQ) +
+      ggplot2::scale_color_manual(name = "Network type",
+                     breaks = c("Sampled", "Summary"),
+                     values = c("Sampled" = col_sampled, "Summary" = col_summary)) +
+      ggplot2::scale_fill_manual(breaks = c("Sampled"),
+                     values = c("Sampled" = col_sampled)) +
       ggplot2::scale_x_reverse() +
-      ggplot2::labs(title = "Modularity, Q", y = "Z-score", x = "Millions of years ago, Ma") +
+      ggplot2::labs(title = "Modularity, Q", y = "Z-score", x = "Millions of years ago, Ma", fill = "") +
       ggplot2::theme_bw()
 
     if(!is.null(q_summary)) {
       plotQ <- plotQ +
-        ggplot2::geom_point(ggplot2::aes(.data$age,.data$z), col = col_summary, data = q_summary) +
-        ggplot2::geom_line(ggplot2::aes(.data$age,.data$z), col = col_summary, data = q_summary)
+        ggplot2::geom_point(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = q_summary) +
+        ggplot2::geom_line(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = q_summary) +
+        ggplot2::scale_color_manual(name = "Network type",
+                     breaks = c("Sampled", "Summary"),
+                     values = c("Sampled" = col_sampled, "Summary" = col_summary))
     }
 
     return(patchwork::wrap_plots(plotN, plotQ, nrow = 2))
