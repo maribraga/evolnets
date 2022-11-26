@@ -54,7 +54,7 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
     dplyr::mutate(y = floor(max_z_n) + 3) # just for placement in the plot
 
   plotN <- ggplot2::ggplot(nodf_sampled) +
-    ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age, col = "Sampled", fill = "Sampled"), alpha = 0.5) +
+    ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age, fill = "Sampled"), col = NA, alpha = 0.5) +
     ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z, col = "Sampled"), fun = "mean", geom = "line") +
     ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z, col = "Sampled"), fun = "mean", geom = "point") +
     ggplot2::geom_text(ggplot2::aes(.data$age, .data$y, label = .data$pp), data = ppN) +
@@ -70,10 +70,8 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
   if(!is.null(nodf_summary)) {
     plotN <- plotN +
       ggplot2::geom_point(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = nodf_summary) +
-      ggplot2::geom_line(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = nodf_summary) +
-      ggplot2::scale_color_manual(name = "Network type",
-                     breaks = c("Sampled", "Summary"),
-                     values = c("Sampled" = col_sampled, "Summary" = col_summary))
+      ggplot2::geom_line(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = nodf_summary)
+
   }
 
   # Modularity
@@ -92,7 +90,7 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
       dplyr::mutate(y = floor(max_z_q) + 3)
 
     plotQ <- ggplot2::ggplot(q_sampled) +
-      ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age, col = "Sampled", fil = "Sampled"), alpha = 0.5) +
+      ggplot2::geom_violin(ggplot2::aes(.data$age, .data$z, group = .data$age, fill = "Sampled"), col = NA, alpha = 0.5) +
       ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z, col = "Sampled"), fun = "mean", geom = "line") +
       ggplot2::stat_summary(ggplot2::aes(.data$age, .data$z, col = "Sampled"), fun = "mean", geom = "point") +
       ggplot2::geom_text(ggplot2::aes(.data$age, .data$y, label = .data$pp), data = ppQ) +
@@ -108,10 +106,7 @@ plot_index_at_ages <- function(nodf_sampled, q_sampled = NULL, nodf_summary = NU
     if(!is.null(q_summary)) {
       plotQ <- plotQ +
         ggplot2::geom_point(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = q_summary) +
-        ggplot2::geom_line(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = q_summary) +
-        ggplot2::scale_color_manual(name = "Network type",
-                     breaks = c("Sampled", "Summary"),
-                     values = c("Sampled" = col_sampled, "Summary" = col_summary))
+        ggplot2::geom_line(ggplot2::aes(.data$age,.data$z, col = "Summary"), data = q_summary)
     }
 
     return(patchwork::wrap_plots(plotN, plotQ, nrow = 2))
