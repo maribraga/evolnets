@@ -10,7 +10,7 @@ support_for_modules(
   threshold = 0.7,
   edge_list = TRUE,
   include_all = FALSE,
-  palette = NULL,
+  colors = NULL,
   module_levels = NULL,
   axis_text = FALSE
 )
@@ -32,9 +32,9 @@ modules in the networks. If a \code{data.frame} is passed, it must contain three
 
 \item{include_all}{Logical. Include all nodes or only those present at the time slice?}
 
-\item{palette}{Optional. Color palette for module colors in the plot.}
+\item{colors}{Optional. Vector of module colors in the plot.}
 
-\item{module_levels}{Optional. Order of modules in the color palette.}
+\item{module_levels}{Optional. Order of modules in the color vector.}
 
 \item{axis_text}{Logical. Plot taxon names?}
 }

@@ -554,7 +554,7 @@ plot_matrix_phylo <- function(
 #'   `phylo`.
 #' @param module_levels Order in which the modules should be organized. Affects which color each
 #'   module will be assigned. If NULL, takes the order of appearance in `matched_modules$module`.
-#' @param palette Color palette used to plot module information.
+#' @param colors Color vector used to plot module information.
 #' @param node_size Size of the nodes in every network. If NULL, the default size is plotted.
 #' @param level_names Optional string vector with two elements used by legend: name of the clade
 #' modeled as "host" and the name of the clade modeled as "symbiont".
@@ -583,7 +583,7 @@ plot_matrix_phylo <- function(
 #'   patchwork::wrap_plots(plot, guides = "collect")
 #' }
 plot_ancestral_networks <- function(
-    summary_networks, matched_modules, tree, module_levels = NULL, palette = NULL, node_size = NULL,
+    summary_networks, matched_modules, tree, module_levels = NULL, colors = NULL, node_size = NULL,
     level_names = c("Host", "Symbiont")
 ){
 
@@ -690,7 +690,7 @@ plot_ancestral_networks <- function(
   for(t in 1:length(ages)){
     plot_age <- plot_network_at_age(
       list_subtrees[[t]], list_tip_data[[t]], list_tgraphs[[t]],
-      module_levels, palette, tree, age = ages[t], weighted = weighted, two_state = two_state,
+      module_levels, colors, tree, age = ages[t], weighted = weighted, two_state = two_state,
       weight_range = weight_range, node_size = node_size,
       level_names = level_names
     )
@@ -712,7 +712,7 @@ nodes <- NULL
 #'   module information for each node.
 #' @param module_levels Order in which the modules should be organized. Affects which color each
 #'   module will be assigned.
-#' @param palette Color palette used to plot module information.
+#' @param colors Color vector used to plot module information.
 #' @param tree The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class
 #'   `phylo`.
 #' @param age Age of the ancestral network to be plotted as the tittle.
@@ -731,19 +731,19 @@ nodes <- NULL
 #'
 #' @examples
 #' \dontrun{
-#' plot_network_at_age(subtree, tip_data, tgraph, module_levels, palette, tree, age)
+#' plot_network_at_age(subtree, tip_data, tgraph, module_levels, colors, tree, age)
 #' }
 plot_network_at_age <- function(
-    subtree, tip_data, tgraph, module_levels, palette = NULL, tree, age, weighted = TRUE,
+    subtree, tip_data, tgraph, module_levels, colors = NULL, tree, age, weighted = TRUE,
     weight_range = c(0, 1), two_state = FALSE, node_size = NULL, level_names = c("Host", "Symbiont")
 ) {
 
-  if(is.null(palette)) palette <- scales::hue_pal()(length(module_levels))
+  if(is.null(colors)) colors <- scales::hue_pal()(length(module_levels))
 
   ggt <- ggtree::ggtree(subtree, ladderize = T, root.position = -tree$root.time) %<+% tip_data +
     ggtree::geom_tippoint(ggplot2::aes(color = factor(.data$module, levels = module_levels))) +
     ggtree::geom_rootedge(rootedge = 1) +
-    ggplot2::scale_color_manual(values = palette, na.value = "grey70", drop = F) +
+    ggplot2::scale_color_manual(values = colors, na.value = "grey70", drop = F) +
     ggtree::theme_tree2() +
     ggplot2::theme(legend.position = "none") +
     ggplot2::xlim(c(-tree$root.time,0)) +
@@ -783,7 +783,7 @@ plot_network_at_age <- function(
       values = c("square", "circle"), labels = level_names, name = NULL
     ) +
     ggplot2::scale_color_manual(
-      values = palette, na.value = "grey70", drop = F, name = "Module"#, limits = c(module_levels, NA)
+      values = colors, na.value = "grey70", drop = F, name = "Module"#, limits = c(module_levels, NA)
     ) +
     edge_scale +
     ggplot2::theme_void()

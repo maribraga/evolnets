@@ -696,8 +696,8 @@ remove_duplicate_modules <- function(mod_samples) {
 #' @param threshold Minimum frequency with which two nodes are placed in the same module to consider it supported. Only pairs with frequency higher than this threshold are plotted with the color of the module from the summary network.
 #' @param edge_list Logical. Whether to return a list of edge lists or a list of matrices of pairwise frequency.
 #' @param include_all Logical. Include all nodes or only those present at the time slice?
-#' @param palette Optional. Color palette for module colors in the plot.
-#' @param module_levels Optional. Order of modules in the color palette.
+#' @param colors Optional. Vector of module colors in the plot.
+#' @param module_levels Optional. Order of modules in the color vector.
 #' @param axis_text Logical. Plot taxon names?
 #'
 #' @return A list containing:
@@ -729,7 +729,7 @@ remove_duplicate_modules <- function(mod_samples) {
 #' }
 support_for_modules <- function(
   mod_samples, modules_across_ages, threshold = 0.7, edge_list = TRUE, include_all = FALSE,
-  palette = NULL, module_levels = NULL, axis_text = FALSE
+  colors = NULL, module_levels = NULL, axis_text = FALSE
 ) {
 
   if (!is.null(modules_across_ages) && (
@@ -804,9 +804,9 @@ support_for_modules <- function(
       unique() %>%
       sort()
   }
-  if(is.null(palette)) palette <- scales::hue_pal()(length(module_levels))
+  if(is.null(colors)) colors <- scales::hue_pal()(length(module_levels))
 
-  plot <- plot_pairwise_membership(pair_heatmaps, ages, palette = palette, module_levels = module_levels, axis_text = axis_text)
+  plot <- plot_pairwise_membership(pair_heatmaps, ages, colors = colors, module_levels = module_levels, axis_text = axis_text)
 
   support_list <- list(plot, pair_heatmaps, means)
   names(support_list) <- c("plot", "pairwise_membership", "mean_support")
@@ -816,7 +816,7 @@ support_for_modules <- function(
 }
 
 
-plot_pairwise_membership <- function(pair_heatmaps, ages, palette, module_levels, axis_text){
+plot_pairwise_membership <- function(pair_heatmaps, ages, colors, module_levels, axis_text){
 
   nages <- length(pair_heatmaps)
   plot_list <- list()
@@ -849,7 +849,7 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, palette, module_levels
       )
     }
 
-    p <- p + ggplot2::scale_fill_manual(values = palette, na.value = "grey40", drop = F)
+    p <- p + ggplot2::scale_fill_manual(values = colors, na.value = "grey40", drop = F)
 
     plot_list[[a]] <- p
 

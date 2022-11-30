@@ -9,7 +9,7 @@ plot_network_at_age(
   tip_data,
   tgraph,
   module_levels,
-  palette = NULL,
+  colors = NULL,
   tree,
   age,
   weighted = TRUE,
@@ -30,7 +30,7 @@ module information for each node.}
 \item{module_levels}{Order in which the modules should be organized. Affects which color each
 module will be assigned.}
 
-\item{palette}{Color palette used to plot module information.}
+\item{colors}{Color vector used to plot module information.}
 
 \item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class
 \code{phylo}.}
@@ -57,6 +57,6 @@ Plot one ancestral network with module information at a given time
 }
 \examples{
 \dontrun{
-plot_network_at_age(subtree, tip_data, tgraph, module_levels, palette, tree, age)
+plot_network_at_age(subtree, tip_data, tgraph, module_levels, colors, tree, age)
 }
 }

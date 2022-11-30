@@ -9,7 +9,7 @@ plot_ancestral_networks(
   matched_modules,
   tree,
   module_levels = NULL,
-  palette = NULL,
+  colors = NULL,
   node_size = NULL,
   level_names = c("Host", "Symbiont")
 )
@@ -27,7 +27,7 @@ network. Output of \code{modules_across_ages()}.}
 \item{module_levels}{Order in which the modules should be organized. Affects which color each
 module will be assigned. If NULL, takes the order of appearance in \code{matched_modules$module}.}
 
-\item{palette}{Color palette used to plot module information.}
+\item{colors}{Color vector used to plot module information.}
 
 \item{node_size}{Size of the nodes in every network. If NULL, the default size is plotted.}
 
