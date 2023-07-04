@@ -327,7 +327,7 @@ plot_ancestral_states <- function(
     host_mods <- dplyr::bind_rows(host_mods, .id = 'module')
     mods <- seq_along(mod_list)
   } else {
-    if (!inherits(modules, 'data.frame') || !(c('name', 'module', 'type') %in% names(modules))) {
+    if (!inherits(modules, 'data.frame') || all(!(c('name', 'module', 'type') %in% names(modules)))) {
       stop('`modules` should be a `moduleWeb` or a data.frame with "name", "module" and "type" columns.')
     }
     host_mods <- modules %>%
