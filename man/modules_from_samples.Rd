@@ -21,7 +21,7 @@ Find modules in networks sampled across MCMC at specific time slices
 \dontrun{
   data_path <- system.file("extdata", package = "evolnets")
   tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
-  host_tree <- read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
+  host_tree <- ape::read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
   history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
 
   ages <- c(60,50,40,0)

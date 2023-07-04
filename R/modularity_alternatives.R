@@ -96,7 +96,7 @@ mycomputeModules <- function(
 #     warning("Object of wrong class.");
 #     FALSE;
 #   }
-#   else if(dim(slot(moduleWebObject, "originalWeb")) == 0 ||  dim(slot(moduleWebObject, "moduleWeb")) != dim(slot(moduleWebObject, "originalWeb")) || dim(slot(moduleWebObject, "modules")) == 0) {
+#   else if(any(dim(slot(moduleWebObject, "originalWeb")) == 0) || any(dim(slot(moduleWebObject, "moduleWeb")) != dim(slot(moduleWebObject, "originalWeb"))) || any(dim(slot(moduleWebObject, "modules")) == 0)) {
 #     warning("Object corrupt.");
 #     FALSE;
 #   }
