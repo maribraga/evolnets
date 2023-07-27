@@ -19,10 +19,10 @@ You can install evolnets like so:
 # install.packages("devtools")
 # library(devtools)
 
-devtools::install_github("maribraga/evolnets", build_vignettes = TRUE)
+devtools::install_github("maribraga/evolnets", build_vignettes = FALSE)
 ```
 
-## Introduction to evolnets
+<! -- ## Introduction to evolnets
 
 You can learn about the package with an example in the vignette
 *Introduction to evolnets*.
@@ -36,3 +36,4 @@ browseVignettes("evolnets")
 # or go straight to the intro vignette
 vignette("intro_to_evolnets")
 ```
+-->
