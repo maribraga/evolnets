@@ -4,9 +4,5 @@
 .DS_Store
 */.DS_Store
 LICENSE.md
-inst/doc
-doc
-Meta
-temp
 *.rds
-match-modules
+ignore/
