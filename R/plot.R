@@ -640,7 +640,10 @@ plot_ancestral_networks <- function(
 
     wnet <- summary_networks[[n]]
 
-    graph <- tidygraph::as_tbl_graph(t(wnet), directed = F) %>%
+    graph <- t(wnet) %>%
+      #tidygraph::as_tbl_graph(directed = F) %>% # bug waiting to be fixed in tidygraph
+      igraph::graph_from_incidence_matrix(weighted = TRUE) %>% # workaround
+      tidygraph::as_tbl_graph() %>%
       dplyr::left_join(dplyr::filter(dplyr::select(matched_modules, .data$age, .data$name, .data$module),
                                      .data$age == ages[n]), by = "name") %>%
       dplyr::select(.data$type, .data$name, .data$module)
