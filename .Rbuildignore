@@ -5,3 +5,7 @@
 ^doc$
 ^Meta$
 ^match-modules$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
