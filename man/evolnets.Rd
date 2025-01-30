@@ -2,6 +2,7 @@
 % Please edit documentation in R/evolnets.R
 \docType{package}
 \name{evolnets}
+\alias{evolnets-package}
 \alias{evolnets}
 \title{evolnets: a package for summarizing inference of network evolution}
 \description{
@@ -33,3 +34,22 @@ NODF_posterior_at_ages( ).
 Run vignette("intro_to_evolnets") for an example of how to use the package.
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/maribraga/evolnets}
+  \item \url{https://maribraga.github.io/evolnets/}
+  \item Report bugs at \url{https://github.com/maribraga/evolnets/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Mariana P Braga \email{mpiresbr@gmail.com} (\href{https://orcid.org/0000-0002-1253-2536}{ORCID})
+
+Authors:
+\itemize{
+  \item Wouter van der Bijl
+  \item Michael Landis
+}
+
+}

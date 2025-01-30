@@ -870,6 +870,9 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, colors, module_levels,
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' pairwise_membership(mod_samples, c(0))
+#' }
 pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
 
   result <- list()
