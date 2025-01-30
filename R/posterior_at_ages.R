@@ -194,10 +194,10 @@ make_dat_age <- function(dat, age) {
   if (nrow(dat2) > 0) {
     missing_nodes <- dat2 %>%
       dplyr::group_by(.data$iteration) %>%
-      dplyr::summarise(node_index = setdiff(nodes, .data$node_index), .groups = 'drop')
+      dplyr::reframe(node_index = setdiff(nodes, .data$node_index))
     missing_iters <- dat2 %>%
       dplyr::group_by(.data$node_index) %>%
-      dplyr::summarise(iteration = setdiff(iterations, .data$iteration), .groups = 'drop')
+      dplyr::reframe(iteration = setdiff(iterations, .data$iteration))
     missing <- dplyr::bind_rows(missing_nodes, missing_iters)
   } else {
     missing <- expand.grid(
@@ -213,7 +213,7 @@ make_dat_age <- function(dat, age) {
       dat %>% dplyr::select(.data$iteration, .data$node_index, .data$parent_index) %>% dplyr::distinct(),
       c('iteration', 'node_index')
     )
-    # now take those parents, get their data and rename their node_index back tot he child node
+    # now take those parents, get their data and rename their node_index back to the child node
     missing_values <- dplyr::inner_join(
       dat,
       parents,

@@ -860,6 +860,16 @@ plot_pairwise_membership <- function(pair_heatmaps, ages, colors, module_levels,
 }
 
 
+#' Calculate frequency that pairs of nodes fall within the same module
+#'
+#' @param mod_samples Output from `modules_from_samples()`
+#' @param ages Vector of network ages
+#' @param edge_list Should output be an edge list?
+#'
+#' @return An edge list with the frequency that each pair of nodes in the network is placed in the same module across network samples.
+#' @export
+#'
+#' @examples
 pairwise_membership <- function(mod_samples, ages, edge_list = TRUE) {
 
   result <- list()
