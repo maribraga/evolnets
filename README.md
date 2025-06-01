@@ -7,7 +7,7 @@
 <!-- badges: end -->
 
 RevBayes offers models to infer host-repertoire evolution, but no tools
-to parse the outputs. evolnets has the necessary tools to reconstruct
+to parse the outputs. *evolnets* has the necessary tools to reconstruct
 ancestral ecological networks based on posterior probabilities of
 interactions.
 
