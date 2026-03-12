@@ -4,34 +4,46 @@
 # evolnets
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
-RevBayes offers models to infer host-repertoire evolution, but no tools
-to parse the outputs. *evolnets* has the necessary tools to reconstruct
-ancestral ecological networks based on posterior probabilities of
-interactions.
+RevBayes and TreePPL offer models to infer host repertoire evolution,
+but no tools to parse the outputs. *evolnets* has the necessary tools to
+reconstruct ancestral ecological networks based on posterior
+probabilities of interactions.
 
 ## Installation
 
 You can install evolnets like so:
 
 ``` r
-# install.packages("devtools")
-# library(devtools)
+if(!require("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+  library(devtools)
+} else {
+ library(devtools)
+}
 
-devtools::install_github("maribraga/evolnets", build_vignettes = FALSE)
+devtools::install_github("maribraga/evolnets")
 ```
 
-<!-- ## Introduction to evolnets -->
+## About
 
-<!-- You can learn about the package with an example in the vignette *Introduction to evolnets*. -->
+The evolnets package provides three categories of important functions:
+rates, ancestral states and samples.
 
-<!-- ``` r -->
-<!-- library(evolnets) -->
+- Rates: these functions are used to calculate effective rates of
+  host-repertoire evolution: `effective_rate( )`, `count_events( )`,
+  `rate_gl( )`, `count_gl( )`.
 
-<!-- # find all available vignettes -->
-<!-- browseVignettes("evolnets") -->
+- Ancestral states: these functions are used to calculate the posterior
+  probabilities of host-parasite interactions at internal nodes of the
+  parasite tree or at specific time points in the past:
+  `posterior_at_nodes( )`, `posterior_at_ages( )`.
 
-<!-- # or go straight to the intro vignette -->
-<!-- vignette("intro_to_evolnets") -->
-<!-- ``` -->
+- Samples: these functions perform calculations for each sampled
+  host-parasite network during MCMC: `samples_at_ages( )`,
+  `Q_posterior_at_ages( )`, `NODF_posterior_at_ages( )`.
+
+See the full documentation at the [evolnets’
+website](https://maribraga.github.io/evolnets/).
