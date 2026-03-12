@@ -20,6 +20,6 @@ This function is called within \code{modules_across_ages()}.
 }
 \examples{
 \dontrun{
- unmatched_modules <- modules_from_summary_networks(summary_networks)
+unmatched_modules <- modules_from_summary_networks(summary_networks)
 }
 }

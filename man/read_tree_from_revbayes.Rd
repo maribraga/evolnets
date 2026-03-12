@@ -16,5 +16,7 @@ A \code{phylo} object with node names given by RevBayes, which are important to 
 Read symbiont tree file produced by RevBayes containing node indices
 }
 \examples{
-\dontrun{tree <- read_tree_from_revbayes("symbiont_tree.tre")}
+\dontrun{
+tree <- read_tree_from_revbayes("symbiont_tree.tre")
+}
 }

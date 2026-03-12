@@ -31,9 +31,9 @@ Modified version of bipartite's computeModules function
 }
 \examples{
 \dontrun{
-  data_path <- system.file("extdata", package = "evolnets")
-  extant_net <- read.csv(paste0(data_path,"/interaction_matrix_pieridae.csv"), row.names = 1)
+data_path <- system.file("extdata", package = "evolnets")
+extant_net <- read.csv(paste0(data_path, "/interaction_matrix_pieridae.csv"), row.names = 1)
 
-  mod <- mycomputeModules(extant_net)
+mod <- mycomputeModules(extant_net)
 }
 }

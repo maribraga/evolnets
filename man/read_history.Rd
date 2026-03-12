@@ -20,5 +20,7 @@ interaction histories
 }
 \examples{
 # read history file
-\dontrun{history <- read_history("/path/history.txt", burnin = 0.2)}
+\dontrun{
+history <- read_history("/path/history.txt", burnin = 0.2)
+}
 }

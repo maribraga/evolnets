@@ -50,12 +50,12 @@ Plot a network with modules as an adjacency matrix
 }
 \examples{
 \dontrun{
-  # The slow portion of this function is the calculation of the modules.
-  plot_extant_matrix(extant_net)
+# The slow portion of this function is the calculation of the modules.
+plot_extant_matrix(extant_net)
 
-  # Change our network to a weighted one:
-  extant_net_weighted <- extant_net
-  extant_net_weighted[extant_net == 1] <- runif(sum(extant_net))
-  plot_extant_matrix(extant_net_weighted)
+# Change our network to a weighted one:
+extant_net_weighted <- extant_net
+extant_net_weighted[extant_net == 1] <- runif(sum(extant_net))
+plot_extant_matrix(extant_net_weighted)
 }
 }
