@@ -67,7 +67,7 @@ plot_extant_matrix <- function(
     # Take the extant network (as an adjacency matrix), and create a plottable data.frame
     net_df <- as.data.frame(net)
     net_df$parasite <- rownames(net_df)
-    net_df <- tidyr::pivot_longer(net_df, -.data$parasite, names_to = 'host', values_to = 'weight')
+    net_df <- tidyr::pivot_longer(net_df, -"parasite", names_to = 'host', values_to = 'weight')
     net_df <- net_df[net_df$weight != 0, ]
 
     # Then ensure that all taxa are included for correct alignment of plots
@@ -91,24 +91,24 @@ plot_extant_matrix <- function(
     net_vals <- sort(unique(as.numeric(net)))
 
     if (identical(net_vals, c(0, 1, 2))) {
-      p <- ggplot2::ggplot(net_df, ggplot2::aes_(~host, ~parasite, alpha = ~factor(weight))) +
+      p <- ggplot2::ggplot(net_df, ggplot2::aes(x = .data$host, y = .data$parasite, alpha = factor(.data$weight))) +
         ggplot2::scale_alpha_ordinal(
-          limits = factor(1:2), range = state_alpha, name = 'Interaction type',
+          limits = c('1', '2'),
+          range = state_alpha,
+          name = 'Interaction type',
           labels = c('1' = 'Potential', '2' = 'Actual'),
           guide = ggplot2::guide_legend(ncol = 1)
         )
-    } else if (identical(net_vals, c(0, 1)) | identical(net_vals, c(0, 2))) {
-      p <- ggplot2::ggplot(net_df, ggplot2::aes_(~host, ~parasite))
+    } else if (identical(net_vals, c(0, 1)) || identical(net_vals, c(0, 2))) {
+      p <- ggplot2::ggplot(net_df, ggplot2::aes(x = .data$host, y = .data$parasite))
     } else {
-      p <- ggplot2::ggplot(net_df, ggplot2::aes_(~host, ~parasite, alpha = ~weight))
+      p <- ggplot2::ggplot(net_df, ggplot2::aes(x = .data$host, y = .data$parasite, alpha = .data$weight))
     }
 
     p +
-      ggplot2::geom_hline(yintercept = 0.5 + 0:nrow(net_df), color = 'grey80', size = 0.1) +
-      ggplot2::geom_vline(xintercept = 0.5 + 0:nrow(net_df), color = 'grey80', size = 0.1) +
-      ggplot2::geom_tile() +
-      ggplot2::scale_x_discrete(drop = FALSE, expand = c(0, 0.5)) +
-      ggplot2::scale_y_discrete(drop = FALSE, expand = c(0, 0.5)) +
+      ggplot2::geom_tile(color = 'grey60', linewidth = 0.1) +
+      ggplot2::scale_x_discrete(drop = FALSE, expand = ggplot2::expansion(mult = 0, add = 0.5)) +
+      ggplot2::scale_y_discrete(drop = FALSE, expand = ggplot2::expansion(mult = 0, add = 0.5)) +
       ggplot2::theme_bw() +
       ggplot2::theme(
         panel.grid = ggplot2::element_blank(),
@@ -122,7 +122,6 @@ plot_extant_matrix <- function(
       )
 
   } else{
-
 
     # If no modules are given, calculate them
     if (is.null(modules)) {
@@ -157,7 +156,7 @@ plot_extant_matrix <- function(
     # Take the extant network (as an adjacency matrix), and create a plottable data.frame
     net_df <- as.data.frame(net)
     net_df$parasite <- rownames(net_df)
-    net_df <- tidyr::pivot_longer(net_df, -.data$parasite, names_to = 'host', values_to = 'weight')
+    net_df <- tidyr::pivot_longer(net_df, -"parasite", names_to = 'host', values_to = 'weight')
     net_df <- net_df[net_df$weight != 0, ]
 
     # Join the extant network with the module info
@@ -197,22 +196,20 @@ plot_extant_matrix <- function(
     net_vals <- sort(unique(as.numeric(net)))
 
     if (identical(net_vals, c(0, 1, 2))) {
-      p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~factor(weight))) +
+      p <- ggplot2::ggplot(module_mat, ggplot2::aes(.data$host, .data$parasite, fill = .data$module, alpha = factor(.data$weight))) +
         ggplot2::scale_alpha_ordinal(
           limits = factor(1:2), range = state_alpha, name = 'Interaction type',
           labels = c('1' = 'Potential', '2' = 'Actual'),
           guide = ggplot2::guide_legend(ncol = 1)
         )
     } else if (identical(net_vals, c(0, 1)) | identical(net_vals, c(0, 2))) {
-      p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module))
+      p <- ggplot2::ggplot(module_mat, ggplot2::aes(.data$host, .data$parasite, fill = .data$module))
     } else {
-      p <- ggplot2::ggplot(module_mat, ggplot2::aes_(~host, ~parasite, fill = ~module, alpha = ~weight))
+      p <- ggplot2::ggplot(module_mat, ggplot2::aes(.data$host, .data$parasite, fill = .data$module, alpha = .data$weight))
     }
 
     p +
-      ggplot2::geom_hline(yintercept = 0.5 + 0:nrow(module_mat), color = 'grey80', size = 0.1) +
-      ggplot2::geom_vline(xintercept = 0.5 + 0:nrow(module_mat), color = 'grey80', size = 0.1) +
-      ggplot2::geom_tile() +
+      ggplot2::geom_tile(color = 'grey60', linewidth = 0.1) +
       ggplot2::scale_x_discrete(drop = FALSE, expand = c(0, 0.5)) +
       ggplot2::scale_y_discrete(drop = FALSE, expand = c(0, 0.5)) +
       ggplot2::theme_bw() +
@@ -422,7 +419,7 @@ plot_ancestral_states <- function(
 
   if (type == "states" & length(state) > 1) {
     p <- p + ggplot2::geom_point(
-      ggplot2::aes_(~x, ~y, color = ~module, alpha = ~factor(.data$state, levels = .env$state)),
+      ggplot2::aes(.data$x, .data$y, color = .data$module, alpha = factor(.data$state, levels = .data$state)),
       node_df2, shape = point_shape, size = point_size
     ) +
       ggplot2::scale_alpha_ordinal(
@@ -435,7 +432,7 @@ plot_ancestral_states <- function(
 
     } else {
     p <- p + ggplot2::geom_point(
-      ggplot2::aes_(~x, ~y, color = ~module),
+      ggplot2::aes(.data$x, .data$y, color = .data$module),
       node_df2, shape = point_shape, size = point_size
     )
   }

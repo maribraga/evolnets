@@ -13,14 +13,13 @@
 #' @param drop_empty Logical. Remove taxa without any interactions?
 #'
 #' @return A list of three lists, containing:
-#' \itemize{
 #'  \item{"`samples`"}{ Arrays of samples x nodes x hosts, containing the state of each sample.}
 #'  \item{"`post_states`"}{ Arrays of nodes x hosts x state containing the posterior probability
 #'  for each state.}
 #'  \item{"`post_repertoires`"}{ Arrays of nodes x hosts x repertoire containing the posterior
 #'  probability for 1) the `"realized"` repertoire which is defined as state 2, and 2) the
 #'  `"fundamental"` repertoire which is defined as having any state (usually 1 or 2).}
-#' }
+#'
 #' Each array in these lists is for one of the `ages`. The number of samples is the number of
 #' iterations in `history`.
 #' @export
