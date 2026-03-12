@@ -511,8 +511,7 @@ plot_matrix_phylo <- function(
     mods <- module_order
   }
 
-  host_plot <- ggplot2::ggplot(host_tree) +
-    ggtree::geom_tree() +
+  host_plot <- ggtree::ggtree(host_tree, ladderize = ladderize) +
     ggplot2::coord_flip() +
     ggplot2::scale_x_continuous(expand = c(0, 0)) +
     ggplot2::scale_y_continuous(expand = c(0, 0.5)) +
