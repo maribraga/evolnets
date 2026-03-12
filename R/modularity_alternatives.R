@@ -1,9 +1,10 @@
-my_convert2moduleWeb <- function (MATRIX, MODINFO)
-{
-  if (is.null(rownames(MATRIX)))
-    rownames(MATRIX) = 1:dim(MATRIX)[1]
-  if (is.null(colnames(MATRIX)))
-    colnames(MATRIX) = 1:dim(MATRIX)[2]
+my_convert2moduleWeb <- function(MATRIX, MODINFO) {
+  if (is.null(rownames(MATRIX))) {
+    rownames(MATRIX) <- 1:dim(MATRIX)[1]
+  }
+  if (is.null(colnames(MATRIX))) {
+    colnames(MATRIX) <- 1:dim(MATRIX)[2]
+  }
   ROW_IX <- order(MODINFO$Row_labels)
   COL_IX <- order(MODINFO$Col_labels)
   ROWS <- MODINFO$Row_labels[ROW_IX]
@@ -58,15 +59,14 @@ setClass(
 #'
 #' @examples
 #' \dontrun{
-#'   data_path <- system.file("extdata", package = "evolnets")
-#'   extant_net <- read.csv(paste0(data_path,"/interaction_matrix_pieridae.csv"), row.names = 1)
+#' data_path <- system.file("extdata", package = "evolnets")
+#' extant_net <- read.csv(paste0(data_path, "/interaction_matrix_pieridae.csv"), row.names = 1)
 #'
-#'   mod <- mycomputeModules(extant_net)
+#' mod <- mycomputeModules(extant_net)
 #' }
 mycomputeModules <- function(
   web, method = "Beckett", steps = 1000000, tolerance = 1e-10, forceLPA = FALSE
 ) {
-
   # check if, for binary data, any species is present everywhere ("empty" takes care of the "nowhere"):
   # if (length(table(unlist(web))) == 2  & ( any(colSums(web) == nrow(web)) | any(rowSums(web) == ncol(web)))){
   #   warning("Your binary data set contains one (or more) species present everywhere. These will be ignored, as they contain no information for the modularity algorithm.")
@@ -78,12 +78,11 @@ mycomputeModules <- function(
   web <- as.matrix(bipartite::empty(web))
   if (any(attr(web, "empty")) > 0) warning("Some empty columns or rows were deleted.")
 
-  mod <- if (forceLPA) bipartite::LPA_wb_plus(web) else  bipartite::DIRT_LPA_wb_plus(web)
+  mod <- if (forceLPA) bipartite::LPA_wb_plus(web) else bipartite::DIRT_LPA_wb_plus(web)
   # convert into moduleWeb-object:
   result <- my_convert2moduleWeb(web, mod)
 
   return(result)
-
 }
 
 #

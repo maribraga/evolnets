@@ -13,15 +13,15 @@
 #'
 #' @examples
 #' # read history file
-#' \dontrun{history <- read_history("/path/history.txt", burnin = 0.2)}
-
-read_history <- function(path_to_hist, burnin = 0.1){
-
+#' \dontrun{
+#' history <- read_history("/path/history.txt", burnin = 0.2)
+#' }
+read_history <- function(path_to_hist, burnin = 0.1) {
   if (!is.numeric(burnin) || burnin > 1 || burnin < 0 || length(burnin) != 1) {
-    stop('`burnin` should be a numeric vector of length 1, between 0 and 1.')
+    stop("`burnin` should be a numeric vector of length 1, between 0 and 1.")
   }
 
-  colclasses <- c(rep("numeric",7),"character","character","numeric","character",rep("numeric",3))
+  colclasses <- c(rep("numeric", 7), "character", "character", "numeric", "character", rep("numeric", 3))
 
   history <- utils::read.table(path_to_hist, sep = "\t", header = TRUE, colClasses = colclasses) %>%
     dplyr::mutate(
@@ -43,10 +43,10 @@ read_history <- function(path_to_hist, burnin = 0.1){
 #' @export
 #'
 #' @examples
-#' \dontrun{tree <- read_tree_from_revbayes("symbiont_tree.tre")}
-
-read_tree_from_revbayes <- function(path_to_tree){
-
+#' \dontrun{
+#' tree <- read_tree_from_revbayes("symbiont_tree.tre")
+#' }
+read_tree_from_revbayes <- function(path_to_tree) {
   treeRev <- treeio::read.beast.newick(path_to_tree)
 
   tree <- treeRev@phylo

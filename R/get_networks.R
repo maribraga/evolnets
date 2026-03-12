@@ -25,9 +25,9 @@
 #' @examples
 #' # read data that comes with the package
 #' data_path <- system.file("extdata", package = "evolnets")
-#' tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
-#' host_tree <- ape::read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
-#' history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
+#' tree <- read_tree_from_revbayes(paste0(data_path, "/tree_pieridae.tre"))
+#' host_tree <- ape::read.tree(paste0(data_path, "/host_tree_pieridae.phy"))
+#' history <- read_history(paste0(data_path, "/history_thin_pieridae.txt"), burnin = 0)
 #'
 #' # choose ages in the past
 #' ages <- c(60, 50, 40, 0)
@@ -39,32 +39,31 @@
 #' weighted_net_50 <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
 #' binary_net_90 <- get_summary_networks(at_ages, threshold = 0.9, weighted = FALSE)
 get_summary_networks <- function(
-    at_ages, threshold, ages = NULL, weighted = TRUE, type = "states", state = 2,
-    repertoire = 'fundamental'
-){
-
-  if (!is.list(at_ages)) stop('`at_ages` should be a list.')
+  at_ages, threshold, ages = NULL, weighted = TRUE, type = "states", state = 2,
+  repertoire = "fundamental"
+) {
+  if (!is.list(at_ages)) stop("`at_ages` should be a list.")
   if (!is.numeric(threshold) || !(threshold > 0 & threshold <= 1)) {
-    stop('`threshold` should be a numeric value between 0 and 1.')
+    stop("`threshold` should be a numeric value between 0 and 1.")
   }
-  if (!is.null(ages) && !is.numeric(ages)) stop('`ages` should be a numeric vector or NULL.')
-  if (!is.logical(weighted)) stop('`logical` should be a logical value (TRUE/FALSE).')
-  if (!(type %in% c('states', 'repertoires') & length(type) == 1)) {
+  if (!is.null(ages) && !is.numeric(ages)) stop("`ages` should be a numeric vector or NULL.")
+  if (!is.logical(weighted)) stop("`logical` should be a logical value (TRUE/FALSE).")
+  if (!(type %in% c("states", "repertoires") & length(type) == 1)) {
     stop("`type` should be either 'states' or 'repertoires'.")
   }
-  if (!all(as.character(state) %in% dimnames(at_ages[['post_states']][[1]])[[3]])) {
+  if (!all(as.character(state) %in% dimnames(at_ages[["post_states"]][[1]])[[3]])) {
     stop("`state` should be a vector and have valid states occuring in `at_ages`")
   }
-  if (!(repertoire %in% c('fundamental', 'realized') & length(repertoire) == 1)) {
+  if (!(repertoire %in% c("fundamental", "realized") & length(repertoire) == 1)) {
     stop("`repertoire` should be either 'fundamental' or 'realized'.")
   }
-  if (threshold <= 0.5 & type == 'states' & length(state) > 1) {
-    stop('When analyzing multiple states, threshold should be > 0.5.')
+  if (threshold <= 0.5 & type == "states" & length(state) > 1) {
+    stop("When analyzing multiple states, threshold should be > 0.5.")
   }
 
   # pick the right states or repertoires
-  if (type == 'states') {
-    if (weighted & (length(state) > 1)) stop('Multiple states are only supported for binary networks.')
+  if (type == "states") {
+    if (weighted & (length(state) > 1)) stop("Multiple states are only supported for binary networks.")
     age_list <- at_ages$post_states
     age_list <- lapply(age_list, function(a) a[, , as.character(state)])
   } else {
@@ -73,7 +72,7 @@ get_summary_networks <- function(
   }
 
   if (!is.null(ages) && (length(ages) != length(age_list))) {
-    stop('`at_ages` must contain the same time slices as `ages`.')
+    stop("`at_ages` must contain the same time slices as `ages`.")
   }
   # find ages if not provided
   if (is.null(ages)) ages <- as.numeric(names(age_list))
@@ -83,7 +82,7 @@ get_summary_networks <- function(
   net_list <- list()
 
   for (m in seq_along(ages)) {
-    mat <- age_list[[m]]  # mat is an array when state = 1:2
+    mat <- age_list[[m]] # mat is an array when state = 1:2
     mat[mat < threshold] <- 0
     if (!weighted) {
       mat[mat >= threshold] <- 1
@@ -95,7 +94,6 @@ get_summary_networks <- function(
     mat <- mat[rowSums(mat) != 0, , drop = FALSE]
     mat <- mat[, colSums(mat) != 0, drop = FALSE]
     net_list[[m]] <- mat
-
   }
 
   names(net_list) <- ages
@@ -120,9 +118,9 @@ get_summary_networks <- function(
 #' @examples
 #' # read data that comes with the package
 #' data_path <- system.file("extdata", package = "evolnets")
-#' tree <- read_tree_from_revbayes(paste0(data_path,"/tree_pieridae.tre"))
-#' host_tree <- ape::read.tree(paste0(data_path,"/host_tree_pieridae.phy"))
-#' history <- read_history(paste0(data_path,"/history_thin_pieridae.txt"), burnin = 0)
+#' tree <- read_tree_from_revbayes(paste0(data_path, "/tree_pieridae.tre"))
+#' host_tree <- ape::read.tree(paste0(data_path, "/host_tree_pieridae.phy"))
+#' history <- read_history(paste0(data_path, "/history_thin_pieridae.txt"), burnin = 0)
 #'
 #' # choose ages
 #' ages <- c(60, 50, 40, 0)
@@ -133,16 +131,16 @@ get_summary_networks <- function(
 #' # get sampled networks
 #' sampled_nets <- get_sampled_networks(at_ages)
 get_sampled_networks <- function(at_ages, state = 2, ages = NULL) {
-  if (!is.list(at_ages)) stop('`at_ages` should be a list.')
-  if (!is.null(ages) && !is.numeric(ages)) stop('`ages` should be a numeric vector or NULL.')
-  if (!all(as.character(state) %in% dimnames(at_ages[['post_states']][[1]])[[3]])) {
+  if (!is.list(at_ages)) stop("`at_ages` should be a list.")
+  if (!is.null(ages) && !is.numeric(ages)) stop("`ages` should be a numeric vector or NULL.")
+  if (!all(as.character(state) %in% dimnames(at_ages[["post_states"]][[1]])[[3]])) {
     stop("`state` should be a vector and have valid states occuring in `at_ages`")
   }
 
   samples <- at_ages$samples
 
   if (!is.null(ages) && !all(ages %in% names(at_ages))) {
-    stop('`at_ages` must contain the ages given in `ages`.')
+    stop("`at_ages` must contain the ages given in `ages`.")
   }
   # find ages if not provided
   if (is.null(ages)) ages <- as.numeric(names(samples))
