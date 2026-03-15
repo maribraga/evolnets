@@ -11,9 +11,9 @@ RevBayes offers models to infer host-repertoire evolution, but no tools to parse
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/maribraga/evolnets}
-  \item \url{https://maribraga.github.io/evolnets/}
-  \item Report bugs at \url{https://github.com/maribraga/evolnets/issues}
+  \item \url{https://github.com/evonetslab/evolnets}
+  \item \url{https://evonetslab.github.io/evolnets/}
+  \item Report bugs at \url{https://github.com/evonetslab/evolnets/issues}
 }
 
 }
