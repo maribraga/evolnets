@@ -54,9 +54,9 @@ Imports:
     future.apply
 Depends: 
     R (>= 2.10)
-URL: https://github.com/maribraga/evolnets,
-    https://maribraga.github.io/evolnets/
-BugReports: https://github.com/maribraga/evolnets/issues
+URL: https://github.com/evonetslab/evolnets,
+    https://evonetslab.github.io/evolnets/
+BugReports: https://github.com/evonetslab/evolnets/issues
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/Needs/website: rmarkdown

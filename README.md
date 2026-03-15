@@ -24,7 +24,7 @@ if(!require("devtools", quietly = TRUE)) {
  library(devtools)
 }
 
-devtools::install_github("maribraga/evolnets")
+devtools::install_github("evonetslab/evolnets")
 ```
 
 ## About
@@ -46,4 +46,4 @@ rates, ancestral states and samples.
   `Q_posterior_at_ages( )`, `NODF_posterior_at_ages( )`.
 
 See the full documentation at the [evolnets’
-website](https://maribraga.github.io/evolnets/).
+website](https://evonetslab.github.io/evolnets/).
