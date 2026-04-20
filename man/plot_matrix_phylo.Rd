@@ -19,7 +19,9 @@ plot_matrix_phylo(
   point_size = 3,
   dodge_width = 0.025,
   colors = NULL,
-  ladderize = FALSE
+  ladderize = FALSE,
+  widths = c(1, 1),
+  heights = c(3, 1)
 )
 }
 \arguments{
@@ -31,9 +33,7 @@ network is represented, otherwise a weighted network is assumed.}
 
 \item{tree}{The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class \code{phylo}.}
 
-\item{host_tree}{The phylogeny belonging to the hosts. Object of class \code{phylo}.
-
-See the examples on how to change the color scale.}
+\item{host_tree}{The phylogeny belonging to the hosts. Object of class \code{phylo}.}
 
 \item{type}{One of \code{'states'} or \code{'repertoires'}. If \code{'states'}, will plot the presence of a
 state when its posterior probability is higher than \code{threshold}. If \code{'repertoires'}, will plot
@@ -74,6 +74,14 @@ as there are modules.}
 
 The ancestral states are automatically colored by module. To change what colors are used, you
 can add color scales to the resulting \code{ggplot}, e.g. \code{ggplot2::scale_color_manual()}.}
+
+\item{widths}{Used in a call to \code{patchwork::wrap_plots()}. The relative widths of each column
+in the plot grid.}
+
+\item{heights}{Used in a call to \code{patchwork::wrap_plots()}. The relative heights of each row
+in the plot grid.
+
+See the examples on how to change the color scale.}
 }
 \value{
 An assembly of plots, of class \code{patchwork}.
