@@ -444,6 +444,10 @@ plot_ancestral_states <- function(
 #'   network is represented, otherwise a weighted network is assumed.
 #' @param tree The phylogeny of the symbiont clade (e.g. parasites, herbivores). Object of class `phylo`.
 #' @param host_tree The phylogeny belonging to the hosts. Object of class `phylo`.
+#' @param widths Used in a call to `patchwork::wrap_plots()`. The relative widths of each column
+#' in the plot grid.
+#' @param heights Used in a call to `patchwork::wrap_plots()`. The relative heights of each row
+#' in the plot grid.
 #'
 #' See the examples on how to change the color scale.
 #'
@@ -473,7 +477,8 @@ plot_ancestral_states <- function(
 plot_matrix_phylo <- function(
   net, at_nodes, tree, host_tree, type = "states", state = 2, repertoire = "fundamental",
   modules = NULL, module_order = NULL, find_modules = TRUE,
-  threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE
+  threshold = 0.9, point_size = 3, dodge_width = 0.025, colors = NULL, ladderize = FALSE,
+  widths = c(1,1), heights = c(3,1)
 ) {
   # Check inputs
   if (!is.matrix(net)) stop("`net` should be a matrix.")
@@ -533,7 +538,7 @@ plot_matrix_phylo <- function(
     module_plot + ggplot2::labs(tag = "B"),
     patchwork::guide_area(),
     host_plot + ggplot2::labs(tag = "C"),
-    ncol = 2, widths = c(1, 1), heights = c(3, 1), guides = "collect"
+    ncol = 2, widths = widths, heights = heights, guides = "collect"
   )
 }
 
