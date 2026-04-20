@@ -14,12 +14,14 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   warning = FALSE,
-  message = FALSE, 
-  eval = FALSE
+  message = FALSE
 )
+```
 
+```{r, echo=FALSE}
 options(rmarkdown.html_vignette.check_title = FALSE)
 ```
+
 
 `evolnets` is an R package for summarizing the posterior distribution produced by Bayesian inference of ancestral networks. Currently, the only available approach specific for inference of ecological interactions is based on the model of host-repertoire evolution implemented originally in [RevBayes](https://revbayes.github.io/tutorials/host_rep/host_rep.html) and then in [TreePPL](https://treeppl.org). If you are unfamiliar with this model, check out this [paper in Systematic Biology](https://doi.org/10.1093/sysbio/syaa019) where the model is introduced. <!-- There are, however, other approaches that can produce posterior distributions of ancestral interactions, such as DEC models of geographic range evolution. evolnets also supports outputs from such analyses produced by RevBayes and BioGeoBEARS. -->
 
@@ -136,7 +138,9 @@ pp_at_deep_nodes[, c("Fabaceae", "Capparaceae", "Rosaceae"), ]
 
 We can see that Fabaceae was most likely an ancestral hosts for Pieridae butterflies. Capparaceae might have been a host at the origin of Pieridae, but most certainly starting at node "Index_128". On the other hand, the probability that these butterflies used Rosaceae as a host is very small.
 
-Instead of just looking at numbers, we can plot the ancestral hosts for all internal nodes in the symbiont tree. For that, we have to choose a probability threshold over which to plot (default is 0.9). Ancestral states are colored by modules in the extant network, so we have to either define the modules first or let it be done within the plotting function. Let's plot both trees, the interaction matrix, and the ancestral states at once, like so:
+Instead of just looking at numbers, we can plot the ancestral hosts for all internal nodes in the symbiont tree. For that, we have to choose a probability threshold over which to plot (default is 0.9). Ancestral states are colored by modules in the extant network, so we have to either define the modules first or let it be done within the plotting function. As this is a stochastic process, the modules will change a little every time the `plot_matrix_phylo()` is called. 
+
+Let's plot both trees, the interaction matrix, and the ancestral states at once, like so:
 
 ```{r}
 at_nodes <- posterior_at_nodes(history, tree, host_tree)
@@ -162,14 +166,14 @@ The main goal of `evolnets` is to reconstruct the evolution of networks. We can 
 
 `posterior_at_ages( )` finds the symbiont lineages that were extant at given time points in the past and calculates the posterior probability for interactions between these symbionts and each host based on samples from the MCMC. The first element of `at_ages` contains the sampled networks and the second, the posterior probabilities.
 
-```{r}
+```{r, eval = FALSE}
 ages <- c(60, 50, 40, 0)
 at_ages <- posterior_at_ages(history, ages, tree, host_tree)
 ```
 
 Then, we can make different interaction matrices based on two things: the minimum posterior probability for an interaction to be included in the network, and whether we want a binary or a weighted network.
 
-```{r}
+```{r, eval = FALSE}
 weighted_nets_50 <- get_summary_networks(at_ages, threshold = 0.5, weighted = TRUE)
 binary_nets_90 <- get_summary_networks(at_ages, threshold = 0.9, weighted = FALSE)
 
@@ -183,13 +187,13 @@ binary_nets_90 <- get_summary_networks(at_ages, threshold = 0.9, weighted = FALS
 
 ### Sampled networks
 
-```{r}
+```{r, eval = FALSE}
 samples_at_ages <- get_sampled_networks(at_ages)
 ```
 
 Then, we can calculate network properties for each sampled network.
 
-```{r}
+```{r, eval = FALSE}
 # calculate posterior distribution of nestedness
 Nz <- index_at_ages_samples(samples_at_ages, index = "NODF", nnull = 10)
 
